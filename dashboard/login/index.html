@@ -4,6 +4,10 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Farm Login</title>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com">
+<link rel="dns-prefetch" href="https://www.gstatic.com">
+<link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
 <style>
 :root{--btn:#1668dc;--btnH:#3c89e8;--btnA:#1554ad;--bg:#070a16;--card:rgba(255,255,255,.06);--stroke:rgba(255,255,255,.10);--txt:#eaf2ff;--muted:rgba(234,242,255,.7);--good:#27d17f;--bad:#ff4d4d}
 *{box-sizing:border-box}
@@ -69,51 +73,95 @@ input:focus{border-color:rgba(60,137,232,.7);box-shadow:0 0 0 3px rgba(60,137,23
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import {
+    getAuth,
+    setPersistence,
+    browserLocalPersistence,
+    signInWithEmailAndPassword
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-  // ====== TUKAR CONFIG INI ======
-const firebaseConfig = {
-  apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
-  authDomain: "farm-a9071.firebaseapp.com",
-  databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "farm-a9071",
-  storageBucket: "farm-a9071.firebasestorage.app",
-  messagingSenderId: "979250293394",
-  appId: "1:979250293394:web:af419dd2b325017a41944b"
-};
-  // =============================
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
+    authDomain: "farm-a9071.firebaseapp.com",
+    databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "farm-a9071",
+    storageBucket: "farm-a9071.firebasestorage.app",
+    messagingSenderId: "979250293394",
+    appId: "1:979250293394:web:af419dd2b325017a41944b"
+  };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
 
   const $ = (id)=>document.getElementById(id);
+
   const toast=(msg, ok=true)=>{
     const t=$("toast");
+    if(!t) return alert(msg);
     t.className="toast show "+(ok?"good":"bad");
     t.textContent=msg;
     clearTimeout(toast._tm);
     toast._tm=setTimeout(()=>t.className="toast",2600);
   };
 
+  // ✅ set persistence sekali sahaja (lebih laju)
+  let persistenceReady = false;
+  async function initPersistence(){
+    if(persistenceReady) return;
+    await setPersistence(auth, browserLocalPersistence);
+    persistenceReady = true;
+  }
+
+  const btnLogin = $("btnLogin");
+
+  function setBusy(busy){
+    if(!btnLogin) return;
+    btnLogin.disabled = busy;
+    btnLogin.textContent = busy ? "Logging in..." : "Login";
+  }
+
   async function doLogin(){
     const u=$("username").value.trim();
     const p=$("password").value;
+
     if(!u||!p) return toast("Isi username & password.", false);
 
+    // optional: block spaces / weird
+    if(u.includes(" ")) return toast("Username tak boleh ada space.", false);
+
     const email = `${u}@farm.local`;
+
     try{
-      await setPersistence(auth, browserLocalPersistence);
+      setBusy(true);
+
+      // ✅ pastikan persistence siap dulu
+      await initPersistence();
+
       await signInWithEmailAndPassword(auth, email, p);
+
       toast("Login success. Redirect…", true);
-      setTimeout(()=>location.replace("../admin/"), 250);
+
+      // ✅ redirect terus (tak perlu tunggu lama)
+      location.replace("../admin/");
     }catch(e){
       toast("Login failed: " + (e?.message||e), false);
+      setBusy(false);
     }
   }
 
-  $("btnLogin").onclick = doLogin;
-  $("btnReset").onclick = ()=>{ $("username").value=""; $("password").value=""; $("username").focus(); };
-  window.addEventListener("keydown",(e)=>{ if(e.key==="Enter") doLogin(); });
+  // ✅ init awal untuk kurangkan delay masa user tekan login
+  initPersistence().catch(()=>{});
+
+  btnLogin?.addEventListener("click", doLogin);
+  $("btnReset")?.addEventListener("click", ()=>{
+    $("username").value="";
+    $("password").value="";
+    $("username").focus();
+  });
+
+  window.addEventListener("keydown",(e)=>{
+    if(e.key==="Enter") doLogin();
+  });
 </script>
 </body>
 </html>
