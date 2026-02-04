@@ -4,6 +4,12 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Farm History (RTDB)</title>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com">
+<link rel="preconnect" href="https://firebasedatabase.app">
+<link rel="dns-prefetch" href="https://www.gstatic.com">
+<link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
+<link rel="dns-prefetch" href="https://firebasedatabase.app">
 <style>
 :root{--btn:#1668dc;--btnH:#3c89e8;--btnA:#1554ad;--bg:#070a16;--card:rgba(255,255,255,.06);--stroke:rgba(255,255,255,.10);--txt:#eaf2ff;--muted:rgba(234,242,255,.7);--good:#27d17f;--bad:#ff4d4d;--shadow:0 18px 60px rgba(0,0,0,.45)}
 *{box-sizing:border-box}
@@ -86,17 +92,15 @@ input{width:100%;padding:10px;border-radius:12px;border:1px solid var(--stroke);
   import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
   import { getDatabase, ref, get, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-  // ====== TUKAR CONFIG INI ======
-const firebaseConfig = {
-  apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
-  authDomain: "farm-a9071.firebaseapp.com",
-  databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "farm-a9071",
-  storageBucket: "farm-a9071.firebasestorage.app",
-  messagingSenderId: "979250293394",
-  appId: "1:979250293394:web:af419dd2b325017a41944b"
-};
-  // =============================
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
+    authDomain: "farm-a9071.firebaseapp.com",
+    databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "farm-a9071",
+    storageBucket: "farm-a9071.firebasestorage.app",
+    messagingSenderId: "979250293394",
+    appId: "1:979250293394:web:af419dd2b325017a41944b"
+  };
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -109,6 +113,7 @@ const firebaseConfig = {
   let uid=null;
   let isAdmin=false;
 
+  // modal
   const mask=$("mask");
   const openM=(title, body, foot)=>{
     $("mTitle").textContent=title;
@@ -119,6 +124,11 @@ const firebaseConfig = {
   const closeM=()=>mask.classList.remove("show");
   $("mx").onclick=closeM;
   mask.addEventListener("click",(e)=>{ if(e.target.id==="mask") closeM(); });
+
+  // ✅ render placeholder cepat (user nampak page hidup)
+  function setLoadingRow(){
+    $("rows").innerHTML = `<tr><td colspan="6" class="muted">Loading history…</td></tr>`;
+  }
 
   async function readAdminFlag(uid){
     const s = await get(ref(db, `admins/${uid}`));
@@ -147,6 +157,20 @@ const firebaseConfig = {
     `;
   }
 
+  function renderHistory(obj){
+    const list = obj || {};
+    const arr = Object.entries(list).map(([id,v])=>({ id, ...(v||{}) }));
+
+    arr.sort((a,b)=>Number(b.closedAt||0)-Number(a.closedAt||0));
+
+    if(!arr.length){
+      $("rows").innerHTML = `<tr><td colspan="6" class="muted">No history yet.</td></tr>`;
+      return;
+    }
+    $("rows").innerHTML = arr.map(v=>rowHtml(v.id, v)).join("");
+  }
+
+  // click actions (admin sahaja)
   $("rows").addEventListener("click", async (e)=>{
     const b=e.target.closest("button[data-act]");
     if(!b || !isAdmin) return;
@@ -162,11 +186,16 @@ const firebaseConfig = {
         <button class="btn ghost" id="c">Cancel</button>
         <button class="btn" id="s">Save</button>
       `);
+
       $("c").onclick=closeM;
       $("s").onclick=async ()=>{
         const t=($("t").value||"").trim();
         if(!t) return;
-        await update(ref(db, `users/${uid}/history/${id}`), { title:t, updatedAt: Date.now() });
+        await update(ref(db, `users/${uid}/history/${id}`), {
+          title:t,
+          updatedAt: Date.now(),
+          updatedText: new Date().toISOString()
+        });
         closeM();
       };
     }
@@ -176,6 +205,7 @@ const firebaseConfig = {
         <button class="btn ghost" id="c">Cancel</button>
         <button class="btn danger" id="s">Delete</button>
       `);
+
       $("c").onclick=closeM;
       $("s").onclick=async ()=>{
         await remove(ref(db, `users/${uid}/history/${id}`));
@@ -187,24 +217,37 @@ const firebaseConfig = {
 
   onAuthStateChanged(auth, async (u)=>{
     if(!u){ location.replace("../login/"); return; }
+
     uid=u.uid;
     const email=u.email||"";
-    const username = email.includes("@") ? email.split("@")[0] : "user";
+    const username = email.includes("@") ? email.split("@")[0] : (u.displayName||"user");
+
     $("btnUser").textContent = "👤 " + username;
 
-    isAdmin = await readAdminFlag(uid);
-    $("hintLine").textContent = isAdmin ? "Admin boleh edit/delete history." : "Staff boleh view sahaja (tiada edit).";
+    // ✅ cepat letak placeholder
+    setLoadingRow();
+    $("hintLine").textContent = "Loading role…";
 
-    onValue(ref(db, `users/${uid}/history`), (snap)=>{
-      const obj=snap.val()||{};
-      const arr=Object.values(obj);
-      arr.sort((a,b)=>Number(b.closedAt||0)-Number(a.closedAt||0));
+    // ✅ start realtime listener dulu (tak tunggu admin flag)
+    const histRef = ref(db, `users/${uid}/history`);
+    onValue(histRef, (snap)=>{
+      renderHistory(snap.val()||{});
+    }, (err)=>{
+      $("rows").innerHTML = `<tr><td colspan="6" class="muted">Failed to load: ${esc(err?.message||String(err))}</td></tr>`;
+    });
 
-      if(!arr.length){
-        $("rows").innerHTML = `<tr><td colspan="6" class="muted">No history yet.</td></tr>`;
-        return;
-      }
-      $("rows").innerHTML = arr.map(v=>rowHtml(v.id, v)).join("");
+    // ✅ admin flag jalan background
+    readAdminFlag(uid).then((flag)=>{
+      isAdmin = !!flag;
+      $("hintLine").textContent = isAdmin
+        ? "Admin boleh edit/delete history."
+        : "Staff boleh view sahaja (tiada edit).";
+
+      // re-render cepat supaya kolum Actions update (Edit/Delete muncul)
+      get(histRef).then(s=>renderHistory(s.val()||{})).catch(()=>{});
+    }).catch(()=>{
+      isAdmin = false;
+      $("hintLine").textContent = "Staff mode (role check failed).";
     });
   });
 </script>
