@@ -3,193 +3,114 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Farm Vault Admin</title>
+<title>Farm Admin (RTDB)</title>
 <style>
-  :root{
-    --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
-    --bg:#070a16; --card:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.10);
-    --txt:#eaf2ff; --muted:rgba(234,242,255,.7);
-    --good:#27d17f; --bad:#ff4d4d;
-    --warn:#ffcc55;
-    --shadow:0 18px 60px rgba(0,0,0,.45);
-    --r16:16px; --r12:12px;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; color:var(--txt);
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background:
-      radial-gradient(900px 600px at 20% 10%, rgba(22,104,220,.25), transparent 60%),
-      radial-gradient(900px 600px at 80% 30%, rgba(60,137,232,.18), transparent 60%),
-      linear-gradient(180deg, var(--bg), #000 70%, #0b1220);
-    min-height:100vh;
-  }
+:root{
+  --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
+  --bg:#070a16; --card:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.10);
+  --txt:#eaf2ff; --muted:rgba(234,242,255,.7);
+  --good:#27d17f; --bad:#ff4d4d; --warn:#ffcc55;
+  --shadow:0 18px 60px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--txt);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:
+    radial-gradient(900px 600px at 20% 10%, rgba(22,104,220,.25), transparent 60%),
+    radial-gradient(900px 600px at 80% 30%, rgba(60,137,232,.18), transparent 60%),
+    linear-gradient(180deg, var(--bg), #000 70%, #0b1220);
+  min-height:100vh;
+}
+header{
+  height:64px; position:sticky; top:0; z-index:9999;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 16px; background:rgba(0,0,0,.55);
+  border-bottom:1px solid var(--stroke);
+  backdrop-filter: blur(10px);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--btn);box-shadow:0 0 0 4px rgba(22,104,220,.18)}
+.hdrRight{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 
-  header{
-    height:64px;
-    position:sticky; top:0; z-index:9999;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0 16px;
-    background:rgba(0,0,0,.55);
-    border-bottom:1px solid var(--stroke);
-    backdrop-filter: blur(10px);
-  }
-  .brand{
-    display:flex; align-items:center; gap:10px; font-weight:900;
-    letter-spacing:.4px;
-  }
-  .dot{width:10px;height:10px;border-radius:50%;background:var(--btn);box-shadow:0 0 0 4px rgba(22,104,220,.18)}
-  .hdrRight{display:flex; align-items:center; gap:10px}
-  .btn{
-    appearance:none; border:none; cursor:pointer;
-    background:var(--btn); color:#fff; font-weight:800;
-    padding:10px 12px; border-radius:12px;
-    transition:.15s transform,.15s background;
-    display:inline-flex; align-items:center; gap:8px;
-  }
-  .btn:hover{background:var(--btnH)}
-  .btn:active{background:var(--btnA); transform:translateY(1px)}
-  .btn.ghost{background:transparent;border:1px solid var(--stroke);color:var(--txt)}
-  .btn.small{padding:8px 10px; border-radius:10px; font-size:12px}
-  .btn.danger{background:rgba(255,77,77,.18); border:1px solid rgba(255,77,77,.35); color:var(--txt)}
-  .btn.danger:hover{background:rgba(255,77,77,.28)}
-  .btn.ok{background:rgba(39,209,127,.18); border:1px solid rgba(39,209,127,.35); color:var(--txt)}
-  .btn.ok:hover{background:rgba(39,209,127,.28)}
-  .btn.warn{background:rgba(255,204,85,.16); border:1px solid rgba(255,204,85,.35); color:var(--txt)}
-  .btn.warn:hover{background:rgba(255,204,85,.26)}
+.btn{
+  appearance:none;border:none;cursor:pointer;
+  background:var(--btn);color:#fff;font-weight:800;
+  padding:10px 12px;border-radius:12px;
+  transition:.15s transform,.15s background;
+  display:inline-flex;align-items:center;gap:8px
+}
+.btn:hover{background:var(--btnH)}
+.btn:active{background:var(--btnA);transform:translateY(1px)}
+.btn.ghost{background:transparent;border:1px solid var(--stroke);color:var(--txt)}
+.btn.small{padding:8px 10px;border-radius:10px;font-size:12px}
+.btn.danger{background:rgba(255,77,77,.18);border:1px solid rgba(255,77,77,.35);color:var(--txt)}
+.btn.warn{background:rgba(255,204,85,.16);border:1px solid rgba(255,204,85,.35);color:var(--txt)}
+.btn.warn:hover{background:rgba(255,204,85,.26)}
 
-  .wrap{max-width:1200px; margin:0 auto; padding:16px}
-  .topBar{
-    display:flex; justify-content:space-between; align-items:flex-start;
-    gap:14px; flex-wrap:wrap;
-    margin:14px 0 10px;
-  }
-  .subInfo{color:var(--muted); font-size:12px; line-height:1.4}
-  .actionRow{
-    display:flex; gap:10px; flex-wrap:wrap;
-    align-items:center;
-  }
+.wrap{max-width:1200px;margin:0 auto;padding:16px}
+.topBar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 0 10px}
+.subInfo{color:var(--muted);font-size:12px;line-height:1.4}
+.actionRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 
-  .grid{display:grid; gap:12px}
-  .vault{
-    background:var(--card);
-    border:1px solid var(--stroke);
-    border-radius:18px;
-    box-shadow:var(--shadow);
-    overflow:hidden;
-  }
-  .vaultHead{
-    display:flex; justify-content:space-between; align-items:center;
-    padding:12px 12px;
-    border-bottom:1px solid var(--stroke);
-    background:rgba(255,255,255,.03);
-    gap:10px; flex-wrap:wrap;
-  }
-  .vaultTitle{font-weight:900}
-  .meta{font-size:12px; color:var(--muted)}
-  .vaultBtns{display:flex; gap:8px; flex-wrap:wrap}
-  .vaultBody{padding:12px}
+.grid{display:grid;gap:12px}
+.vault{
+  background:var(--card);border:1px solid var(--stroke);
+  border-radius:18px;box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.vaultHead{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px;border-bottom:1px solid var(--stroke);
+  background:rgba(255,255,255,.03);gap:10px;flex-wrap:wrap
+}
+.vaultTitle{font-weight:900}
+.meta{font-size:12px;color:var(--muted)}
+.vaultBtns{display:flex;gap:8px;flex-wrap:wrap}
+.vaultBody{padding:12px}
 
-  /* excel-like table */
-  table{
-    width:100%;
-    border-collapse:separate;
-    border-spacing:0;
-    overflow:hidden;
-    border:1px solid var(--stroke);
-    border-radius:14px;
-    background:rgba(0,0,0,.25);
-  }
-  th, td{
-    padding:10px 10px;
-    border-bottom:1px solid rgba(255,255,255,.06);
-    font-size:13px;
-    vertical-align:top;
-  }
-  th{
-    text-align:left;
-    color:rgba(234,242,255,.86);
-    background:rgba(255,255,255,.04);
-    font-size:12px;
-    letter-spacing:.3px;
-  }
-  tr:last-child td{border-bottom:none}
-  .right{text-align:right}
-  .pill{
-    display:inline-flex; align-items:center; gap:6px;
-    padding:6px 10px; border-radius:999px;
-    border:1px solid var(--stroke);
-    background:rgba(255,255,255,.04);
-    font-size:12px;
-  }
-  .pill.good{border-color:rgba(39,209,127,.35)}
-  .pill.bad{border-color:rgba(255,77,77,.35)}
-  .pill.warn{border-color:rgba(255,204,85,.35)}
-  .neg{color:var(--bad); font-weight:900}
-  .pos{color:var(--good); font-weight:900}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 10px;border-radius:999px;
+  border:1px solid var(--stroke);
+  background:rgba(255,255,255,.04);
+  font-size:12px;
+}
+.pill.good{border-color:rgba(39,209,127,.35)}
+.pill.bad{border-color:rgba(255,77,77,.35)}
+.pill.warn{border-color:rgba(255,204,85,.35)}
+.neg{color:var(--bad);font-weight:900}
+.pos{color:var(--good);font-weight:900}
 
-  /* modal */
-  .modalMask{
-    position:fixed; inset:0; z-index:999999;
-    background:rgba(0,0,0,.62);
-    display:none; align-items:center; justify-content:center;
-    padding:18px;
-  }
-  .modalMask.show{display:flex}
-  .modal{
-    width:min(640px,100%);
-    background:rgba(10,14,26,.92);
-    border:1px solid var(--stroke);
-    border-radius:18px;
-    box-shadow:var(--shadow);
-    overflow:hidden;
-  }
-  .modalHead{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:12px 12px;
-    border-bottom:1px solid var(--stroke);
-    background:rgba(255,255,255,.03);
-  }
-  .modalHead .title{font-weight:900}
-  .x{
-    width:36px;height:36px;border-radius:12px;
-    background:transparent;border:1px solid var(--stroke);
-    color:var(--txt); cursor:pointer;
-  }
-  .x:hover{border-color:rgba(60,137,232,.55)}
-  .modalBody{padding:12px}
-  .modalFoot{
-    display:flex; justify-content:flex-end; gap:10px;
-    padding:12px;
-    border-top:1px solid var(--stroke);
-    background:rgba(255,255,255,.02);
-  }
-  label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
-  input, select, textarea{
-    width:100%;
-    padding:10px 10px;
-    border-radius:12px;
-    border:1px solid var(--stroke);
-    background:rgba(0,0,0,.25);
-    color:var(--txt);
-    outline:none;
-  }
-  input:focus, select:focus, textarea:focus{
-    border-color:rgba(60,137,232,.7);
-    box-shadow:0 0 0 3px rgba(60,137,232,.18)
-  }
-  .two{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-  @media (max-width:760px){ .two{grid-template-columns:1fr} }
-  .toast{
-    position:fixed; left:16px; right:16px; bottom:16px;
-    max-width:720px; margin:auto;
-    padding:12px 14px; border-radius:14px;
-    border:1px solid var(--stroke); background:rgba(0,0,0,.6);
-    display:none;
-  }
-  .toast.show{display:block}
-  .toast.good{border-color:rgba(39,209,127,.35)}
-  .toast.bad{border-color:rgba(255,77,77,.35)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+
+table{
+  width:100%;border-collapse:separate;border-spacing:0;
+  border:1px solid var(--stroke);border-radius:14px;
+  background:rgba(0,0,0,.25);overflow:hidden
+}
+th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);font-size:13px;vertical-align:top}
+th{background:rgba(255,255,255,.04);text-align:left;font-size:12px;letter-spacing:.3px}
+tr:last-child td{border-bottom:none}
+.right{text-align:right}
+
+/* modal */
+.mask{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.62);display:none;align-items:center;justify-content:center;padding:18px}
+.mask.show{display:flex}
+.modal{width:min(680px,100%);background:rgba(10,14,26,.92);border:1px solid var(--stroke);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.mHead{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid var(--stroke);background:rgba(255,255,255,.03)}
+.mBody{padding:12px}
+.mFoot{display:flex;justify-content:flex-end;gap:10px;padding:12px;border-top:1px solid var(--stroke);background:rgba(255,255,255,.02)}
+.x{width:36px;height:36px;border-radius:12px;background:transparent;border:1px solid var(--stroke);color:var(--txt);cursor:pointer}
+.x:hover{border-color:rgba(60,137,232,.55)}
+label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+input,select{width:100%;padding:10px;border-radius:12px;border:1px solid var(--stroke);background:rgba(0,0,0,.25);color:var(--txt);outline:none}
+input:focus,select:focus{border-color:rgba(60,137,232,.7);box-shadow:0 0 0 3px rgba(60,137,232,.18)}
+
+.toast{position:fixed;left:16px;right:16px;bottom:16px;max-width:720px;margin:auto;padding:12px 14px;border-radius:14px;border:1px solid var(--stroke);background:rgba(0,0,0,.6);display:none}
+.toast.show{display:block}
+.toast.good{border-color:rgba(39,209,127,.35)} .toast.bad{border-color:rgba(255,77,77,.35)}
 </style>
 </head>
 <body>
@@ -199,21 +120,21 @@
     <span class="dot"></span>
     <div>
       <div style="font-size:14px">FARM VAULT</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px" id="roleLine">Loading...</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px" id="roleLine">Loading…</div>
     </div>
   </div>
 
   <div class="hdrRight">
     <button class="btn ghost" id="btnWallet">💰 Wallet</button>
-    <button class="btn" id="btnUser">👤 ...</button>
+    <button class="btn" id="btnUser">👤 …</button>
     <button class="btn danger small" id="btnLogout">Logout</button>
   </div>
 </header>
 
 <div class="wrap">
   <div class="topBar">
-    <div class="subInfo" id="subInfo">
-      Vault terbaru akan muncul paling atas. Semua transaksi simpan cloud (Firestore).
+    <div class="subInfo">
+      Vault terbaru akan muncul paling atas. Semua data simpan dalam RTDB.
     </div>
 
     <div class="actionRow">
@@ -228,30 +149,26 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- MODALS -->
-<div class="modalMask" id="modalMask">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modalHead">
-      <div class="title" id="modalTitle">Modal</div>
-      <button class="x" id="modalX">✕</button>
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="mHead">
+      <div style="font-weight:900" id="mTitle">Modal</div>
+      <button class="x" id="mx">✕</button>
     </div>
-    <div class="modalBody" id="modalBody"></div>
-    <div class="modalFoot" id="modalFoot"></div>
+    <div class="mBody" id="mBody"></div>
+    <div class="mFoot" id="mFoot"></div>
   </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
   import {
-    getAuth, onAuthStateChanged, signOut
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import {
-    getFirestore, doc, getDoc, setDoc, updateDoc, addDoc,
-    collection, serverTimestamp, query, orderBy, onSnapshot,
-    deleteDoc
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+    getDatabase, ref, set, get, update, push, remove, onValue,
+    runTransaction, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-  // ========== FIREBASE CONFIG (TUKAR) ==========
+  // ====== TUKAR CONFIG INI ======
 const firebaseConfig = {
   apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
   authDomain: "farm-a9071.firebaseapp.com",
@@ -261,17 +178,17 @@ const firebaseConfig = {
   messagingSenderId: "979250293394",
   appId: "1:979250293394:web:af419dd2b325017a41944b"
 };
-  // ============================================
+  // =============================
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const db = getFirestore(app);
+  const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
-  const money = (n)=> (Number(n||0)).toLocaleString("en-MY",{minimumFractionDigits:2, maximumFractionDigits:2});
+  const money = (n)=> (Number(n||0)).toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
   const nowStr = (d=new Date())=>{
-    const pad=(x)=>String(x).padStart(2,"0");
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    const p=x=>String(x).padStart(2,"0");
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
   };
   const toast=(msg, ok=true)=>{
     const t=$("toast");
@@ -280,74 +197,63 @@ const firebaseConfig = {
     clearTimeout(toast._tm);
     toast._tm=setTimeout(()=>t.className="toast",2600);
   };
+  const esc=(s)=>String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 
-  // ---------- Modal helpers ----------
-  function openModal(title, bodyHtml, footButtonsHtml){
-    $("modalTitle").textContent = title;
-    $("modalBody").innerHTML = bodyHtml;
-    $("modalFoot").innerHTML = footButtonsHtml || "";
-    $("modalMask").classList.add("show");
+  // modal helpers
+  const mask=$("mask");
+  const openM=(title, bodyHtml, footHtml)=>{
+    $("mTitle").textContent=title;
+    $("mBody").innerHTML=bodyHtml;
+    $("mFoot").innerHTML=footHtml||"";
+    mask.classList.add("show");
+  };
+  const closeM=()=>mask.classList.remove("show");
+  $("mx").onclick=closeM;
+  mask.addEventListener("click",(e)=>{ if(e.target.id==="mask") closeM(); });
+
+  // state
+  let me=null;
+  let isAdmin=false;
+  let walletBalance=0;
+  let vaultsCache={}; // vaultId -> vaultData
+  let itemsUnsub={};  // vaultId -> flag
+
+  const baseUser=(uid)=>`users/${uid}`;
+  const r = (path)=>ref(db, path);
+
+  async function readAdminFlag(uid){
+    const snap = await get(r(`admins/${uid}`));
+    return snap.exists() && snap.val() === true;
   }
-  function closeModal(){ $("modalMask").classList.remove("show"); }
-  $("modalX").addEventListener("click", closeModal);
-  $("modalMask").addEventListener("click", (e)=>{ if(e.target.id==="modalMask") closeModal(); });
 
-  // ---------- State ----------
-  let me = null;
-  let isAdmin = false;
-  let walletBalance = 0;
-
-  const userDocRef = (uid)=> doc(db, "users", uid);
-  const walletRef = (uid)=> doc(db, "users", uid, "meta", "wallet");
-  const vaultsCol = (uid)=> collection(db, "users", uid, "vaults");
-  const historyCol = (uid)=> collection(db, "users", uid, "history");
-
-  async function ensureUserBase(uid, username){
-    // profile
-    await setDoc(userDocRef(uid), {
+  async function ensureProfile(uid, username){
+    await update(r(`${baseUser(uid)}/profile`), {
       username,
-      lastLoginAt: serverTimestamp(),
       lastLoginText: nowStr(),
-    }, { merge:true });
-
-    // wallet default
-    const wSnap = await getDoc(walletRef(uid));
-    if(!wSnap.exists()){
-      await setDoc(walletRef(uid), { balance: 0, updatedAt: serverTimestamp(), updatedText: nowStr() }, { merge:true });
+      lastLoginAt: Date.now()
+    });
+    // init wallet if missing
+    const ws = await get(r(`${baseUser(uid)}/wallet/balance`));
+    if(!ws.exists()){
+      await set(r(`${baseUser(uid)}/wallet/balance`), 0);
     }
   }
 
-  async function fetchAdminFlag(uid){
-    // Admin allowlist: collection "admins/{uid}"
-    const a = await getDoc(doc(db,"admins",uid));
-    return a.exists();
-  }
-
-  async function readWallet(uid){
-    const w = await getDoc(walletRef(uid));
-    walletBalance = Number(w.data()?.balance || 0);
-    return walletBalance;
-  }
-
-  async function writeWallet(uid, newBal){
-    walletBalance = Number(newBal||0);
-    await setDoc(walletRef(uid), {
-      balance: walletBalance,
-      updatedAt: serverTimestamp(),
-      updatedText: nowStr()
-    }, { merge:true });
-  }
-
-  // ---------- UI header ----------
-  function setHeaderUser(){
-    const u = me?.username || "User";
-    $("btnUser").textContent = "👤 " + u;
+  function setHeader(){
+    $("btnUser").textContent = "👤 " + (me?.username||"User");
     $("roleLine").textContent = isAdmin ? "Role: ADMIN (full access)" : "Role: STAFF (limited)";
     $("btnAddPoint").style.display = isAdmin ? "" : "none";
   }
 
+  // realtime wallet
+  function listenWallet(uid){
+    onValue(r(`${baseUser(uid)}/wallet/balance`), (snap)=>{
+      walletBalance = Number(snap.val()||0);
+    });
+  }
+
   function walletModal(){
-    openModal("My Wallet (Modal Uang)", `
+    openM("My Wallet (Modal Uang)", `
       <div class="two">
         <div>
           <div class="pill warn" style="justify-content:space-between;width:100%">
@@ -355,158 +261,180 @@ const firebaseConfig = {
             <b>RM ${money(walletBalance)}</b>
           </div>
           <div style="margin-top:10px;color:var(--muted);font-size:12px;line-height:1.4">
-            Wallet akan berubah bila:
-            <ul style="margin:8px 0 0 16px; padding:0">
-              <li>Add Point (IN/OUT)</li>
-              <li>Cash Transfer (IN/OUT)</li>
-              <li>Sell (hasil jual masuk wallet)</li>
-              <li>Buy (auto tolak wallet bila save)</li>
-            </ul>
+            Wallet berubah bila Buy/Sell/Cash Transfer (dan Add Point untuk admin).
           </div>
         </div>
         <div>
-          <div class="pill" style="width:100%; justify-content:space-between">
+          <div class="pill" style="justify-content:space-between;width:100%">
             <span>User UID</span>
-            <b style="font-size:12px">${me?.uid || "-"}</b>
+            <b style="font-size:12px">${me?.uid||"-"}</b>
           </div>
-          <div class="pill" style="width:100%; justify-content:space-between; margin-top:10px">
-            <span>Last Login</span>
-            <b style="font-size:12px">${me?.lastLoginText || "-"}</b>
+          <div class="pill" style="justify-content:space-between;width:100%;margin-top:10px">
+            <span>Username</span>
+            <b style="font-size:12px">${me?.username||"-"}</b>
           </div>
         </div>
       </div>
-    `, `<button class="btn ghost" onclick="(${closeModal.toString()})()">Close</button>`);
+    `, `<button class="btn ghost" id="wClose">Close</button>`);
+    document.getElementById("wClose").onclick = closeM;
   }
 
-  // ---------- Add Point (admin only) ----------
+  // ===== transactions on wallet =====
+  async function walletAdd(amount){
+    const balRef = r(`${baseUser(me.uid)}/wallet/balance`);
+    const res = await runTransaction(balRef, (cur)=> (Number(cur||0) + Number(amount||0)));
+    return Number(res.snapshot.val()||0);
+  }
+  async function walletSub(amount){
+    const balRef = r(`${baseUser(me.uid)}/wallet/balance`);
+    const amt = Number(amount||0);
+    const res = await runTransaction(balRef, (cur)=>{
+      const c = Number(cur||0);
+      // prevent negative
+      if(c - amt < 0) return; // abort
+      return c - amt;
+    });
+    if(!res.committed) throw new Error("Wallet tidak cukup.");
+    return Number(res.snapshot.val()||0);
+  }
+
+  // ===== Add Point (admin only) =====
   function addPointModal(){
     if(!isAdmin) return toast("Staff tak boleh guna Add Point.", false);
 
-    openModal("Add Point (Modal Wallet)", `
+    openM("Add Point", `
       <label>Type</label>
       <select id="apType">
         <option value="in">IN (Tambah modal)</option>
         <option value="out">OUT (Tolak modal)</option>
       </select>
-
       <label>Amount (RM)</label>
-      <input id="apAmt" type="number" inputmode="decimal" placeholder="contoh: 100000"/>
-
+      <input id="apAmt" type="number" inputmode="decimal" placeholder="contoh: 100000">
       <label>Note (optional)</label>
-      <input id="apNote" placeholder="contoh: modal awal / tambah modal"/>
+      <input id="apNote" placeholder="contoh: modal awal">
     `, `
       <button class="btn ghost" id="apCancel">Cancel</button>
       <button class="btn" id="apSave">Save</button>
     `);
 
-    $("apCancel").onclick = closeModal;
+    $("apCancel").onclick = closeM;
     $("apSave").onclick = async ()=>{
       const type = $("apType").value;
       const amt = Number($("apAmt").value||0);
       const note = ($("apNote").value||"").trim();
       if(amt<=0) return toast("Amount mesti > 0", false);
 
-      const before = walletBalance;
-      const after = type==="in" ? (before+amt) : (before-amt);
-      await writeWallet(me.uid, after);
+      try{
+        const before = walletBalance;
+        const after = type==="in" ? await walletAdd(amt) : await walletSub(amt);
 
-      // log transaction (separate path untuk scale)
-      await addDoc(collection(db,"users",me.uid,"wallet_logs"), {
-        kind:"add_point",
-        type, amount:amt,
-        before, after,
-        note,
-        createdAt: serverTimestamp(),
-        createdText: nowStr()
-      });
+        // log (admin-only path)
+        const logRef = push(r(`${baseUser(me.uid)}/walletLogs`));
+        await set(logRef, {
+          kind:"add_point",
+          type, amount:amt,
+          before, after,
+          note,
+          createdAt: Date.now(),
+          createdText: nowStr()
+        });
 
-      closeModal();
-      toast(`Wallet updated: RM ${money(before)} → RM ${money(after)}`, true);
+        closeM();
+        toast(`Wallet updated: RM ${money(before)} → RM ${money(after)}`, true);
+      }catch(err){
+        toast(err?.message||String(err), false);
+      }
     };
   }
 
-  // ---------- Create Vault ----------
+  // ===== Create vault =====
   function newVaultModal(){
-    openModal("Open New Vault", `
+    openM("Open New Vault", `
       <label>Title</label>
-      <input id="vTitle" placeholder="contoh: Feb 2026 / Vault 1 / Bulan 2"/>
+      <input id="vTitle" placeholder="contoh: Feb 2026 / Vault 1">
       <div style="margin-top:10px;color:var(--muted);font-size:12px">
-        Vault terbaru akan berada paling atas.
+        Vault terbaru akan di atas.
       </div>
     `, `
       <button class="btn ghost" id="vCancel">Cancel</button>
       <button class="btn" id="vCreate">Create</button>
     `);
 
-    $("vCancel").onclick = closeModal;
-    $("vCreate").onclick = async ()=>{
-      const title = ($("vTitle").value||"").trim();
+    $("vCancel").onclick=closeM;
+    $("vCreate").onclick=async ()=>{
+      const title=($("vTitle").value||"").trim();
       if(!title) return toast("Title tak boleh kosong.", false);
 
-      await addDoc(vaultsCol(me.uid), {
+      const vRef = push(r(`${baseUser(me.uid)}/vaults`));
+      const id = vRef.key;
+
+      await set(vRef, {
+        id,
         title,
         status:"open",
-        createdAt: serverTimestamp(),
+        createdAt: Date.now(),
         createdText: nowStr(),
-        updatedAt: serverTimestamp(),
+        updatedAt: Date.now(),
         updatedText: nowStr(),
         buyTotal: 0,
         sellTotal: 0,
         sellKg: 0,
-        sellHead: 0,
+        sellHead: 0
       });
 
-      closeModal();
+      closeM();
       toast("Vault created.", true);
     };
   }
 
-  // ---------- Cash transfer ----------
+  // ===== Cash transfer =====
   function cashTransferModal(vaultId){
-    openModal("Cash Transfer", `
+    openM("Cash Transfer", `
       <label>Type</label>
       <select id="ctType">
         <option value="in">CASH IN (Masuk duit)</option>
         <option value="out">CASH OUT (Keluar duit)</option>
       </select>
-
       <label>Amount (RM)</label>
-      <input id="ctAmt" type="number" inputmode="decimal" placeholder="contoh: 1000"/>
-
+      <input id="ctAmt" type="number" inputmode="decimal" placeholder="contoh: 1000">
       <label>Note (optional)</label>
-      <input id="ctNote" placeholder="contoh: bayar pekerja / tambah cash"/>
+      <input id="ctNote" placeholder="contoh: bayar pekerja">
     `, `
       <button class="btn ghost" id="ctCancel">Cancel</button>
       <button class="btn" id="ctSave">Save</button>
     `);
 
-    $("ctCancel").onclick = closeModal;
-    $("ctSave").onclick = async ()=>{
-      const type = $("ctType").value;
-      const amt = Number($("ctAmt").value||0);
-      const note = ($("ctNote").value||"").trim();
+    $("ctCancel").onclick=closeM;
+    $("ctSave").onclick=async ()=>{
+      const type=$("ctType").value;
+      const amt=Number($("ctAmt").value||0);
+      const note=($("ctNote").value||"").trim();
       if(amt<=0) return toast("Amount mesti > 0", false);
 
-      const before = walletBalance;
-      const after = type==="in" ? (before+amt) : (before-amt);
-      await writeWallet(me.uid, after);
+      try{
+        const before=walletBalance;
+        const after = type==="in" ? await walletAdd(amt) : await walletSub(amt);
 
-      await addDoc(collection(db,"users",me.uid,"vault_cash_logs"), {
-        vaultId,
-        type, amount:amt, note,
-        before, after,
-        createdAt: serverTimestamp(),
-        createdText: nowStr()
-      });
+        const logRef = push(r(`${baseUser(me.uid)}/cashLogs`));
+        await set(logRef, {
+          vaultId,
+          type, amount:amt, note,
+          before, after,
+          createdAt: Date.now(),
+          createdText: nowStr()
+        });
 
-      closeModal();
-      toast(`Cash ${type.toUpperCase()} saved. Wallet: RM ${money(after)}`, true);
+        closeM();
+        toast(`Cash ${type.toUpperCase()} saved. Wallet: RM ${money(after)}`, true);
+      }catch(err){
+        toast(err?.message||String(err), false);
+      }
     };
   }
 
-  // ---------- Buy item ----------
+  // ===== Buy =====
   function buyModal(vaultId){
-    openModal("Buy (Pembelian)", `
+    openM("Buy (Pembelian)", `
       <label>Category</label>
       <select id="bCat">
         <option value="baby">Bayi Babi</option>
@@ -517,175 +445,197 @@ const firebaseConfig = {
       <div class="two">
         <div>
           <label>Qty (ekor / unit)</label>
-          <input id="bQty" type="number" inputmode="numeric" placeholder="contoh: 10"/>
+          <input id="bQty" type="number" inputmode="numeric" placeholder="contoh: 10">
         </div>
         <div>
           <label>Price per unit (RM)</label>
-          <input id="bPrice" type="number" inputmode="decimal" placeholder="contoh: 350"/>
+          <input id="bPrice" type="number" inputmode="decimal" placeholder="contoh: 350">
         </div>
       </div>
 
       <label>Total (RM)</label>
-      <input id="bTotal" type="number" inputmode="decimal" placeholder="auto kira" readonly/>
+      <input id="bTotal" readonly placeholder="auto kira">
 
       <label>Note (optional)</label>
-      <input id="bNote" placeholder="contoh: supplier A"/>
+      <input id="bNote" placeholder="contoh: supplier A">
+
       <div style="margin-top:10px;color:var(--muted);font-size:12px">
-        Kalau wallet tak cukup, total akan jadi <span style="color:var(--bad);font-weight:900">merah</span>.
+        Kalau wallet tak cukup, total akan jadi <b style="color:var(--bad)">merah</b>.
       </div>
     `, `
       <button class="btn ghost" id="bCancel">Cancel</button>
       <button class="btn" id="bSave">Save</button>
     `);
 
-    const calc = ()=>{
-      const qty = Number($("bQty").value||0);
-      const price = Number($("bPrice").value||0);
-      const total = qty*price;
+    const calc=()=>{
+      const qty=Number($("bQty").value||0);
+      const price=Number($("bPrice").value||0);
+      const total=qty*price;
       $("bTotal").value = total ? total.toFixed(2) : "";
       const ok = total<=walletBalance;
       $("bTotal").style.borderColor = ok ? "var(--stroke)" : "rgba(255,77,77,.75)";
       $("bTotal").style.boxShadow = ok ? "none" : "0 0 0 3px rgba(255,77,77,.18)";
     };
-    $("bQty").oninput = calc;
-    $("bPrice").oninput = calc;
+    $("bQty").oninput=calc; $("bPrice").oninput=calc;
 
-    $("bCancel").onclick = closeModal;
-    $("bSave").onclick = async ()=>{
-      const cat = $("bCat").value;
-      const qty = Number($("bQty").value||0);
-      const price = Number($("bPrice").value||0);
-      const total = Number($("bTotal").value||0);
-      const note = ($("bNote").value||"").trim();
-
-      if(qty<=0 || price<=0) return toast("Qty & price mesti > 0", false);
+    $("bCancel").onclick=closeM;
+    $("bSave").onclick=async ()=>{
+      const cat=$("bCat").value;
+      const qty=Number($("bQty").value||0);
+      const price=Number($("bPrice").value||0);
+      const total=Number($("bTotal").value||0);
+      const note=($("bNote").value||"").trim();
+      if(qty<=0||price<=0) return toast("Qty & price mesti > 0", false);
       if(total<=0) return toast("Total invalid.", false);
-      if(total>walletBalance) return toast("Wallet tak cukup untuk buy.", false);
+      if(total>walletBalance) return toast("Wallet tak cukup.", false);
 
-      const before = walletBalance;
-      const after = before - total;
-      await writeWallet(me.uid, after);
+      try{
+        const before=walletBalance;
+        const after=await walletSub(total);
 
-      await addDoc(collection(db,"users",me.uid,"vaults",vaultId,"buys"), {
-        cat, qty, price, total, note,
-        createdAt: serverTimestamp(),
-        createdText: nowStr()
-      });
+        // save item
+        const itemRef = push(r(`${baseUser(me.uid)}/vaultItems/${vaultId}`));
+        await set(itemRef, {
+          type:"buy",
+          cat, qty, price, total, note,
+          createdAt: Date.now(),
+          createdText: nowStr()
+        });
 
-      closeModal();
-      toast(`Buy saved. Wallet: RM ${money(after)}`, true);
+        // update vault summary
+        await runTransaction(r(`${baseUser(me.uid)}/vaults/${vaultId}/buyTotal`), (cur)=> Number(cur||0)+total);
+        await update(r(`${baseUser(me.uid)}/vaults/${vaultId}`), { updatedAt: Date.now(), updatedText: nowStr() });
+
+        closeM();
+        toast(`Buy saved. Wallet: RM ${money(after)}`, true);
+      }catch(err){
+        toast(err?.message||String(err), false);
+      }
     };
   }
 
-  // ---------- Sell ----------
+  // ===== Sell =====
   function sellModal(vaultId){
-    openModal("Sell (Jual)", `
+    openM("Sell (Jual)", `
       <div class="two">
         <div>
           <label>Price per Kg (RM)</label>
-          <input id="sPriceKg" type="number" inputmode="decimal" placeholder="contoh: 12.50"/>
+          <input id="sPriceKg" type="number" inputmode="decimal" placeholder="contoh: 12.50">
         </div>
         <div>
           <label>Total Kg</label>
-          <input id="sKg" type="number" inputmode="decimal" placeholder="contoh: 300"/>
+          <input id="sKg" type="number" inputmode="decimal" placeholder="contoh: 300">
         </div>
       </div>
 
       <div class="two">
         <div>
           <label>Total Ekor</label>
-          <input id="sHead" type="number" inputmode="numeric" placeholder="contoh: 20"/>
+          <input id="sHead" type="number" inputmode="numeric" placeholder="contoh: 20">
         </div>
         <div>
           <label>Total Hasil (RM)</label>
-          <input id="sTotal" type="number" inputmode="decimal" readonly placeholder="auto kira"/>
+          <input id="sTotal" readonly placeholder="auto kira">
         </div>
       </div>
 
       <label>Note (optional)</label>
-      <input id="sNote" placeholder="contoh: customer / pasar"/>
+      <input id="sNote" placeholder="contoh: pasar / customer">
     `, `
       <button class="btn ghost" id="sCancel">Cancel</button>
       <button class="btn" id="sSave">Save</button>
     `);
 
-    const calc = ()=>{
-      const p = Number($("sPriceKg").value||0);
-      const kg = Number($("sKg").value||0);
-      const total = p*kg;
+    const calc=()=>{
+      const p=Number($("sPriceKg").value||0);
+      const kg=Number($("sKg").value||0);
+      const total=p*kg;
       $("sTotal").value = total ? total.toFixed(2) : "";
     };
-    $("sPriceKg").oninput = calc;
-    $("sKg").oninput = calc;
+    $("sPriceKg").oninput=calc; $("sKg").oninput=calc;
 
-    $("sCancel").onclick = closeModal;
-    $("sSave").onclick = async ()=>{
-      const priceKg = Number($("sPriceKg").value||0);
-      const kg = Number($("sKg").value||0);
-      const head = Number($("sHead").value||0);
-      const total = Number($("sTotal").value||0);
-      const note = ($("sNote").value||"").trim();
-
-      if(priceKg<=0 || kg<=0) return toast("Price/kg & kg mesti > 0", false);
+    $("sCancel").onclick=closeM;
+    $("sSave").onclick=async ()=>{
+      const priceKg=Number($("sPriceKg").value||0);
+      const kg=Number($("sKg").value||0);
+      const head=Number($("sHead").value||0);
+      const total=Number($("sTotal").value||0);
+      const note=($("sNote").value||"").trim();
+      if(priceKg<=0||kg<=0) return toast("Price/kg & kg mesti > 0", false);
       if(total<=0) return toast("Total invalid.", false);
 
-      const before = walletBalance;
-      const after = before + total;
-      await writeWallet(me.uid, after);
+      try{
+        const before=walletBalance;
+        const after=await walletAdd(total);
 
-      await addDoc(collection(db,"users",me.uid,"vaults",vaultId,"sells"), {
-        priceKg, kg, head, total, note,
-        createdAt: serverTimestamp(),
-        createdText: nowStr()
-      });
+        const itemRef = push(r(`${baseUser(me.uid)}/vaultItems/${vaultId}`));
+        await set(itemRef, {
+          type:"sell",
+          priceKg, kg, head, total, note,
+          createdAt: Date.now(),
+          createdText: nowStr()
+        });
 
-      closeModal();
-      toast(`Sell saved. Wallet: RM ${money(after)}`, true);
+        await runTransaction(r(`${baseUser(me.uid)}/vaults/${vaultId}/sellTotal`), (cur)=> Number(cur||0)+total);
+        await runTransaction(r(`${baseUser(me.uid)}/vaults/${vaultId}/sellKg`), (cur)=> Number(cur||0)+kg);
+        await runTransaction(r(`${baseUser(me.uid)}/vaults/${vaultId}/sellHead`), (cur)=> Number(cur||0)+head);
+        await update(r(`${baseUser(me.uid)}/vaults/${vaultId}`), { updatedAt: Date.now(), updatedText: nowStr() });
+
+        closeM();
+        toast(`Sell saved. Wallet: RM ${money(after)}`, true);
+      }catch(err){
+        toast(err?.message||String(err), false);
+      }
     };
   }
 
-  // ---------- Close vault (move to history) ----------
+  // ===== Closing (move to history + move items) =====
   async function closeVault(vaultId){
-    // copy vault doc + its subcollections (buys, sells) into history/{sameId-ish}
-    const vRef = doc(db,"users",me.uid,"vaults",vaultId);
-    const vSnap = await getDoc(vRef);
+    const vSnap = await get(r(`${baseUser(me.uid)}/vaults/${vaultId}`));
     if(!vSnap.exists()) return toast("Vault not found.", false);
 
-    const data = vSnap.data();
-    // create history doc
-    const hRef = doc(db,"users",me.uid,"history",vaultId);
-    await setDoc(hRef, {
-      ...data,
+    const vault = vSnap.val();
+
+    // read items once
+    const itemsSnap = await get(r(`${baseUser(me.uid)}/vaultItems/${vaultId}`));
+    const items = itemsSnap.exists() ? itemsSnap.val() : {};
+
+    const closedText = nowStr();
+    const updatesObj = {};
+
+    // write history summary
+    updatesObj[`${baseUser(me.uid)}/history/${vaultId}`] = {
+      ...vault,
       status:"closed",
-      closedAt: serverTimestamp(),
-      closedText: nowStr(),
-    }, { merge:true });
+      closedAt: Date.now(),
+      closedText
+    };
 
-    // NOTE: to keep this single-file simple, kita tak deep-copy semua buys/sells items satu-satu.
-    // Cara scalable: store all items in one collection "vault_items" with vaultId + type (buy/sell),
-    // tapi sekarang kita biar items stay under vaultId in vaults, dan history just simpan summary.
-    // Kalau kau nak history full items migrate, nanti aku upgrade.
+    // move items to historyItems
+    updatesObj[`${baseUser(me.uid)}/historyItems/${vaultId}`] = items;
 
-    // delete vault doc (optional). Kita buat "soft close": move to history & delete vault doc
-    await deleteDoc(vRef);
+    // remove open vault + open items
+    updatesObj[`${baseUser(me.uid)}/vaults/${vaultId}`] = null;
+    updatesObj[`${baseUser(me.uid)}/vaultItems/${vaultId}`] = null;
 
+    await update(r("/"), updatesObj);
     toast("Vault closed & moved to history.", true);
   }
 
-  // ---------- Render vault list ----------
+  // ===== Render =====
   function vaultCard(v){
-    const id = v.id;
-    const d = v.data();
+    const id=v.id;
+    const d=v;
 
     const profit = Number(d.sellTotal||0) - Number(d.buyTotal||0);
-    const lossAbs = profit<0 ? Math.abs(profit) : 0;
+    const salesPositive = profit>=0 ? profit : Math.abs(profit);
 
     return `
       <div class="vault">
         <div class="vaultHead">
           <div>
-            <div class="vaultTitle">${escapeHtml(d.title||"Untitled")}</div>
-            <div class="meta">Created: ${escapeHtml(d.createdText||"-")} • Updated: ${escapeHtml(d.updatedText||"-")}</div>
+            <div class="vaultTitle">${esc(d.title||"Untitled")}</div>
+            <div class="meta">Created: ${esc(d.createdText||"-")} • Updated: ${esc(d.updatedText||"-")}</div>
           </div>
           <div class="vaultBtns">
             <button class="btn small ghost" data-act="cash" data-id="${id}">Cash Transfer</button>
@@ -719,9 +669,9 @@ const firebaseConfig = {
               <span>Profit (boleh negatif)</span>
               <b class="${profit<0?"neg":"pos"}">${profit<0?"-":""}RM ${money(Math.abs(profit))}</b>
             </div>
-            <div class="pill ${lossAbs>0?"bad":"good"}" style="justify-content:space-between;width:100%">
-              <span>${lossAbs>0?"Loss (positive)":"Keuntungan (positive)"}</span>
-              <b class="${lossAbs>0?"neg":"pos"}">RM ${money(lossAbs>0?lossAbs:profit)}</b>
+            <div class="pill ${profit<0?"bad":"good"}" style="justify-content:space-between;width:100%">
+              <span>${profit<0?"Sales (Loss positive)":"Sales (Keuntungan)"}</span>
+              <b class="${profit<0?"neg":"pos"}">RM ${money(salesPositive)}</b>
             </div>
           </div>
 
@@ -735,7 +685,7 @@ const firebaseConfig = {
               </tr>
             </thead>
             <tbody id="rows-${id}">
-              <tr><td colspan="4" style="color:var(--muted)">Loading items...</td></tr>
+              <tr><td colspan="4" style="color:var(--muted)">Loading items…</td></tr>
             </tbody>
           </table>
         </div>
@@ -743,147 +693,69 @@ const firebaseConfig = {
     `;
   }
 
-  function escapeHtml(s){
-    return String(s||"").replace(/[&<>"']/g, (m)=>({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-    }[m]));
-  }
+  function renderItems(vaultId, itemsObj){
+    const rows = document.getElementById(`rows-${vaultId}`);
+    if(!rows) return;
 
-  function itemRow(type, detail, amt, timeText){
-    return `
-      <tr>
-        <td><span class="pill ${type==="BUY"?"warn":type==="SELL"?"good":"pill"}">${type}</span></td>
-        <td>${detail}</td>
-        <td class="right"><b>${amt}</b></td>
-        <td style="color:var(--muted)">${escapeHtml(timeText||"-")}</td>
-      </tr>
-    `;
-  }
+    const arr = Object.entries(itemsObj||{}).map(([id,v])=>({id,...v}));
+    arr.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
 
-  async function attachVaultItemsListeners(vaultId){
-    const rowsEl = document.getElementById(`rows-${vaultId}`);
-    if(!rowsEl) return;
-
-    // realtime buys
-    const buysQ = query(collection(db,"users",me.uid,"vaults",vaultId,"buys"), orderBy("createdAt","desc"));
-    const sellsQ= query(collection(db,"users",me.uid,"vaults",vaultId,"sells"), orderBy("createdAt","desc"));
-
-    let buys=[], sells=[];
-    const render = ()=>{
-      const all = [
-        ...buys.map(x=>({kind:"BUY", ...x})),
-        ...sells.map(x=>({kind:"SELL", ...x})),
-      ].sort((a,b)=>{
-        // compare createdText fallback
-        const at = a.createdText||"";
-        const bt = b.createdText||"";
-        return bt.localeCompare(at);
-      });
-
-      if(!all.length){
-        rowsEl.innerHTML = `<tr><td colspan="4" style="color:var(--muted)">No items yet.</td></tr>`;
-        return;
-      }
-
-      rowsEl.innerHTML = all.map(it=>{
-        if(it.kind==="BUY"){
-          const catLabel = it.cat==="baby"?"Bayi Babi":it.cat==="feed"?"Pakan Babi":"Other";
-          const detail = `<b>${catLabel}</b> • qty: ${it.qty} • price: RM ${money(it.price)}${it.note?`<div style="color:var(--muted);font-size:12px;margin-top:4px">${escapeHtml(it.note)}</div>`:""}`;
-          return itemRow("BUY", detail, `RM ${money(it.total)}`, it.createdText);
-        }else{
-          const detail = `<b>Sell</b> • ${Number(it.kg||0).toFixed(2)} kg • ${Number(it.head||0).toFixed(0)} ekor • RM ${money(it.priceKg)}/kg${it.note?`<div style="color:var(--muted);font-size:12px;margin-top:4px">${escapeHtml(it.note)}</div>`:""}`;
-          return itemRow("SELL", detail, `RM ${money(it.total)}`, it.createdText);
-        }
-      }).join("");
-    };
-
-    onSnapshot(buysQ, (snap)=>{
-      buys = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-      render();
-      // update summary
-      const buyTotal = buys.reduce((s,x)=> s + Number(x.total||0), 0);
-      updateDoc(doc(db,"users",me.uid,"vaults",vaultId), { buyTotal, updatedAt:serverTimestamp(), updatedText:nowStr() }).catch(()=>{});
-    });
-
-    onSnapshot(sellsQ, (snap)=>{
-      sells = snap.docs.map(d=>({ id:d.id, ...d.data() }));
-      render();
-      // update summary
-      const sellTotal = sells.reduce((s,x)=> s + Number(x.total||0), 0);
-      const sellKg = sells.reduce((s,x)=> s + Number(x.kg||0), 0);
-      const sellHead = sells.reduce((s,x)=> s + Number(x.head||0), 0);
-      updateDoc(doc(db,"users",me.uid,"vaults",vaultId), { sellTotal, sellKg, sellHead, updatedAt:serverTimestamp(), updatedText:nowStr() }).catch(()=>{});
-    });
-  }
-
-  function bindVaultActions(){
-    $("vaultList").addEventListener("click", (e)=>{
-      const btn = e.target.closest("button[data-act]");
-      if(!btn) return;
-      const act = btn.dataset.act;
-      const id = btn.dataset.id;
-
-      if(act==="cash") return cashTransferModal(id);
-      if(act==="buy") return buyModal(id);
-      if(act==="sell") return sellModal(id);
-      if(act==="close"){
-        openModal("Closing Vault", `
-          <div style="color:var(--muted);line-height:1.5">
-            Bila closing, vault ini akan dipindah ke History (summary).<br/>
-            Anda pasti mahu closing vault ini?
-          </div>
-        `, `
-          <button class="btn ghost" id="cNo">Cancel</button>
-          <button class="btn warn" id="cYes">Yes, Closing</button>
-        `);
-        $("cNo").onclick = closeModal;
-        $("cYes").onclick = async ()=>{
-          closeModal();
-          await closeVault(id);
-        };
-      }
-    });
-  }
-
-  // ---------- Auth gate ----------
-  $("btnLogout").addEventListener("click", async ()=>{
-    await signOut(auth);
-    location.replace("../login/");
-  });
-  $("btnWallet").addEventListener("click", walletModal);
-  $("btnAddPoint").addEventListener("click", addPointModal);
-  $("btnNewVault").addEventListener("click", newVaultModal);
-
-  bindVaultActions();
-
-  onAuthStateChanged(auth, async (user)=>{
-    if(!user){
-      location.replace("../login/");
+    if(!arr.length){
+      rows.innerHTML = `<tr><td colspan="4" style="color:var(--muted)">No items yet.</td></tr>`;
       return;
     }
 
-    // Build "username" from email before @
-    const email = (user.email||"");
-    const username = email.includes("@") ? email.split("@")[0] : (user.displayName||"user");
+    const typePill = (t)=>{
+      if(t==="buy") return `<span class="pill warn">BUY</span>`;
+      if(t==="sell") return `<span class="pill good">SELL</span>`;
+      return `<span class="pill">ITEM</span>`;
+    };
 
-    me = { uid:user.uid, email, username };
-    await ensureUserBase(user.uid, username);
+    rows.innerHTML = arr.map(it=>{
+      if(it.type==="buy"){
+        const cat = it.cat==="baby"?"Bayi Babi":it.cat==="feed"?"Pakan Babi":"Other";
+        const detail = `<b>${esc(cat)}</b> • qty: ${Number(it.qty||0)} • price: RM ${money(it.price||0)}${it.note?`<div style="color:var(--muted);font-size:12px;margin-top:4px">${esc(it.note)}</div>`:""}`;
+        return `
+          <tr>
+            <td>${typePill("buy")}</td>
+            <td>${detail}</td>
+            <td class="right"><b>RM ${money(it.total||0)}</b></td>
+            <td style="color:var(--muted)">${esc(it.createdText||"-")}</td>
+          </tr>
+        `;
+      }else{
+        const detail = `<b>Sell</b> • ${Number(it.kg||0).toFixed(2)} kg • ${Number(it.head||0).toFixed(0)} ekor • RM ${money(it.priceKg||0)}/kg${it.note?`<div style="color:var(--muted);font-size:12px;margin-top:4px">${esc(it.note)}</div>`:""}`;
+        return `
+          <tr>
+            <td>${typePill("sell")}</td>
+            <td>${detail}</td>
+            <td class="right"><b>RM ${money(it.total||0)}</b></td>
+            <td style="color:var(--muted)">${esc(it.createdText||"-")}</td>
+          </tr>
+        `;
+      }
+    }).join("");
+  }
 
-    isAdmin = await fetchAdminFlag(user.uid);
-    await readWallet(user.uid);
+  function listenVaultItems(vaultId){
+    if(itemsUnsub[vaultId]) return;
+    itemsUnsub[vaultId]=true;
 
-    setHeaderUser();
-
-    // realtime wallet updates
-    onSnapshot(walletRef(user.uid), (snap)=>{
-      walletBalance = Number(snap.data()?.balance || 0);
+    onValue(r(`${baseUser(me.uid)}/vaultItems/${vaultId}`), (snap)=>{
+      renderItems(vaultId, snap.val()||{});
     });
+  }
 
-    // realtime vault list
-    const qVault = query(vaultsCol(user.uid), orderBy("createdAt","desc"));
-    onSnapshot(qVault, (snap)=>{
-      const list = $("vaultList");
-      if(snap.empty){
+  function listenVaults(uid){
+    onValue(r(`${baseUser(uid)}/vaults`), (snap)=>{
+      const obj = snap.val()||{};
+      vaultsCache = obj;
+
+      const arr = Object.values(obj);
+      arr.sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0));
+
+      const list=$("vaultList");
+      if(!arr.length){
         list.innerHTML = `
           <div class="vault" style="padding:14px">
             <div class="pill warn" style="width:max-content">No vault yet</div>
@@ -892,10 +764,61 @@ const firebaseConfig = {
         `;
         return;
       }
-      list.innerHTML = snap.docs.map(vaultCard).join("");
-      // attach item listeners per vault
-      snap.docs.forEach(d=> attachVaultItemsListeners(d.id));
+
+      list.innerHTML = arr.map(vaultCard).join("");
+      arr.forEach(v=>listenVaultItems(v.id));
     });
+  }
+
+  // actions
+  $("vaultList").addEventListener("click", (e)=>{
+    const b = e.target.closest("button[data-act]");
+    if(!b) return;
+    const act=b.dataset.act, id=b.dataset.id;
+
+    if(act==="cash") return cashTransferModal(id);
+    if(act==="buy") return buyModal(id);
+    if(act==="sell") return sellModal(id);
+    if(act==="close"){
+      openM("Closing Vault", `
+        <div style="color:var(--muted);line-height:1.5">
+          Bila closing, vault akan dipindah ke History dan items akan dipindah juga.<br>
+          Confirm closing vault ini?
+        </div>
+      `, `
+        <button class="btn ghost" id="cNo">Cancel</button>
+        <button class="btn warn" id="cYes">Yes, Closing</button>
+      `);
+      $("cNo").onclick=closeM;
+      $("cYes").onclick=async ()=>{
+        closeM();
+        await closeVault(id);
+      };
+    }
+  });
+
+  // header buttons
+  $("btnWallet").onclick = walletModal;
+  $("btnAddPoint").onclick = addPointModal;
+  $("btnNewVault").onclick = newVaultModal;
+  $("btnLogout").onclick = async ()=>{ await signOut(auth); location.replace("../login/"); };
+
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){ location.replace("../login/"); return; }
+
+    const email = user.email||"";
+    const username = email.includes("@") ? email.split("@")[0] : (user.displayName||"user");
+
+    me = { uid:user.uid, email, username };
+
+    // admin flag from RTDB
+    isAdmin = await readAdminFlag(me.uid);
+
+    await ensureProfile(me.uid, username);
+    setHeader();
+
+    listenWallet(me.uid);
+    listenVaults(me.uid);
   });
 </script>
 </body>
