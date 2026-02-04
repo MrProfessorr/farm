@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Farm Vault History</title>
+<style>
+  :root{
+    --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
+    --bg:#070a16; --card:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.10);
+    --txt:#eaf2ff; --muted:rgba(234,242,255,.7);
+    --good:#27d17f; --bad:#ff4d4d; --warn:#ffcc55;
+    --shadow:0 18px 60px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; color:var(--txt);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:
+      radial-gradient(900px 600px at 20% 10%, rgba(22,104,220,.25), transparent 60%),
+      radial-gradient(900px 600px at 80% 30%, rgba(60,137,232,.18), transparent 60%),
+      linear-gradient(180deg, var(--bg), #000 70%, #0b1220);
+    min-height:100vh;
+  }
+  header{
+    height:64px; position:sticky; top:0; z-index:9999;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 16px;
+    background:rgba(0,0,0,.55);
+    border-bottom:1px solid var(--stroke);
+    backdrop-filter: blur(10px);
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:900}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--btn);box-shadow:0 0 0 4px rgba(22,104,220,.18)}
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    background:var(--btn); color:#fff; font-weight:800;
+    padding:10px 12px; border-radius:12px;
+    transition:.15s transform,.15s background;
+    display:inline-flex; align-items:center; gap:8px;
+    text-decoration:none;
+  }
+  .btn:hover{background:var(--btnH)}
+  .btn:active{background:var(--btnA); transform:translateY(1px)}
+  .btn.ghost{background:transparent;border:1px solid var(--stroke);color:var(--txt)}
+  .btn.small{padding:8px 10px; border-radius:10px; font-size:12px}
+  .btn.danger{background:rgba(255,77,77,.18); border:1px solid rgba(255,77,77,.35); color:var(--txt)}
+  .wrap{max-width:1200px; margin:0 auto; padding:16px}
+  .card{
+    background:var(--card); border:1px solid var(--stroke);
+    border-radius:18px; box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  table{
+    width:100%; border-collapse:separate; border-spacing:0;
+  }
+  th,td{padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.06); font-size:13px}
+  th{background:rgba(255,255,255,.04); text-align:left; font-size:12px; letter-spacing:.3px}
+  tr:last-child td{border-bottom:none}
+  .right{text-align:right}
+  .muted{color:var(--muted)}
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 10px; border-radius:999px;
+    border:1px solid var(--stroke);
+    background:rgba(255,255,255,.04);
+    font-size:12px;
+  }
+  .pill.good{border-color:rgba(39,209,127,.35)}
+  .pill.bad{border-color:rgba(255,77,77,.35)}
+  .neg{color:var(--bad); font-weight:900}
+  .pos{color:var(--good); font-weight:900}
+
+  /* modal simple */
+  .mask{position:fixed; inset:0; background:rgba(0,0,0,.62); display:none; align-items:center; justify-content:center; padding:18px}
+  .mask.show{display:flex}
+  .modal{width:min(560px,100%); background:rgba(10,14,26,.92); border:1px solid var(--stroke); border-radius:18px; overflow:hidden}
+  .mHead{display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid var(--stroke); background:rgba(255,255,255,.03)}
+  .mBody{padding:12px}
+  .mFoot{padding:12px; border-top:1px solid var(--stroke); display:flex; justify-content:flex-end; gap:10px; background:rgba(255,255,255,.02)}
+  input{width:100%; padding:10px; border-radius:12px; border:1px solid var(--stroke); background:rgba(0,0,0,.25); color:var(--txt); outline:none}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot"></span> HISTORY</div>
+  <div style="display:flex;gap:10px;align-items:center">
+    <a class="btn ghost" href="../admin/">⬅ Back Admin</a>
+    <button class="btn" id="btnUser">👤 ...</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Closed Time</th>
+          <th class="right">Buy Total</th>
+          <th class="right">Sell Total</th>
+          <th class="right">Profit</th>
+          <th style="width:220px">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="6" class="muted">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="muted" style="font-size:12px;margin-top:10px" id="hintLine"></div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="mHead">
+      <b id="mTitle">Edit</b>
+      <button class="btn ghost small" id="mx">✕</button>
+    </div>
+    <div class="mBody" id="mBody"></div>
+    <div class="mFoot" id="mFoot"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, updateDoc, deleteDoc, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  // ========== FIREBASE CONFIG (TUKAR) ==========
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+  };
+  // ============================================
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const $ = (id)=>document.getElementById(id);
+  const money = (n)=> (Number(n||0)).toLocaleString("en-MY",{minimumFractionDigits:2, maximumFractionDigits:2});
+  const esc = (s)=>String(s||"").replace(/[&<>"']/g, (m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+
+  let uid = null;
+  let isAdmin = false;
+
+  const mask = $("mask");
+  const openM = (title, body, foot)=>{
+    $("mTitle").textContent=title;
+    $("mBody").innerHTML=body;
+    $("mFoot").innerHTML=foot||"";
+    mask.classList.add("show");
+  };
+  const closeM = ()=> mask.classList.remove("show");
+  $("mx").onclick = closeM;
+  mask.addEventListener("click",(e)=>{ if(e.target.id==="mask") closeM(); });
+
+  async function fetchAdminFlag(uid){
+    const a = await getDoc(doc(db,"admins",uid));
+    return a.exists();
+  }
+
+  function rowHtml(id, d){
+    const buy = Number(d.buyTotal||0);
+    const sell = Number(d.sellTotal||0);
+    const profit = sell - buy;
+
+    const act = isAdmin ? `
+      <button class="btn small" data-act="edit" data-id="${id}">Edit</button>
+      <button class="btn danger small" data-act="del" data-id="${id}">Delete</button>
+    ` : `<span class="muted">No edit access</span>`;
+
+    return `
+      <tr>
+        <td><b>${esc(d.title||"Untitled")}</b></td>
+        <td class="muted">${esc(d.closedText||"-")}</td>
+        <td class="right">RM ${money(buy)}</td>
+        <td class="right">RM ${money(sell)}</td>
+        <td class="right">
+          <b class="${profit<0?"neg":"pos"}">${profit<0?"-":""}RM ${money(Math.abs(profit))}</b>
+        </td>
+        <td>${act}</td>
+      </tr>
+    `;
+  }
+
+  $("rows").addEventListener("click", async (e)=>{
+    const b = e.target.closest("button[data-act]");
+    if(!b) return;
+    if(!isAdmin) return;
+
+    const act=b.dataset.act, id=b.dataset.id;
+    const hRef = doc(db,"users",uid,"history",id);
+
+    if(act==="edit"){
+      openM("Edit History Title", `
+        <label class="muted" style="display:block;margin-bottom:6px">Title</label>
+        <input id="t" placeholder="new title"/>
+      `, `
+        <button class="btn ghost" id="c">Cancel</button>
+        <button class="btn" id="s">Save</button>
+      `);
+      $("c").onclick=closeM;
+      $("s").onclick=async ()=>{
+        const t = ($("t").value||"").trim();
+        if(!t) return;
+        await updateDoc(hRef, { title:t });
+        closeM();
+      };
+    }
+
+    if(act==="del"){
+      openM("Delete History", `<div class="muted">Confirm delete history vault ini?</div>`, `
+        <button class="btn ghost" id="c">Cancel</button>
+        <button class="btn danger" id="s">Delete</button>
+      `);
+      $("c").onclick=closeM;
+      $("s").onclick=async ()=>{
+        await deleteDoc(hRef);
+        closeM();
+      };
+    }
+  });
+
+  onAuthStateChanged(auth, async (u)=>{
+    if(!u){ location.replace("../login/"); return; }
+    uid = u.uid;
+    const email = u.email||"";
+    const username = email.includes("@") ? email.split("@")[0] : "user";
+    $("btnUser").textContent = "👤 " + username;
+
+    isAdmin = await fetchAdminFlag(uid);
+    $("hintLine").textContent = isAdmin
+      ? "Admin boleh edit/delete history."
+      : "Staff boleh tengok history saja (tak ada edit).";
+
+    const qy = query(collection(db,"users",uid,"history"), orderBy("closedAt","desc"));
+    onSnapshot(qy, (snap)=>{
+      if(snap.empty){
+        $("rows").innerHTML = `<tr><td colspan="6" class="muted">No history yet.</td></tr>`;
+        return;
+      }
+      $("rows").innerHTML = snap.docs.map(d=>rowHtml(d.id, d.data())).join("");
+    });
+  });
+</script>
+</body>
+</html>
