@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Farm Vault Login</title>
+  <style>
+    :root{
+      --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
+      --bg:#0b1220; --card:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.10);
+      --txt:#eaf2ff; --muted:rgba(234,242,255,.7);
+      --good:#27d17f; --bad:#ff4d4d;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(22,104,220,.35), transparent 60%),
+        radial-gradient(900px 600px at 80% 30%, rgba(60,137,232,.22), transparent 60%),
+        linear-gradient(180deg, #070a16, #000 65%, #0b1220);
+      color:var(--txt);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      padding:24px;
+    }
+    .wrap{width:min(980px,100%); display:grid; grid-template-columns:1.1fr .9fr; gap:16px}
+    @media (max-width: 860px){ .wrap{grid-template-columns:1fr} }
+    .hero,.card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      box-shadow:0 18px 60px rgba(0,0,0,.45);
+      backdrop-filter: blur(12px);
+      overflow:hidden;
+    }
+    .hero{padding:18px}
+    .hero h1{margin:0 0 8px; font-size:28px}
+    .hero p{margin:0 0 10px; color:var(--muted); line-height:1.5}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+    .chip{
+      padding:8px 10px; border-radius:999px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.04);
+      font-size:12px; color:var(--muted);
+    }
+    .card{padding:18px}
+    .card h2{margin:0 0 12px; font-size:18px}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input{
+      width:100%; padding:12px 12px;
+      border-radius:12px; border:1px solid var(--stroke);
+      background:rgba(0,0,0,.25); color:var(--txt);
+      outline:none;
+    }
+    input:focus{border-color:rgba(60,137,232,.7); box-shadow:0 0 0 3px rgba(60,137,232,.18)}
+    .row{display:flex; gap:10px; align-items:center}
+    .btn{
+      appearance:none; border:none; cursor:pointer;
+      background:var(--btn); color:#fff; font-weight:800;
+      padding:12px 14px; border-radius:12px;
+      transition:.15s transform,.15s background;
+    }
+    .btn:hover{background:var(--btnH)}
+    .btn:active{background:var(--btnA); transform:translateY(1px)}
+    .btn.ghost{
+      background:transparent; border:1px solid var(--stroke); color:var(--txt);
+    }
+    .hint{margin-top:10px; font-size:12px; color:var(--muted); line-height:1.4}
+    .toast{
+      position:fixed; left:16px; right:16px; bottom:16px;
+      max-width:640px; margin:auto;
+      padding:12px 14px; border-radius:14px;
+      border:1px solid var(--stroke); background:rgba(0,0,0,.6);
+      display:none;
+    }
+    .toast.show{display:block}
+    .toast.good{border-color:rgba(39,209,127,.35)}
+    .toast.bad{border-color:rgba(255,77,77,.35)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <h1>Farm Vault</h1>
+      <p>Login guna <b>username + password</b>. Sistem simpan vault, cash in/out, buy/sell, closing & history (Firestore).</p>
+      <div class="chips">
+        <div class="chip">Excel-like vault table</div>
+        <div class="chip">Cloud data (tak hilang)</div>
+        <div class="chip">Admin / Staff role UI</div>
+        <div class="chip">Cash Transfer + Buy + Sell</div>
+      </div>
+      <p class="hint">
+        Format email automatik: <b>username@farm.local</b><br/>
+        Contoh: farm88 → farm88@farm.local
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Login</h2>
+      <label>Username</label>
+      <input id="username" autocomplete="username" placeholder="farm88 / farm99"/>
+
+      <label>Password</label>
+      <input id="password" type="password" autocomplete="current-password" placeholder="••••••••"/>
+
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="btnLogin">Login</button>
+        <button class="btn ghost" id="btnReset">Reset</button>
+      </div>
+
+      <div class="hint">
+        Lepas login → auto masuk <b>/admin/</b><br/>
+        *Account kena create dulu di Firebase Auth.
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    // ========== FIREBASE CONFIG (TUKAR) ==========
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+    };
+    // ============================================
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const $ = (id)=>document.getElementById(id);
+    const toast = (msg, ok=true)=>{
+      const t = $("toast");
+      t.className = "toast show " + (ok ? "good":"bad");
+      t.textContent = msg;
+      clearTimeout(toast._tm);
+      toast._tm = setTimeout(()=>{ t.className="toast"; }, 2600);
+    };
+
+    async function doLogin(){
+      const u = $("username").value.trim();
+      const p = $("password").value;
+      if(!u || !p) return toast("Isi username & password.", false);
+
+      const email = `${u}@farm.local`;
+      try{
+        await setPersistence(auth, browserLocalPersistence);
+        await signInWithEmailAndPassword(auth, email, p);
+        toast("Login success. Redirect...", true);
+        setTimeout(()=> location.replace("../admin/"), 300);
+      }catch(e){
+        toast("Login failed: " + (e?.message || e), false);
+      }
+    }
+
+    $("btnLogin").addEventListener("click", doLogin);
+    $("btnReset").addEventListener("click", ()=>{
+      $("username").value=""; $("password").value="";
+      $("username").focus();
+    });
+
+    window.addEventListener("keydown", (e)=>{
+      if(e.key === "Enter") doLogin();
+    });
+  </script>
+</body>
+</html>
