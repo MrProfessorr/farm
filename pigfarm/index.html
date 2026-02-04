@@ -1,822 +1,1167 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Pig Farm Dashboard</title>
-<style>
-  :root{
-    --bg:#0b0f18;
-    --card: rgba(255,255,255,.06);
-    --stroke: rgba(255,255,255,.12);
-    --txt:#eaf0ff;
-    --muted: rgba(234,240,255,.70);
-    --gold1:#ffcc55;
-    --gold2:#ff8a00;
-    --bad:#ff4d4d;
-    --ok:#2bdc86;
-    --blue:#4aa3ff;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background: radial-gradient(1100px 700px at 20% 10%, rgba(255,204,85,.18), transparent 60%),
-                radial-gradient(900px 600px at 80% 30%, rgba(74,163,255,.14), transparent 60%),
-                linear-gradient(180deg, #060912, var(--bg));
-    color:var(--txt);
-    min-height:100vh;
-  }
-  .wrap{max-width:1180px;margin:0 auto;padding:18px}
-  .topbar{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:14px 16px;border:1px solid var(--stroke);border-radius:16px;
-    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-    box-shadow: 0 18px 60px rgba(0,0,0,.35);
-    position:sticky;top:10px;z-index:10;backdrop-filter: blur(10px);
-  }
-  .brand{
-    display:flex;gap:10px;align-items:center;font-weight:900;letter-spacing:.4px
-  }
-  .dot{
-    width:10px;height:10px;border-radius:999px;
-    background: linear-gradient(135deg,var(--gold1),var(--gold2));
-    box-shadow: 0 0 20px rgba(255,160,0,.35);
-  }
-  .btn{
-    border:1px solid var(--stroke);
-    background: rgba(0,0,0,.35);
-    color:var(--txt);
-    padding:10px 12px;border-radius:12px;
-    font-weight:800;cursor:pointer;
-  }
-  .btn.primary{
-    border-color: rgba(255,204,85,.45);
-    background: linear-gradient(135deg, rgba(255,204,85,.20), rgba(255,138,0,.16));
-  }
-  .btn.danger{border-color: rgba(255,77,77,.45); background: rgba(255,77,77,.10)}
-  .btn:active{transform: translateY(1px)}
-  .row{display:flex;gap:12px;flex-wrap:wrap}
-  .grid{
-    display:grid;gap:12px;
-    grid-template-columns: repeat(12, 1fr);
-    margin-top:14px;
-  }
-  .card{
-    border:1px solid var(--stroke);
-    background: rgba(255,255,255,.05);
-    border-radius:16px;
-    padding:14px;
-    box-shadow: 0 18px 60px rgba(0,0,0,.25);
-  }
-  .muted{color:var(--muted)}
-  .h{font-weight:900}
-  .kpi{
-    grid-column: span 3;
-  }
-  .kpi .v{font-size:22px;font-weight:1000;margin-top:6px}
-  .kpi .s{font-size:12px;color:var(--muted)}
-  @media (max-width: 980px){
-    .kpi{grid-column: span 6;}
-  }
-  @media (max-width: 560px){
-    .kpi{grid-column: span 12;}
-  }
-  .panel{grid-column: span 12}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap}
-  .tab{
-    padding:9px 12px;border-radius:999px;border:1px solid var(--stroke);
-    background: rgba(0,0,0,.25);cursor:pointer;font-weight:800;
-  }
-  .tab.active{
-    border-color: rgba(255,204,85,.45);
-    background: linear-gradient(135deg, rgba(255,204,85,.20), rgba(255,138,0,.12));
-  }
-  .tableWrap{overflow:auto;border-radius:14px;border:1px solid var(--stroke)}
-  table{width:100%;border-collapse:collapse;min-width:980px;background: rgba(0,0,0,.15)}
-  th,td{padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}
-  th{font-size:12px;color:var(--muted);font-weight:900;letter-spacing:.35px}
-  td{font-size:13px}
-  .pill{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
-    background: rgba(0,0,0,.25);font-weight:900;font-size:12px;
-  }
-  .pill.ok{border-color: rgba(43,220,134,.35); background: rgba(43,220,134,.12)}
-  .pill.bad{border-color: rgba(255,77,77,.35); background: rgba(255,77,77,.12)}
-  .pill.blue{border-color: rgba(74,163,255,.35); background: rgba(74,163,255,.12)}
-  .pill.gold{border-color: rgba(255,204,85,.35); background: rgba(255,204,85,.12)}
-  .twoCol{display:grid;grid-template-columns: 1fr 1fr; gap:12px}
-  @media (max-width: 900px){ .twoCol{grid-template-columns:1fr} }
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Pig Farm Dashboard</title>
+  <style>
+    :root{
+      --blue:#1668dc;
+      --hover:#3c89e8;
+      --active:#1554ad;
 
-  /* Login */
-  .center{min-height:100vh;display:grid;place-items:center;padding:18px}
-  .loginCard{width:min(980px,100%);display:grid;grid-template-columns:1.2fr .8fr;gap:12px}
-  @media (max-width: 900px){ .loginCard{grid-template-columns:1fr} }
-  .hero{
-    padding:18px;border-radius:18px;border:1px solid var(--stroke);
-    background: linear-gradient(135deg, rgba(255,204,85,.16), rgba(0,0,0,.25));
-  }
-  .form{
-    padding:18px;border-radius:18px;border:1px solid var(--stroke);
-    background: rgba(255,255,255,.05);
-  }
-  label{display:block;font-size:12px;color:var(--muted);font-weight:900;margin:10px 0 6px}
-  input,select,textarea{
-    width:100%;padding:11px 12px;border-radius:12px;
-    border:1px solid rgba(255,255,255,.14);
-    background: rgba(0,0,0,.25);
-    color:var(--txt);
-    outline:none;
-  }
-  textarea{min-height:80px;resize:vertical}
-  .hint{font-size:12px;color:var(--muted);line-height:1.45}
-  .right{display:flex;justify-content:flex-end;gap:10px}
+      --bg:#071225;
+      --card: rgba(255,255,255,.06);
+      --stroke: rgba(255,255,255,.12);
+      --txt:#eaf2ff;
+      --muted: rgba(234,242,255,.7);
+      --good:#27d17f;
+      --bad:#ff4d4d;
+      --warn:#ffcc55;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color:var(--txt);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(22,104,220,.35), transparent 60%),
+        radial-gradient(900px 600px at 85% 20%, rgba(60,137,232,.25), transparent 60%),
+        linear-gradient(180deg, #050A16, var(--bg) 60%, #030812);
+      min-height:100vh;
+    }
+    a{color:inherit}
+    .wrap{max-width:1180px;margin:0 auto;padding:18px}
+    header{
+      position:sticky; top:0; z-index:50;
+      backdrop-filter: blur(12px);
+      background: rgba(6,12,26,.65);
+      border-bottom:1px solid var(--stroke);
+    }
+    .headInner{
+      max-width:1180px;margin:0 auto;
+      padding:14px 18px;
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.4px
+    }
+    .dot{width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 18px rgba(22,104,220,.9)}
+    .userBox{display:flex;align-items:center;gap:10px}
+    .pill{
+      padding:8px 10px;border:1px solid var(--stroke);
+      background:rgba(255,255,255,.04);
+      border-radius:999px;font-size:13px;color:var(--muted)
+    }
 
-  /* Modal */
-  .modalBack{
-    position:fixed;inset:0;background: rgba(0,0,0,.55);
-    display:none;align-items:center;justify-content:center;padding:16px;z-index:50;
-  }
-  .modal{
-    width:min(820px,100%);
-    border:1px solid var(--stroke);
-    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.35));
-    border-radius:18px;
-    box-shadow: 0 30px 90px rgba(0,0,0,.55);
-    overflow:hidden;
-  }
-  .modalHead{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:14px 14px;border-bottom:1px solid rgba(255,255,255,.10);
-  }
-  .xbtn{
-    width:38px;height:38px;border-radius:12px;border:1px solid var(--stroke);
-    background: rgba(0,0,0,.25);color:var(--txt);cursor:pointer;font-weight:1000;
-  }
-  .modalBody{padding:14px}
-  .modalFoot{
-    display:flex;justify-content:flex-end;gap:10px;
-    padding:14px;border-top:1px solid rgba(255,255,255,.10);
-  }
-  .toast{
-    position:fixed;right:16px;bottom:16px;
-    border:1px solid var(--stroke);
-    background: rgba(0,0,0,.55);
-    padding:10px 12px;border-radius:12px;
-    display:none;z-index:60;
-  }
-</style>
+    .btn{
+      border:0; cursor:pointer;
+      background:var(--blue);
+      color:white;
+      padding:10px 12px;
+      border-radius:12px;
+      font-weight:800;
+      transition:.15s;
+      box-shadow: 0 10px 28px rgba(22,104,220,.25);
+    }
+    .btn:hover{background:var(--hover)}
+    .btn:active{background:var(--active);transform: translateY(1px)}
+    .btn.ghost{
+      background:transparent;
+      border:1px solid var(--stroke);
+      box-shadow:none;
+      color:var(--txt);
+    }
+    .btn.ghost:hover{border-color:rgba(255,255,255,.25); background:rgba(255,255,255,.05)}
+    .btn.danger{background:#c62828}
+    .btn.danger:hover{background:#dd3a3a}
+    .btn.small{padding:8px 10px;border-radius:10px;font-weight:800;font-size:13px}
+
+    .grid{
+      display:grid; gap:14px;
+      grid-template-columns: 340px 1fr;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns:1fr}
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+    .cardHead{
+      padding:14px 14px;
+      border-bottom:1px solid var(--stroke);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .cardHead h3{margin:0;font-size:15px;letter-spacing:.2px}
+    .cardBody{padding:14px}
+    .muted{color:var(--muted)}
+    .hr{height:1px;background:var(--stroke);margin:12px 0}
+
+    .tabs{
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+    .tab{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background:rgba(255,255,255,.04);
+      cursor:pointer;
+      font-weight:800;
+      color:var(--muted);
+    }
+    .tab.active{
+      background: rgba(22,104,220,.16);
+      border-color: rgba(22,104,220,.45);
+      color: var(--txt);
+    }
+
+    .kpiGrid{
+      display:grid; gap:12px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+    @media (max-width: 980px){
+      .kpiGrid{grid-template-columns: repeat(2, 1fr)}
+    }
+    @media (max-width: 560px){
+      .kpiGrid{grid-template-columns:1fr}
+    }
+    .kpi{
+      background: rgba(255,255,255,.05);
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      padding:12px;
+    }
+    .kpi .label{font-size:12px;color:var(--muted);font-weight:700}
+    .kpi .val{margin-top:6px;font-size:20px;font-weight:900}
+    .kpi .sub{margin-top:6px;font-size:12px;color:var(--muted)}
+    .val.good{color:var(--good)}
+    .val.bad{color:var(--bad)}
+    .val.warn{color:var(--warn)}
+
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .field{display:flex;flex-direction:column;gap:6px;width:100%}
+    label{font-size:12px;color:var(--muted);font-weight:700}
+    input, select, textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.25);
+      color: var(--txt);
+      outline:none;
+    }
+    textarea{min-height:84px;resize:vertical}
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(22,104,220,.65);
+      box-shadow: 0 0 0 3px rgba(22,104,220,.18);
+    }
+
+    table{width:100%;border-collapse:separate;border-spacing:0}
+    th, td{
+      text-align:left;
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      vertical-align:top;
+      font-size:13px;
+    }
+    th{font-size:12px;color:var(--muted);font-weight:900}
+    .badge{
+      font-size:12px;
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      font-weight:800;
+      display:inline-flex; gap:6px; align-items:center;
+      white-space:nowrap;
+    }
+    .bBlue{border-color: rgba(22,104,220,.45); color: var(--txt); background: rgba(22,104,220,.14)}
+    .bRed{border-color: rgba(255,77,77,.45); color: #ffd7d7; background: rgba(255,77,77,.12)}
+    .bGreen{border-color: rgba(39,209,127,.45); color: #d9ffe9; background: rgba(39,209,127,.12)}
+    .bGold{border-color: rgba(255,204,85,.45); color: #fff2cf; background: rgba(255,204,85,.12)}
+    .right{margin-left:auto}
+
+    /* LOGIN */
+    .authWrap{
+      min-height: calc(100vh - 70px);
+      display:grid;
+      place-items:center;
+      padding:22px;
+    }
+    .authCard{
+      width:min(980px,100%);
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:14px;
+    }
+    @media (max-width: 860px){
+      .authCard{grid-template-columns:1fr}
+    }
+    .hero{
+      padding:18px;
+      border-radius:16px;
+      background: rgba(22,104,220,.12);
+      border:1px solid rgba(22,104,220,.35);
+    }
+    .hero h2{margin:0 0 8px 0}
+    .hero p{margin:0;color:var(--muted);line-height:1.6}
+    .panel{
+      padding:18px;
+      border-radius:16px;
+      background: rgba(255,255,255,.05);
+      border:1px solid var(--stroke);
+    }
+    .panel h3{margin:0 0 12px 0}
+    .panel .rowBtn{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+
+    /* MODAL */
+    .modalBack{
+      position:fixed; inset:0; z-index:80;
+      background: rgba(0,0,0,.6);
+      display:none; align-items:center; justify-content:center;
+      padding:16px;
+    }
+    .modal{
+      width:min(720px,100%);
+      background: rgba(10,18,36,.92);
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      box-shadow:0 24px 90px rgba(0,0,0,.55);
+      overflow:hidden;
+      backdrop-filter: blur(14px);
+    }
+    .modalHead{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:14px 14px;
+      border-bottom:1px solid var(--stroke);
+    }
+    .modalHead h3{margin:0;font-size:15px}
+    .xBtn{
+      width:36px;height:36px;border-radius:12px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.05);
+      color: var(--txt);
+      cursor:pointer;
+    }
+    .xBtn:hover{border-color: rgba(255,255,255,.25)}
+    .modalBody{padding:14px}
+    .modalFoot{
+      display:flex;gap:10px;justify-content:flex-end;
+      padding:14px;border-top:1px solid var(--stroke);
+    }
+
+    .hide{display:none !important}
+  </style>
 </head>
-
 <body>
-<div id="loginView" class="center" style="display:none;">
-  <div class="loginCard">
-    <div class="hero">
-      <div class="brand" style="font-size:20px;margin-bottom:10px;">
-        <span class="dot"></span> Pig Farm Dashboard
-      </div>
-      <div class="hint">
-        ✅ Login guna <b>username + password</b> (bukan Gmail).<br/>
-        ✅ Semua data disimpan dalam <b>Firebase</b> — tak hilang walau restart/clear cache/device lain.<br/><br/>
-        <b>Tip data:</b><br/>
-        • BUY = beli babi<br/>
-        • DEATH = babi mati<br/>
-        • SALE = jual babi<br/>
-        • EXPENSE = kos (pakan/ubat/gaji/dll)<br/>
-        • CAPITAL_IN = tambah modal
-      </div>
-    </div>
 
-    <div class="form">
-      <div class="h" style="font-size:18px;">Login</div>
-      <div class="muted" style="font-size:12px;margin-top:6px;">
-        Masuk username + password. (email akan dibuat automatik: <i>username@farm.local</i>)
-      </div>
-
-      <label>Username</label>
-      <input id="loginUser" autocomplete="username" placeholder="contoh: farmadmin"/>
-
-      <label>Password</label>
-      <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••"/>
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn primary" id="btnLogin">Login</button>
-        <button class="btn" id="btnFirstSetup" title="Buat akaun pertama (sekali sahaja)">First Setup (Create Admin)</button>
-      </div>
-
-      <div class="hint" style="margin-top:10px;">
-        <b>First Setup</b> hanya untuk buat akaun admin pertama kali.
-        Lepas siap, guna login biasa je.
-      </div>
+<header id="topHeader" class="hide">
+  <div class="headInner">
+    <div class="brand"><span class="dot"></span> Pig Farm Dashboard</div>
+    <div class="userBox">
+      <span class="pill" id="whoami">-</span>
+      <button class="btn ghost small" id="btnLogout">Logout</button>
     </div>
   </div>
-</div>
+</header>
 
-<div id="appView" style="display:none;">
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <span class="dot"></span>
-        <div>
-          <div style="font-size:16px;font-weight:1000">Pig Farm Dashboard</div>
-          <div class="muted" style="font-size:12px" id="whoami">...</div>
+<div class="wrap">
+  <!-- LOGIN VIEW -->
+  <section id="authView" class="authWrap">
+    <div class="authCard">
+      <div class="hero card">
+        <div class="cardBody">
+          <h2>Catatan Farm (Pemula Friendly)</h2>
+          <p>
+            Sistem ini simpan semua data dalam Firebase, jadi walau bro restart PC, clear cache, atau login dari phone lain,
+            data tetap ada. Bro boleh buat akaun untuk 2 orang penjaga (worker) dan join farm yang sama.
+          </p>
+          <div class="hr"></div>
+          <div class="muted" style="font-size:13px;line-height:1.6">
+            <b>Flow:</b><br/>
+            1) Owner daftar + buat Farm baru (modal awal).<br/>
+            2) Worker daftar + join guna Farm Code (farmId).<br/>
+            3) Semua transaksi (beli babi, pakan, mati, jual, tambah modal) masuk dalam “Transactions”.
+          </div>
         </div>
       </div>
-      <div class="row">
-        <button class="btn primary" id="btnAdd">+ Add</button>
-        <button class="btn" id="btnRefresh">Refresh</button>
-        <button class="btn danger" id="btnLogout">Logout</button>
+
+      <div class="panel card">
+        <div class="cardBody">
+          <h3>Login (Username + Password)</h3>
+          <div class="field">
+            <label>Username</label>
+            <input id="lgUser" placeholder="contoh: owner1" autocomplete="username"/>
+          </div>
+          <div class="field" style="margin-top:10px">
+            <label>Password</label>
+            <input id="lgPass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+          </div>
+
+          <div class="rowBtn">
+            <button class="btn ghost" id="btnToRegister">Daftar</button>
+            <button class="btn" id="btnLogin">Login</button>
+          </div>
+
+          <div class="hr"></div>
+
+          <div id="registerBox" class="hide">
+            <h3>Daftar Akaun</h3>
+            <div class="field">
+              <label>Mode</label>
+              <select id="rgMode">
+                <option value="owner">Owner (buat farm baru)</option>
+                <option value="worker">Worker (join farm sedia ada)</option>
+              </select>
+            </div>
+
+            <div class="field" style="margin-top:10px">
+              <label>Username</label>
+              <input id="rgUser" placeholder="contoh: worker1"/>
+            </div>
+            <div class="field" style="margin-top:10px">
+              <label>Password</label>
+              <input id="rgPass" type="password" placeholder="min 6 karakter"/>
+            </div>
+
+            <div id="ownerFields" class="hide" style="margin-top:10px">
+              <div class="field">
+                <label>Nama Farm</label>
+                <input id="rgFarmName" placeholder="contoh: Farm Kampung"/>
+              </div>
+              <div class="field" style="margin-top:10px">
+                <label>Modal Awal (RM)</label>
+                <input id="rgOpening" type="number" step="0.01" placeholder="30000"/>
+              </div>
+            </div>
+
+            <div id="workerFields" class="hide" style="margin-top:10px">
+              <div class="field">
+                <label>Farm Code (farmId) dari Owner</label>
+                <input id="rgFarmId" placeholder="contoh: farm_abc123"/>
+              </div>
+            </div>
+
+            <div class="rowBtn">
+              <button class="btn ghost" id="btnCancelRegister">Cancel</button>
+              <button class="btn" id="btnRegister">Save</button>
+            </div>
+            <p class="muted" style="font-size:12px;margin:10px 0 0 0">
+              * Farm Code akan keluar lepas owner siap create farm.
+            </p>
+          </div>
+
+          <p id="authMsg" class="muted" style="margin:10px 0 0 0;font-size:13px"></p>
+        </div>
       </div>
     </div>
+  </section>
 
+  <!-- APP VIEW -->
+  <section id="appView" class="hide">
     <div class="grid">
-      <div class="card kpi">
-        <div class="s">Total Capital In</div>
-        <div class="v" id="kpiCapital">RM 0.00</div>
-        <div class="s muted">Jumlah modal masuk</div>
-      </div>
-      <div class="card kpi">
-        <div class="s">Total Expenses</div>
-        <div class="v" id="kpiExpense">RM 0.00</div>
-        <div class="s muted">Kos (pakan/ubat/gaji/etc)</div>
-      </div>
-      <div class="card kpi">
-        <div class="s">Total Sales</div>
-        <div class="v" id="kpiSales">RM 0.00</div>
-        <div class="s muted">Jumlah jualan babi</div>
-      </div>
-      <div class="card kpi">
-        <div class="s">Net Profit</div>
-        <div class="v" id="kpiProfit">RM 0.00</div>
-        <div class="s muted">Sales - Expenses</div>
-      </div>
-
-      <div class="card kpi">
-        <div class="s">Pig Stock Now</div>
-        <div class="v" id="kpiStock">0</div>
-        <div class="s muted">(BUY - DEATH - SALE)</div>
-      </div>
-      <div class="card kpi">
-        <div class="s">ROI % (simple)</div>
-        <div class="v" id="kpiROI">0%</div>
-        <div class="s muted">Profit / CapitalIn</div>
-      </div>
-      <div class="card kpi">
-        <div class="s">Bought</div>
-        <div class="v" id="kpiBought">0</div>
-        <div class="s muted">Qty BUY</div>
-      </div>
-      <div class="card kpi">
-        <div class="s">Deaths</div>
-        <div class="v" id="kpiDeaths">0</div>
-        <div class="s muted">Qty DEATH</div>
-      </div>
-
-      <div class="card panel">
-        <div class="row" style="align-items:center;justify-content:space-between;">
+      <!-- LEFT PANEL -->
+      <div class="card">
+        <div class="cardHead">
+          <h3>Menu</h3>
+          <span class="badge bBlue" id="farmCodeBadge">Farm: -</span>
+        </div>
+        <div class="cardBody">
           <div class="tabs">
-            <div class="tab active" data-tab="tx">Transactions</div>
-            <div class="tab" data-tab="monthly">Monthly Report</div>
+            <button class="tab active" data-tab="dash">Dashboard</button>
+            <button class="tab" data-tab="tx">Transactions</button>
+            <button class="tab" data-tab="setting">Pengaturan</button>
           </div>
 
-          <div class="row" style="align-items:center;">
-            <input id="q" placeholder="Search note/category/type..." style="width:280px;max-width:75vw"/>
-            <select id="filterType" style="width:200px">
-              <option value="">All Types</option>
-              <option>CAPITAL_IN</option>
-              <option>EXPENSE</option>
-              <option>BUY</option>
-              <option>DEATH</option>
-              <option>SALE</option>
-            </select>
+          <div class="hr"></div>
+
+          <div class="row">
+            <button class="btn small" id="btnAddTx">+ Add Transaksi</button>
+            <button class="btn ghost small" id="btnRefresh">Refresh</button>
+          </div>
+
+          <div class="hr"></div>
+          <div class="muted" style="font-size:12px;line-height:1.6">
+            <b>Tip:</b> semua perubahan akan auto tersimpan ke Firebase (online).  
+            Kalau line internet putus, login balik & data masih ada.
           </div>
         </div>
-
-        <div id="tabTx" style="margin-top:12px;">
-          <div class="tableWrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Date/Time</th>
-                  <th>Type</th>
-                  <th>Qty</th>
-                  <th>Amount (RM)</th>
-                  <th>Category</th>
-                  <th>Note</th>
-                  <th>By</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="txBody"></tbody>
-            </table>
-          </div>
-          <div class="muted" style="font-size:12px;margin-top:10px;">
-            Tip: BUY/SALE/DEATH pakai Qty. Expense/Capital pakai Amount.
-          </div>
-        </div>
-
-        <div id="tabMonthly" style="display:none;margin-top:12px;">
-          <div class="twoCol">
-            <div class="card">
-              <div class="h">Monthly Summary</div>
-              <div class="muted" style="font-size:12px;margin-top:6px;">
-                Kiraan ikut bulan berdasarkan tarikh transaksi.
-              </div>
-              <div class="tableWrap" style="margin-top:10px;">
-                <table style="min-width:720px">
-                  <thead>
-                    <tr>
-                      <th>Month</th>
-                      <th>Capital In</th>
-                      <th>Expenses</th>
-                      <th>Sales</th>
-                      <th>Profit</th>
-                      <th>ROI %</th>
-                      <th>BUY</th>
-                      <th>DEATH</th>
-                      <th>SALE Qty</th>
-                    </tr>
-                  </thead>
-                  <tbody id="monthBody"></tbody>
-                </table>
-              </div>
-            </div>
-            <div class="card">
-              <div class="h">How to use</div>
-              <div class="hint" style="margin-top:10px;">
-                <b>Contoh flow:</b><br/>
-                1) CAPITAL_IN: RM30000 (beli babi bay)<br/>
-                2) BUY: qty 50, amount 30000 (kalau nak letak kos belian di BUY pun boleh)<br/>
-                3) EXPENSE: pakan RM10000 (tarikh/time wajib)<br/>
-                4) DEATH: qty 2 (babi mati)<br/>
-                5) SALE: qty 20, amount 18000 (jual 3-4 bulan kemudian)<br/><br/>
-                <b>Profit</b> akan nampak automatik.
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
-    </div><!-- grid -->
-  </div><!-- wrap -->
-</div><!-- appView -->
 
-<!-- Modal -->
+      <!-- RIGHT CONTENT -->
+      <div class="card">
+        <div class="cardHead">
+          <h3 id="pageTitle">Dashboard</h3>
+          <div class="row">
+            <select id="monthFilter">
+              <option value="all">Semua bulan</option>
+            </select>
+            <span class="badge" id="lastSync">Sync: -</span>
+          </div>
+        </div>
+        <div class="cardBody">
+
+          <!-- DASH -->
+          <div id="tab_dash">
+            <div class="kpiGrid">
+              <div class="kpi">
+                <div class="label">Saldo Modal (Cash) Sekarang</div>
+                <div class="val" id="kpiCash">RM 0.00</div>
+                <div class="sub" id="kpiCashSub">Modal awal + tambah modal + sales - expenses - beli babi</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Stok Babi (Sisa)</div>
+                <div class="val warn" id="kpiStock">0 ekor</div>
+                <div class="sub" id="kpiStockSub">Masuk - Terjual - Mati</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Profit (Bulan dipilih)</div>
+                <div class="val good" id="kpiProfit">RM 0.00</div>
+                <div class="sub" id="kpiProfitSub">Sales - Expenses - Kos beli babi</div>
+              </div>
+
+              <div class="kpi">
+                <div class="label">Total Sales (Bulan dipilih)</div>
+                <div class="val" id="kpiSales">RM 0.00</div>
+                <div class="sub">Jumlah hasil jualan</div>
+              </div>
+              <div class="kpi">
+                <div class="label">Total Expenses (Bulan dipilih)</div>
+                <div class="val bad" id="kpiExp">RM 0.00</div>
+                <div class="sub">Pakan/ubat/pekerja/dll</div>
+              </div>
+              <div class="kpi">
+                <div class="label">ROI % (Bulan dipilih)</div>
+                <div class="val" id="kpiRoi">0%</div>
+                <div class="sub">Profit ÷ (Kos + Expenses) × 100</div>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="row" style="justify-content:space-between">
+              <div class="muted">
+                <b>Ringkasan:</b> sistem kira automatik ikut transaksi.
+              </div>
+              <div class="row">
+                <span class="badge bGold" id="sumIn">Modal Masuk: RM 0</span>
+                <span class="badge bBlue" id="sumBuy">Beli Babi: RM 0</span>
+                <span class="badge bRed" id="sumDeath">Mati: 0</span>
+                <span class="badge bGreen" id="sumSaleQty">Terjual: 0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TX -->
+          <div id="tab_tx" class="hide">
+            <div class="row" style="gap:10px;align-items:flex-end">
+              <div class="field" style="max-width:260px">
+                <label>Search</label>
+                <input id="txSearch" placeholder="type / category / note"/>
+              </div>
+              <div class="field" style="max-width:220px">
+                <label>Type</label>
+                <select id="txTypeFilter">
+                  <option value="all">All</option>
+                  <option value="CAPITAL_IN">CAPITAL_IN</option>
+                  <option value="BUY_PIG">BUY_PIG</option>
+                  <option value="EXPENSE">EXPENSE</option>
+                  <option value="SALE">SALE</option>
+                  <option value="DEATH">DEATH</option>
+                </select>
+              </div>
+              <button class="btn ghost small" id="btnClearFilter">Clear</button>
+            </div>
+
+            <div class="hr"></div>
+
+            <div style="overflow:auto">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Datetime</th>
+                    <th>Type</th>
+                    <th>Qty</th>
+                    <th>Amount (RM)</th>
+                    <th>Category</th>
+                    <th>Note</th>
+                    <th class="right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="txBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SETTINGS -->
+          <div id="tab_setting" class="hide">
+            <div class="row" style="gap:14px">
+              <div class="field" style="flex:1">
+                <label>Nama Farm</label>
+                <input id="stFarmName" placeholder="Farm bro"/>
+              </div>
+              <div class="field" style="max-width:260px">
+                <label>Modal Awal (RM)</label>
+                <input id="stOpening" type="number" step="0.01"/>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="row" style="justify-content:flex-end">
+              <button class="btn" id="btnSaveSetting">Save</button>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="muted" style="font-size:13px;line-height:1.7">
+              <b>Farm Code:</b> bagi code ini dekat 2 orang penjaga (worker) untuk join.
+              <div style="margin-top:10px">
+                <span class="badge bBlue" id="farmCodeBig">-</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- MODAL ADD/EDIT TRANSACTION -->
 <div class="modalBack" id="modalBack">
   <div class="modal">
     <div class="modalHead">
-      <div class="h" id="modalTitle">Add Transaction</div>
-      <button class="xbtn" id="modalX">X</button>
+      <h3 id="modalTitle">Add Transaksi</h3>
+      <button class="xBtn" id="modalX">✕</button>
     </div>
     <div class="modalBody">
-      <div class="twoCol">
-        <div>
+      <div class="row" style="gap:12px">
+        <div class="field" style="flex:1">
           <label>Type</label>
           <select id="mType">
-            <option>CAPITAL_IN</option>
-            <option>EXPENSE</option>
-            <option>BUY</option>
-            <option>DEATH</option>
-            <option>SALE</option>
+            <option value="CAPITAL_IN">CAPITAL_IN (Tambah Modal)</option>
+            <option value="BUY_PIG">BUY_PIG (Beli Babi)</option>
+            <option value="EXPENSE">EXPENSE (Expenses)</option>
+            <option value="SALE">SALE (Jual Babi)</option>
+            <option value="DEATH">DEATH (Babi Mati)</option>
           </select>
-
-          <label>Date & Time</label>
-          <input id="mDT" type="datetime-local"/>
-
-          <label>Qty (for BUY/DEATH/SALE)</label>
-          <input id="mQty" type="number" min="0" step="1" placeholder="contoh: 10"/>
-
-          <label>Amount (RM)</label>
-          <input id="mAmount" type="number" min="0" step="0.01" placeholder="contoh: 10000"/>
         </div>
-
-        <div>
-          <label>Category (for EXPENSE)</label>
-          <select id="mCategory">
-            <option value="">-</option>
-            <option>Feed / Pakan</option>
-            <option>Medicine / Vaksin</option>
-            <option>Worker / Gaji</option>
-            <option>Utility (Electric/Water)</option>
-            <option>Repair / Kandang</option>
-            <option>Transport</option>
-            <option>Other</option>
-          </select>
-
-          <label>Note</label>
-          <textarea id="mNote" placeholder="contoh: beli pakan 20 bag / babi mati sebab sakit / jual kepada ..."></textarea>
-
-          <div class="hint" style="margin-top:10px;">
-            <b>Rule ringkas:</b><br/>
-            • CAPITAL_IN: Amount wajib<br/>
-            • EXPENSE: Amount + Category digalakkan<br/>
-            • BUY/SALE: Qty wajib (Amount optional tapi bagus simpan)<br/>
-            • DEATH: Qty wajib
-          </div>
+        <div class="field" style="max-width:260px">
+          <label>Date & Time</label>
+          <input id="mDatetime" type="datetime-local"/>
         </div>
       </div>
+
+      <div class="row" style="gap:12px;margin-top:10px">
+        <div class="field" style="max-width:200px">
+          <label>Qty (ekor)</label>
+          <input id="mQty" type="number" step="1" placeholder="0"/>
+        </div>
+        <div class="field" style="flex:1">
+          <label>Amount (RM)</label>
+          <input id="mAmount" type="number" step="0.01" placeholder="0.00"/>
+        </div>
+        <div class="field" style="flex:1">
+          <label>Category</label>
+          <select id="mCategory">
+            <option value="">-</option>
+            <option value="piglet">piglet</option>
+            <option value="feed">feed</option>
+            <option value="medicine">medicine</option>
+            <option value="worker">worker</option>
+            <option value="utility">utility</option>
+            <option value="transport">transport</option>
+            <option value="other">other</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:10px">
+        <label>Note</label>
+        <textarea id="mNote" placeholder="contoh: beli pakan 10 bag / jual babi 3 ekor"></textarea>
+      </div>
+
+      <p class="muted" id="modalHint" style="margin:10px 0 0 0;font-size:12px;line-height:1.6">
+        * Untuk DEATH (mati), biasanya amount boleh kosong (0). Qty wajib isi.
+      </p>
     </div>
     <div class="modalFoot">
-      <button class="btn" id="modalCancel">Cancel</button>
-      <button class="btn primary" id="modalSave">Save</button>
+      <button class="btn ghost" id="modalCancel">Cancel</button>
+      <button class="btn danger hide" id="modalDelete">Delete</button>
+      <button class="btn" id="modalSave">Save</button>
     </div>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script type="module">
-  // =========================
-  // 1) Firebase imports (CDN)
-  // =========================
+  // ========= FIREBASE IMPORTS (v9 modular) =========
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import {
     getAuth,
-    onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence,
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    onAuthStateChanged,
     signOut
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-
   import {
     getDatabase,
     ref,
-    push,
+    get,
     set,
+    update,
+    push,
     onValue,
     remove
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-  // =========================
-  // 2) TODO: paste your config
-  // =========================
+  // ========= 1) MASUKKAN firebaseConfig BRO DI SINI =========
   const firebaseConfig = {
     apiKey: "AIzaSyD-LjAmPhXlS1oCNOH7eJlr47K_HS02qNU",
-    authDomain: "arm-3e450.firebaseapp.com",
+    authDomain: "farm-3e450.firebaseapp.com",
     databaseURL: "https://farm-3e450-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "farm-3e450",
     storageBucket: "farm-3e450.firebasestorage.app",
-    messagingSenderId: "1045068646995R",
+    messagingSenderId: "1045068646995",
     appId: "1:1045068646995:web:e93c0e3f847634293a94a6"
   };
 
-  const FARM_ID = "farm1"; // boleh tukar: farm1 / farm2 ...
-
-  // =========================
-  // helpers
-  // =========================
+  // ========= INIT =========
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getDatabase(app);
 
+  // ========= HELPERS =========
   const $ = (id)=>document.getElementById(id);
+  const fmtRM = (n)=> "RM " + (Number(n||0)).toLocaleString("en-MY",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const nowLocalInput = ()=>{
+    const d = new Date();
+    const pad=(x)=>String(x).padStart(2,"0");
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const toMonthKey = (iso)=>{
+    // iso: "YYYY-MM-DDTHH:mm"
+    if(!iso) return "unknown";
+    return iso.slice(0,7); // YYYY-MM
+  };
+  const safeUsername = (u)=> (u||"").trim().toLowerCase().replace(/[^a-z0-9_]/g,"_");
+  const fakeEmailFromUsername = (u)=> `${safeUsername(u)}@pig.local`;
+
+  const state = {
+    user: null,
+    profile: null,   // /users/uid
+    farmId: null,
+    settings: null,  // farms/farmId/settings
+    txMap: {},       // { txId: tx }
+    editingTxId: null
+  };
 
   function toast(msg){
-    const t = $("toast");
+    // simple toast
+    let t = $("__toast");
+    if(!t){
+      t = document.createElement("div");
+      t.id="__toast";
+      t.style.position="fixed";
+      t.style.left="50%";
+      t.style.bottom="18px";
+      t.style.transform="translateX(-50%)";
+      t.style.padding="10px 12px";
+      t.style.border="1px solid rgba(255,255,255,.18)";
+      t.style.background="rgba(6,12,26,.92)";
+      t.style.backdropFilter="blur(10px)";
+      t.style.borderRadius="12px";
+      t.style.color="white";
+      t.style.fontWeight="800";
+      t.style.zIndex="200";
+      t.style.boxShadow="0 18px 60px rgba(0,0,0,.45)";
+      document.body.appendChild(t);
+    }
     t.textContent = msg;
-    t.style.display = "block";
-    clearTimeout(toast._t);
-    toast._t = setTimeout(()=> t.style.display="none", 2400);
+    t.style.opacity="1";
+    clearTimeout(window.__toastTimer);
+    window.__toastTimer=setTimeout(()=>{t.style.opacity="0";}, 2200);
   }
 
-  function toMoney(n){
-    const x = Number(n||0);
-    return "RM " + x.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
+  // ========= AUTH UI =========
+  $("btnToRegister").onclick = ()=>{
+    $("registerBox").classList.toggle("hide");
+    $("authMsg").textContent="";
+    syncRegisterFields();
+  };
+  $("btnCancelRegister").onclick = ()=>{
+    $("registerBox").classList.add("hide");
+    $("authMsg").textContent="";
+  };
+  $("rgMode").onchange = syncRegisterFields;
+
+  function syncRegisterFields(){
+    const mode = $("rgMode").value;
+    $("ownerFields").classList.toggle("hide", mode!=="owner");
+    $("workerFields").classList.toggle("hide", mode!=="worker");
+  }
+  syncRegisterFields();
+
+  async function loadProfile(uid){
+    const snap = await get(ref(db, `users/${uid}`));
+    return snap.exists() ? snap.val() : null;
   }
 
-  function toDTLocalInput(ms){
-    const d = new Date(ms);
-    const pad = (n)=> String(n).padStart(2,"0");
-    const yyyy = d.getFullYear();
-    const mm = pad(d.getMonth()+1);
-    const dd = pad(d.getDate());
-    const hh = pad(d.getHours());
-    const mi = pad(d.getMinutes());
-    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  async function loadSettings(farmId){
+    const snap = await get(ref(db, `farms/${farmId}/settings`));
+    return snap.exists() ? snap.val() : null;
   }
 
-  function pseudoEmail(username){
-    return `${String(username||"").trim().toLowerCase()}@farm.local`;
-  }
-
-  function niceNameFromEmail(email){
-    const u = String(email||"").split("@")[0];
-    return u || "user";
-  }
-
-  function typePill(type){
-    const t = String(type||"");
-    if(t==="CAPITAL_IN") return `<span class="pill gold">CAPITAL_IN</span>`;
-    if(t==="EXPENSE") return `<span class="pill bad">EXPENSE</span>`;
-    if(t==="BUY") return `<span class="pill blue">BUY</span>`;
-    if(t==="DEATH") return `<span class="pill bad">DEATH</span>`;
-    if(t==="SALE") return `<span class="pill ok">SALE</span>`;
-    return `<span class="pill">${t}</span>`;
-  }
-
-  // =========================
-  // Views
-  // =========================
-  const loginView = $("loginView");
-  const appView   = $("appView");
-
-  function showLogin(){
-    loginView.style.display = "grid";
-    appView.style.display = "none";
+  function showAuth(){
+    $("topHeader").classList.add("hide");
+    $("authView").classList.remove("hide");
+    $("appView").classList.add("hide");
   }
   function showApp(){
-    loginView.style.display = "none";
-    appView.style.display = "block";
+    $("topHeader").classList.remove("hide");
+    $("authView").classList.add("hide");
+    $("appView").classList.remove("hide");
   }
 
-  // =========================
-  // Auth flow
-  // =========================
-  $("btnLogin").addEventListener("click", async ()=>{
-    const u = $("loginUser").value.trim();
-    const p = $("loginPass").value;
-    if(!u || !p) return toast("Isi username & password dulu bro.");
+  // ========= LOGIN =========
+  $("btnLogin").onclick = async ()=>{
     try{
-      await signInWithEmailAndPassword(auth, pseudoEmail(u), p);
-      toast("Login success");
-    }catch(e){
-      console.error(e);
-      toast("Login failed: " + (e?.message || e));
-    }
-  });
+      $("authMsg").textContent="Logging in...";
+      const u = $("lgUser").value.trim();
+      const p = $("lgPass").value;
+      if(!u || !p){ $("authMsg").textContent="Isi username & password."; return; }
 
-  // First setup: create admin account (sekali sahaja)
-  $("btnFirstSetup").addEventListener("click", async ()=>{
-    const u = $("loginUser").value.trim();
-    const p = $("loginPass").value;
-    if(!u || !p) return toast("Isi username & password dulu bro.");
+      await setPersistence(auth, browserLocalPersistence);
+      await signInWithEmailAndPassword(auth, fakeEmailFromUsername(u), p);
+      $("authMsg").textContent="Success.";
+    }catch(e){
+      $("authMsg").textContent = "Login gagal: " + (e?.message || e);
+    }
+  };
+
+  // ========= REGISTER =========
+  $("btnRegister").onclick = async ()=>{
     try{
-      const cred = await createUserWithEmailAndPassword(auth, pseudoEmail(u), p);
+      $("authMsg").textContent="Mendaftar...";
+      const mode = $("rgMode").value;
+      const u = $("rgUser").value.trim();
+      const p = $("rgPass").value;
+      if(!u || !p){ $("authMsg").textContent="Isi username & password."; return; }
+      if(p.length < 6){ $("authMsg").textContent="Password min 6 karakter."; return; }
+
+      await setPersistence(auth, browserLocalPersistence);
+      const cred = await createUserWithEmailAndPassword(auth, fakeEmailFromUsername(u), p);
       const uid = cred.user.uid;
-      await set(ref(db, `users/${uid}`), {
-        username: u.toLowerCase(),
-        role: "admin",
-        createdAt: Date.now()
-      });
-      toast("Admin created. Login sudah aktif.");
+
+      if(mode === "owner"){
+        const farmName = $("rgFarmName").value.trim() || "Farm";
+        const opening = Number($("rgOpening").value || 0);
+        const farmId = `farm_${uid.slice(0,8)}`;
+
+        await set(ref(db, `users/${uid}`), {
+          username: safeUsername(u),
+          farmId,
+          role: "owner"
+        });
+
+        await set(ref(db, `farms/${farmId}/settings`), {
+          farmName,
+          openingCapital: opening,
+          createdAt: Date.now()
+        });
+
+        // juga catat sebagai transaksi modal awal (optional)
+        if(opening > 0){
+          const txRef = push(ref(db, `farms/${farmId}/transactions`));
+          await set(txRef, {
+            type: "CAPITAL_IN",
+            datetime: nowLocalInput(),
+            amount: opening,
+            qty: 0,
+            category: "opening",
+            note: "Modal awal",
+            createdBy: uid,
+            createdAt: Date.now()
+          });
+        }
+
+        $("authMsg").textContent = `Owner siap! Farm Code: ${farmId} (copy untuk worker)`;
+        toast("Owner created. Farm Code siap.");
+      } else {
+        const farmId = $("rgFarmId").value.trim();
+        if(!farmId){ $("authMsg").textContent="Worker perlu Farm Code."; return; }
+
+        // pastikan farm wujud
+        const st = await loadSettings(farmId);
+        if(!st){ $("authMsg").textContent="Farm Code tak jumpa. Sila check owner bagi betul."; return; }
+
+        await set(ref(db, `users/${uid}`), {
+          username: safeUsername(u),
+          farmId,
+          role: "worker"
+        });
+
+        $("authMsg").textContent = "Worker join farm berjaya. Sila login.";
+        toast("Worker joined farm.");
+      }
+
+      $("registerBox").classList.add("hide");
     }catch(e){
-      console.error(e);
-      toast("Setup failed: " + (e?.message || e));
+      $("authMsg").textContent = "Register gagal: " + (e?.message || e);
     }
-  });
+  };
 
-  $("btnLogout").addEventListener("click", async ()=>{
+  // ========= LOGOUT =========
+  $("btnLogout").onclick = async ()=>{
     await signOut(auth);
+  };
+
+  // ========= APP DATA LISTENERS =========
+  function attachFarmListeners(farmId){
+    // settings
+    onValue(ref(db, `farms/${farmId}/settings`), (snap)=>{
+      state.settings = snap.exists() ? snap.val() : { farmName:"Farm", openingCapital:0 };
+      renderSettings();
+      renderAll();
+    });
+
+    // transactions
+    onValue(ref(db, `farms/${farmId}/transactions`), (snap)=>{
+      state.txMap = snap.exists() ? snap.val() : {};
+      $("lastSync").textContent = "Sync: " + new Date().toLocaleString();
+      rebuildMonthFilter();
+      renderAll();
+    });
+  }
+
+  // ========= TAB UI =========
+  document.querySelectorAll(".tab").forEach(btn=>{
+    btn.onclick = ()=>{
+      document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      const t = btn.dataset.tab;
+      $("pageTitle").textContent = t==="dash" ? "Dashboard" : t==="tx" ? "Transactions" : "Pengaturan";
+
+      $("tab_dash").classList.toggle("hide", t!=="dash");
+      $("tab_tx").classList.toggle("hide", t!=="tx");
+      $("tab_setting").classList.toggle("hide", t!=="setting");
+    };
   });
 
-  // =========================
-  // Data state
-  // =========================
-  let currentUser = null;
-  let txList = []; // array of {id, ...}
+  $("btnRefresh").onclick = ()=> renderAll();
 
-  function computeStats(list){
-    let capital = 0, expense = 0, sales = 0;
-    let bought = 0, deaths = 0, soldQty = 0;
-    let buyCost = 0;
+  // ========= FILTERS =========
+  $("txSearch").oninput = ()=> renderTxTable();
+  $("txTypeFilter").onchange = ()=> renderTxTable();
+  $("btnClearFilter").onclick = ()=>{
+    $("txSearch").value="";
+    $("txTypeFilter").value="all";
+    renderTxTable();
+  };
+  $("monthFilter").onchange = ()=> renderAll();
 
-    for(const x of list){
-      const t = x.type;
-      const amt = Number(x.amount||0);
-      const qty = Number(x.qty||0);
+  // ========= MODAL =========
+  function openModal(editTxId=null){
+    state.editingTxId = editTxId;
 
-      if(t==="CAPITAL_IN") capital += amt;
-      if(t==="EXPENSE") expense += amt;
-      if(t==="SALE") { sales += amt; soldQty += qty; }
-      if(t==="BUY") { bought += qty; buyCost += amt; }
-      if(t==="DEATH") deaths += qty;
+    $("modalBack").style.display="flex";
+    $("mDatetime").value = nowLocalInput();
+
+    $("modalDelete").classList.add("hide");
+
+    if(editTxId){
+      const tx = state.txMap?.[editTxId];
+      $("modalTitle").textContent = "Edit Transaksi";
+      $("mType").value = tx.type || "EXPENSE";
+      $("mDatetime").value = tx.datetime || nowLocalInput();
+      $("mQty").value = tx.qty ?? 0;
+      $("mAmount").value = tx.amount ?? 0;
+      $("mCategory").value = tx.category ?? "";
+      $("mNote").value = tx.note ?? "";
+      $("modalDelete").classList.remove("hide");
+    } else {
+      $("modalTitle").textContent = "Add Transaksi";
+      $("mType").value = "EXPENSE";
+      $("mQty").value = 0;
+      $("mAmount").value = 0;
+      $("mCategory").value = "";
+      $("mNote").value = "";
+    }
+  }
+  function closeModal(){
+    $("modalBack").style.display="none";
+    state.editingTxId = null;
+  }
+  $("btnAddTx").onclick = ()=> openModal(null);
+  $("modalX").onclick = closeModal;
+  $("modalCancel").onclick = closeModal;
+  $("modalBack").addEventListener("click",(e)=>{
+    if(e.target === $("modalBack")) closeModal();
+  });
+
+  $("modalSave").onclick = async ()=>{
+    if(!state.farmId) return;
+    const uid = state.user.uid;
+    const type = $("mType").value;
+    const datetime = $("mDatetime").value || nowLocalInput();
+    const qty = Number($("mQty").value || 0);
+    const amount = Number($("mAmount").value || 0);
+    const category = $("mCategory").value || "";
+    const note = ($("mNote").value || "").trim();
+
+    // basic validate
+    if(type === "DEATH" && qty <= 0){
+      toast("DEATH perlu qty (ekor).");
+      return;
+    }
+    if((type === "BUY_PIG" || type === "SALE") && qty <= 0){
+      toast(type + " perlu qty (ekor).");
+      return;
     }
 
-    const profit = sales - expense;
-    const roi = capital > 0 ? (profit / capital * 100) : 0;
-    const stock = bought - deaths - soldQty;
+    const data = {
+      type, datetime,
+      qty: qty || 0,
+      amount: amount || 0,
+      category,
+      note,
+      createdBy: uid,
+      createdAt: Date.now()
+    };
 
-    return { capital, expense, sales, profit, roi, bought, deaths, soldQty, stock, buyCost };
-  }
-
-  function groupByMonth(list){
-    // key: YYYY-MM
-    const map = new Map();
-    for(const x of list){
-      const d = new Date(Number(x.ts||0));
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const key = `${y}-${m}`;
-      if(!map.has(key)) map.set(key, []);
-      map.get(key).push(x);
+    if(state.editingTxId){
+      await update(ref(db, `farms/${state.farmId}/transactions/${state.editingTxId}`), data);
+      toast("Transaksi updated.");
+    } else {
+      const txRef = push(ref(db, `farms/${state.farmId}/transactions`));
+      await set(txRef, data);
+      toast("Transaksi saved.");
     }
-    const keys = Array.from(map.keys()).sort();
-    return keys.map(k=>({month:k, items: map.get(k)}));
+    closeModal();
+  };
+
+  $("modalDelete").onclick = async ()=>{
+    if(!state.farmId || !state.editingTxId) return;
+    await remove(ref(db, `farms/${state.farmId}/transactions/${state.editingTxId}`));
+    toast("Transaksi deleted.");
+    closeModal();
+  };
+
+  // ========= SETTINGS SAVE =========
+  $("btnSaveSetting").onclick = async ()=>{
+    if(!state.farmId) return;
+    const farmName = ($("stFarmName").value || "").trim() || "Farm";
+    const openingCapital = Number($("stOpening").value || 0);
+    await update(ref(db, `farms/${state.farmId}/settings`), { farmName, openingCapital });
+    toast("Settings saved.");
+  };
+
+  function renderSettings(){
+    const s = state.settings || {};
+    $("stFarmName").value = s.farmName || "";
+    $("stOpening").value = Number(s.openingCapital||0);
+    $("farmCodeBadge").textContent = "Farm: " + (state.farmId || "-");
+    $("farmCodeBig").textContent = state.farmId || "-";
   }
 
-  function renderKPIs(){
-    const s = computeStats(txList);
-    $("kpiCapital").textContent = toMoney(s.capital);
-    $("kpiExpense").textContent = toMoney(s.expense);
-    $("kpiSales").textContent   = toMoney(s.sales);
-    $("kpiProfit").textContent  = toMoney(s.profit);
-    $("kpiROI").textContent     = `${s.roi.toFixed(2)}%`;
-    $("kpiBought").textContent  = String(s.bought);
-    $("kpiDeaths").textContent  = String(s.deaths);
-    $("kpiStock").textContent   = String(s.stock);
+  // ========= CALCULATIONS =========
+  function txListSorted(){
+    const map = state.txMap || {};
+    const arr = Object.entries(map).map(([id,v])=>({id, ...v}));
+    arr.sort((a,b)=> (b.createdAt||0) - (a.createdAt||0));
+    return arr;
   }
 
-  function passesFilter(x){
-    const q = $("q").value.trim().toLowerCase();
-    const ft = $("filterType").value;
-    if(ft && x.type !== ft) return false;
-    if(!q) return true;
-    const hay = [
-      x.type, x.category, x.note, x.createdByName
-    ].join(" ").toLowerCase();
-    return hay.includes(q);
+  function filterByMonth(arr){
+    const m = $("monthFilter").value;
+    if(m === "all") return arr;
+    return arr.filter(tx => toMonthKey(tx.datetime) === m);
   }
 
-  function renderTable(){
-    const tb = $("txBody");
-    const rows = txList
-      .filter(passesFilter)
-      .sort((a,b)=> Number(b.ts||0) - Number(a.ts||0))
-      .slice(0, 500); // safety
+  function computeTotals(allTx){
+    let capitalIn = 0;
+    let buyPig = 0;
+    let expense = 0;
+    let sales = 0;
 
-    tb.innerHTML = rows.map(x=>{
-      const dt = new Date(Number(x.ts||0));
-      const dtStr = dt.toLocaleString();
-      const qty = x.qty != null ? Number(x.qty||0) : "";
-      const amt = x.amount != null ? Number(x.amount||0) : 0;
+    let qtyIn = 0;
+    let qtySale = 0;
+    let qtyDeath = 0;
+
+    for(const t of allTx){
+      const type = t.type;
+      const amt = Number(t.amount||0);
+      const q = Number(t.qty||0);
+
+      if(type === "CAPITAL_IN"){ capitalIn += amt; }
+      if(type === "BUY_PIG"){ buyPig += amt; qtyIn += q; }
+      if(type === "EXPENSE"){ expense += amt; }
+      if(type === "SALE"){ sales += amt; qtySale += q; }
+      if(type === "DEATH"){ qtyDeath += q; }
+    }
+
+    const profit = sales - expense - buyPig;
+    const denom = (expense + buyPig);
+    const roi = denom > 0 ? (profit/denom)*100 : 0;
+
+    return { capitalIn, buyPig, expense, sales, qtyIn, qtySale, qtyDeath, profit, roi };
+  }
+
+  function computeStock(allTx){
+    // stok = qty beli babi - qty jual - qty mati
+    let inQty=0, sold=0, dead=0;
+    for(const t of allTx){
+      const q = Number(t.qty||0);
+      if(t.type==="BUY_PIG") inQty += q;
+      if(t.type==="SALE") sold += q;
+      if(t.type==="DEATH") dead += q;
+    }
+    return { inQty, sold, dead, stock: (inQty - sold - dead) };
+  }
+
+  function computeCash(allTx){
+    // cash = openingCapital + CAPITAL_IN + SALE - EXPENSE - BUY_PIG
+    const opening = Number(state.settings?.openingCapital || 0);
+    let cap=0,sale=0,exp=0,buy=0;
+    for(const t of allTx){
+      const amt = Number(t.amount||0);
+      if(t.type==="CAPITAL_IN") cap += amt;
+      if(t.type==="SALE") sale += amt;
+      if(t.type==="EXPENSE") exp += amt;
+      if(t.type==="BUY_PIG") buy += amt;
+    }
+    return opening + cap + sale - exp - buy;
+  }
+
+  function rebuildMonthFilter(){
+    const arr = txListSorted();
+    const months = new Set(arr.map(t=>toMonthKey(t.datetime)).filter(Boolean));
+    const list = Array.from(months).sort().reverse();
+    const sel = $("monthFilter").value;
+    $("monthFilter").innerHTML = `<option value="all">Semua bulan</option>` + list.map(m=>`<option value="${m}">${m}</option>`).join("");
+    if(sel && (sel==="all" || months.has(sel))) $("monthFilter").value = sel;
+  }
+
+  // ========= RENDER =========
+  function renderAll(){
+    renderDashboard();
+    renderTxTable();
+    renderSettings();
+    $("whoami").textContent = `${state.profile?.username || "-"} • ${state.profile?.role || "-"} • ${state.settings?.farmName || "Farm"}`;
+  }
+
+  function renderDashboard(){
+    const allTx = txListSorted();
+    const cash = computeCash(allTx);
+
+    const filtered = filterByMonth(allTx);
+    const totals = computeTotals(filtered);
+    const stockAll = computeStock(allTx);
+
+    $("kpiCash").textContent = fmtRM(cash);
+    $("kpiCash").className = "val " + (cash>=0 ? "" : "bad");
+
+    $("kpiStock").textContent = `${stockAll.stock} ekor`;
+    $("kpiProfit").textContent = fmtRM(totals.profit);
+    $("kpiProfit").className = "val " + (totals.profit>=0 ? "good" : "bad");
+
+    $("kpiSales").textContent = fmtRM(totals.sales);
+    $("kpiExp").textContent = fmtRM(totals.expense);
+    $("kpiRoi").textContent = `${totals.roi.toFixed(2)}%`;
+
+    $("sumIn").textContent = `Modal Masuk: ${fmtRM(totals.capitalIn)}`;
+    $("sumBuy").textContent = `Beli Babi: ${fmtRM(totals.buyPig)}`;
+    $("sumDeath").textContent = `Mati: ${totals.qtyDeath}`;
+    $("sumSaleQty").textContent = `Terjual: ${totals.qtySale}`;
+
+    $("kpiStockSub").textContent = `Masuk ${stockAll.inQty} - Terjual ${stockAll.sold} - Mati ${stockAll.dead}`;
+  }
+
+  function typeBadge(type){
+    if(type==="CAPITAL_IN") return `<span class="badge bBlue">CAPITAL_IN</span>`;
+    if(type==="BUY_PIG") return `<span class="badge bGold">BUY_PIG</span>`;
+    if(type==="EXPENSE") return `<span class="badge bRed">EXPENSE</span>`;
+    if(type==="SALE") return `<span class="badge bGreen">SALE</span>`;
+    if(type==="DEATH") return `<span class="badge bRed">DEATH</span>`;
+    return `<span class="badge">${type||"-"}</span>`;
+  }
+
+  function renderTxTable(){
+    const arr = txListSorted();
+    const q = ($("txSearch").value||"").trim().toLowerCase();
+    const tf = $("txTypeFilter").value;
+
+    const filtered = arr.filter(tx=>{
+      if(tf !== "all" && tx.type !== tf) return false;
+      if(!q) return true;
+      const blob = `${tx.type||""} ${tx.category||""} ${tx.note||""} ${tx.datetime||""}`.toLowerCase();
+      return blob.includes(q);
+    });
+
+    $("txBody").innerHTML = filtered.map(tx=>{
+      const amt = Number(tx.amount||0);
+      const qty = Number(tx.qty||0);
       return `
         <tr>
-          <td>${dtStr}</td>
-          <td>${typePill(x.type)}</td>
-          <td>${qty===0 && (x.type==="CAPITAL_IN"||x.type==="EXPENSE") ? "" : (qty||"")}</td>
-          <td>${amt ? toMoney(amt) : ""}</td>
-          <td>${x.category||""}</td>
-          <td>${(x.note||"").replaceAll("<","&lt;")}</td>
-          <td>${x.createdByName||""}</td>
-          <td>
-            <button class="btn danger" data-del="${x.id}">Delete</button>
+          <td>${tx.datetime||"-"}</td>
+          <td>${typeBadge(tx.type)}</td>
+          <td>${qty ? qty : "-"}</td>
+          <td>${amt ? fmtRM(amt) : "-"}</td>
+          <td>${tx.category||"-"}</td>
+          <td style="max-width:360px;white-space:normal">${(tx.note||"-")}</td>
+          <td class="right">
+            <button class="btn ghost small" data-edit="${tx.id}">Edit</button>
           </td>
         </tr>
       `;
     }).join("");
 
-    // delete handlers
-    tb.querySelectorAll("button[data-del]").forEach(btn=>{
-      btn.addEventListener("click", async ()=>{
-        const id = btn.getAttribute("data-del");
-        if(!confirm("Delete transaksi ini?")) return;
-        try{
-          await remove(ref(db, `tx/${FARM_ID}/${id}`));
-          toast("Deleted");
-        }catch(e){
-          console.error(e);
-          toast("Delete failed: " + (e?.message||e));
-        }
-      });
+    // hook edit
+    $("txBody").querySelectorAll("[data-edit]").forEach(b=>{
+      b.onclick = ()=> openModal(b.getAttribute("data-edit"));
     });
   }
 
-  function renderMonthly(){
-    const mb = $("monthBody");
-    const groups = groupByMonth(txList);
-    mb.innerHTML = groups.map(g=>{
-      const s = computeStats(g.items);
-      return `
-        <tr>
-          <td>${g.month}</td>
-          <td>${toMoney(s.capital)}</td>
-          <td>${toMoney(s.expense)}</td>
-          <td>${toMoney(s.sales)}</td>
-          <td>${toMoney(s.profit)}</td>
-          <td>${s.roi.toFixed(2)}%</td>
-          <td>${s.bought}</td>
-          <td>${s.deaths}</td>
-          <td>${s.soldQty}</td>
-        </tr>
-      `;
-    }).join("") || `<tr><td colspan="9" class="muted">No data yet.</td></tr>`;
-  }
-
-  function refreshUI(){
-    renderKPIs();
-    renderTable();
-    renderMonthly();
-  }
-
-  $("q").addEventListener("input", renderTable);
-  $("filterType").addEventListener("change", renderTable);
-  $("btnRefresh").addEventListener("click", refreshUI);
-
-  // =========================
-  // Tabs
-  // =========================
-  document.querySelectorAll(".tab").forEach(t=>{
-    t.addEventListener("click", ()=>{
-      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-      t.classList.add("active");
-      const which = t.getAttribute("data-tab");
-      $("tabTx").style.display = which==="tx" ? "block" : "none";
-      $("tabMonthly").style.display = which==="monthly" ? "block" : "none";
-    });
-  });
-
-  // =========================
-  // Modal Add
-  // =========================
-  const modalBack = $("modalBack");
-  function openModal(){
-    // default now
-    $("mDT").value = toDTLocalInput(Date.now());
-    $("mType").value = "EXPENSE";
-    $("mQty").value = "";
-    $("mAmount").value = "";
-    $("mCategory").value = "";
-    $("mNote").value = "";
-    modalBack.style.display = "flex";
-  }
-  function closeModal(){
-    modalBack.style.display = "none";
-  }
-
-  $("btnAdd").addEventListener("click", openModal);
-  $("modalX").addEventListener("click", closeModal);
-  $("modalCancel").addEventListener("click", closeModal);
-  modalBack.addEventListener("click", (e)=>{
-    if(e.target === modalBack) closeModal();
-  });
-
-  $("modalSave").addEventListener("click", async ()=>{
-    if(!currentUser) return toast("Not logged in.");
-    const type = $("mType").value;
-    const dtv = $("mDT").value;
-    const ts = dtv ? new Date(dtv).getTime() : Date.now();
-    const qty = Number($("mQty").value || 0);
-    const amount = Number($("mAmount").value || 0);
-    const category = $("mCategory").value;
-    const note = $("mNote").value.trim();
-
-    // validation
-    if(!ts) return toast("Date/Time wajib.");
-    if(type==="CAPITAL_IN" && amount<=0) return toast("CAPITAL_IN perlukan Amount.");
-    if(type==="EXPENSE" && amount<=0) return toast("EXPENSE perlukan Amount.");
-    if((type==="BUY"||type==="DEATH"||type==="SALE") && qty<=0) return toast(type+" perlukan Qty.");
-
-    // recommended: BUY/SALE amount optional but ok
-    const tx = {
-      type,
-      qty: (type==="BUY"||type==="DEATH"||type==="SALE") ? qty : null,
-      amount: (type==="CAPITAL_IN"||type==="EXPENSE"||type==="SALE"||type==="BUY") ? amount : null,
-      category: (type==="EXPENSE") ? (category || "Other") : "",
-      note,
-      ts,
-      createdBy: currentUser.uid,
-      createdByName: niceNameFromEmail(currentUser.email)
-    };
-
-    try{
-      const newRef = push(ref(db, `tx/${FARM_ID}`));
-      await set(newRef, tx);
-      toast("Saved");
-      closeModal();
-    }catch(e){
-      console.error(e);
-      toast("Save failed: " + (e?.message||e));
-    }
-  });
-
-  // =========================
-  // Load data
-  // =========================
-  function startListeners(){
-    onValue(ref(db, `tx/${FARM_ID}`), (snap)=>{
-      const v = snap.val() || {};
-      txList = Object.entries(v).map(([id, data])=>({ id, ...data }));
-      refreshUI();
-    });
-  }
-
-  // =========================
-  // Auth state
-  // =========================
+  // ========= AUTH STATE =========
   onAuthStateChanged(auth, async (user)=>{
-    currentUser = user || null;
+    state.user = user || null;
+
     if(!user){
-      showLogin();
+      state.profile = null;
+      state.farmId = null;
+      state.txMap = {};
+      state.settings = null;
+      showAuth();
       return;
     }
-    showApp();
-    $("whoami").textContent = `Logged in as: ${niceNameFromEmail(user.email)}`;
-    startListeners();
-  });
 
-  // initial show
-  showLogin();
+    // load profile
+    const prof = await loadProfile(user.uid);
+    if(!prof || !prof.farmId){
+      // safety: no profile
+      await signOut(auth);
+      showAuth();
+      return;
+    }
+
+    state.profile = prof;
+    state.farmId = prof.farmId;
+
+    showApp();
+    $("farmCodeBadge").textContent = "Farm: " + state.farmId;
+    $("farmCodeBig").textContent = state.farmId;
+
+    attachFarmListeners(state.farmId);
+  });
 </script>
+
 </body>
 </html>
