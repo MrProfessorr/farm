@@ -72,12 +72,15 @@ input:focus{border-color:rgba(60,137,232,.7);box-shadow:0 0 0 3px rgba(60,137,23
   import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
   // ====== TUKAR CONFIG INI ======
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    databaseURL: "YOUR_DATABASE_URL",
-    projectId: "YOUR_PROJECT_ID"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
+  authDomain: "farm-a9071.firebaseapp.com",
+  databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "farm-a9071",
+  storageBucket: "farm-a9071.firebasestorage.app",
+  messagingSenderId: "979250293394",
+  appId: "1:979250293394:web:af419dd2b325017a41944b"
+};
   // =============================
 
   const app = initializeApp(firebaseConfig);
