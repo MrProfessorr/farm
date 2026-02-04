@@ -4,6 +4,12 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>Farm Admin (RTDB)</title>
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com">
+<link rel="preconnect" href="https://firebasedatabase.app">
+<link rel="dns-prefetch" href="https://www.gstatic.com">
+<link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
+<link rel="dns-prefetch" href="https://firebasedatabase.app">
 <style>
 :root{
   --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
@@ -803,23 +809,30 @@ const firebaseConfig = {
   $("btnNewVault").onclick = newVaultModal;
   $("btnLogout").onclick = async ()=>{ await signOut(auth); location.replace("../login/"); };
 
-  onAuthStateChanged(auth, async (user)=>{
-    if(!user){ location.replace("../login/"); return; }
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ location.replace("../login/"); return; }
 
-    const email = user.email||"";
-    const username = email.includes("@") ? email.split("@")[0] : (user.displayName||"user");
+  const email = user.email||"";
+  const username = email.includes("@") ? email.split("@")[0] : (user.displayName||"user");
 
-    me = { uid:user.uid, email, username };
+  me = { uid:user.uid, email, username };
 
-    // admin flag from RTDB
-    isAdmin = await readAdminFlag(me.uid);
+  // ✅ cepatkan UI dulu
+  setHeader();
+  listenWallet(me.uid);
+  listenVaults(me.uid);
 
-    await ensureProfile(me.uid, username);
-    setHeader();
+  // ✅ parallel background
+  const pAdmin   = readAdminFlag(me.uid);
+  const pProfile = ensureProfile(me.uid, username);
 
-    listenWallet(me.uid);
-    listenVaults(me.uid);
-  });
+  pAdmin.then((flag)=>{
+    isAdmin = !!flag;
+    setHeader(); // update roleLine + hide/show addpoint
+  }).catch(()=>{});
+
+  pProfile.catch(()=>{});
+});
 </script>
 </body>
 </html>
