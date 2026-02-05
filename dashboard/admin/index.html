@@ -38,6 +38,27 @@
       box-shadow: 0 14px 28px rgba(22,104,220,.24);
     }
     .right{display:flex; align-items:center; gap:10px}
+    .btn-modal{
+      border:0; border-radius:12px; padding:10px 12px; cursor:pointer;
+      background:var(--btn); color:white; font-weight:900;
+      transition:.15s transform, .15s background;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+    }
+    .btn-user{
+      border:0; border-radius:12px; padding:10px 12px; cursor:pointer;
+      background:var(--btn); color:white; font-weight:900;
+      transition:.15s transform, .15s background;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+    }
+    .btn-logout{
+      border:0; border-radius:12px; padding:10px 12px; cursor:pointer;
+      background:var(--btn); color:white; font-weight:900;
+      transition:.15s transform, .15s background;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+    }
     .btn{
       border:0; border-radius:12px; padding:10px 12px; cursor:pointer;
       background:var(--btn); color:white; font-weight:900;
@@ -272,9 +293,9 @@
   </div>
 
   <div class="right">
-    <button class="btn ghost" id="btnBalance">💰 Modal: <span class="num" id="balanceText">0.00</span></button>
-    <button class="btn ghost" id="btnUser">👤 <span id="usernameText">...</span></button>
-    <button class="btn danger" id="btnLogout">Logout</button>
+    <button class="btn-modal" id="btnBalance">💰 Modal: <span class="num" id="balanceText">0.00</span></button>
+    <button class="btn-user" id="btnUser">👤 <span id="usernameText">...</span></button>
+    <button class="btn-logout" id="btnLogout">Logout</button>
   </div>
 </header>
 
