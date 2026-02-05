@@ -674,7 +674,7 @@ async function recomputeVaultSummary(vaultId, bucket){
     }
   }
 
-  const profit = totalRevenue - totalCost;
+  const profit = totalRevenue > 0 ? (totalRevenue - totalCost) : 0;
 
   const babyAvgPrice = babyQty > 0
     ? (babyPriceSum / babyQty)
