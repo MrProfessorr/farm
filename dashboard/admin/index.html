@@ -626,7 +626,6 @@
   let ctxAvailablePig = 0;
   let ctxMissingPig = 0;
   let ctxEdit = null; 
-  let buyTotalManual = false;
 
   // ===== MODAL helper =====
   function openModal(id){ $(id).style.display="flex"; }
@@ -642,9 +641,7 @@
     if(t?.dataset?.close) closeModal(t.dataset.close);
     if(t.classList.contains("modalBack")) t.style.display="none";
   });
-  $("buyTotal").addEventListener("input", ()=>{
-  buyTotalManual = $("buyTotal").value.trim() !== "";
-});
+
   // ===== ROLE =====
   async function loadRole(uid){
     const r = await get(ref(db, `roles/${uid}`));
@@ -1249,8 +1246,6 @@ function openViewNote(noteText){
       $("buyQty").value=""; $("buyPrice").value=""; $("buyTotal").value="";
       $("buyNote").value="";
       $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
-      buyTotalManual = false;
-      calcBuy();
       openModal("mBuy");
     }
     if(act==="missing"){
@@ -1336,9 +1331,8 @@ if(act==="sell"){
     $("buyTotal").value = String(t.total ?? "");
     $("buyNote").value = String(t.note||"");
     $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
-    buyTotalManual = true;
-    calcBuy();
     openModal("mBuy");
+    calcBuy();
   }
 
   if(t.kind==="missing"){
@@ -1530,15 +1524,10 @@ $("cashSave").addEventListener("click", async ()=>{
 function calcBuy(){
   const qty = Number($("buyQty").value||0);
   const price = Number($("buyPrice").value||0);
+  const totalManual = Number($("buyTotal").value||0);
 
-  const auto = (qty>0 && price>0) ? (qty*price) : 0;
-
-  // ✅ auto isi Total Price kalau user belum manual edit
-  if(!buyTotalManual){
-    $("buyTotal").value = auto ? auto.toFixed(2) : "";
-  }
-
-  const total = Number($("buyTotal").value||0);
+  const auto = qty>0 && price>0 ? qty*price : 0;
+  const total = ($("buyTotal").value.trim()==="") ? auto : totalManual;
 
   const enough = total <= currentBalance;
   $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
@@ -1546,6 +1535,7 @@ function calcBuy(){
     ? `Balance OK. After buy: ${fmt(currentBalance - total)}`
     : `Balance tak cukup. Need: ${fmt(total)} (Balance: ${fmt(currentBalance)})`;
 }
+["buyQty","buyPrice","buyTotal"].forEach(id=> $(id).addEventListener("input", calcBuy));
 
 
 // =====================
