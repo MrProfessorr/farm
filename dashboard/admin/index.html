@@ -867,11 +867,18 @@ document.addEventListener("click", (e)=>{
   };
 
   const fmt = (n)=> (Number(n||0)).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
-  const fmtDT = (ms)=> {
-    if(!ms) return "-";
-    const d = new Date(ms);
-    return d.toLocaleString();
-  };
+  const fmtDT = (ms)=>{
+   if(!ms) return "-";
+   const d = new Date(ms);
+   const pad = (n)=> String(n).padStart(2,"0");
+   const day   = pad(d.getDate());
+   const month = pad(d.getMonth() + 1);
+   const year  = d.getFullYear();
+   const hour  = pad(d.getHours());
+   const min   = pad(d.getMinutes());
+   const sec   = pad(d.getSeconds());
+  return `${day}/${month}/${year} ${hour}:${min}:${sec}`;
+ };
 
   let me = { uid:null, username:null, isAdmin:false };
   let currentBalance = 0;
