@@ -3,970 +3,1065 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Farm Vault Admin</title>
+  <title>Farm Admin</title>
   <style>
     :root{
       --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
-      --bg:#070a16; --panel:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.12);
-      --txt:#eaf0ff; --muted:rgba(234,240,255,.72);
-      --ok:#20c997; --bad:#ff4d4d; --warn:#ffcc55;
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
-      --r:16px;
+      --bg:#070b16; --panel:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.12);
+      --txt:#eaf1ff; --muted:rgba(234,241,255,.7);
+      --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
     }
     *{box-sizing:border-box}
     body{
-      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      color:var(--txt); background:
-        radial-gradient(900px 600px at 20% 10%, rgba(22,104,220,.25), transparent 60%),
-        radial-gradient(900px 600px at 80% 30%, rgba(60,137,232,.16), transparent 60%),
-        linear-gradient(180deg, #050712, #000 60%, #070a16);
+      margin:0; color:var(--txt);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:
+        radial-gradient(1000px 700px at 15% 15%, rgba(22,104,220,.22), transparent 60%),
+        radial-gradient(900px 700px at 85% 25%, rgba(60,137,232,.16), transparent 60%),
+        linear-gradient(180deg,#050815,#070b16 55%,#040612);
       min-height:100vh;
     }
+
     header{
-      height:64px; position:sticky; top:0; z-index:50;
-      display:flex; align-items:center; justify-content:space-between;
+      height:64px; display:flex; align-items:center; justify-content:space-between;
       padding:0 16px;
-      background:rgba(0,0,0,.35);
+      position:sticky; top:0; z-index:50;
+      background:rgba(5,8,21,.72);
+      backdrop-filter: blur(10px);
       border-bottom:1px solid var(--stroke);
-      backdrop-filter: blur(12px);
     }
-    .brand{display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.6px}
-    .dot{width:10px;height:10px;border-radius:99px;background:var(--btn);box-shadow:0 0 18px rgba(22,104,220,.65)}
-    .rightHead{display:flex; align-items:center; gap:10px}
+    .brand{display:flex; gap:10px; align-items:center; font-weight:900; letter-spacing:.4px}
+    .brand .logo{
+      width:34px; height:34px; border-radius:12px;
+      background: linear-gradient(135deg,var(--btn),#5fb1ff);
+      box-shadow: 0 14px 28px rgba(22,104,220,.24);
+    }
+    .right{display:flex; align-items:center; gap:10px}
     .btn{
-      height:40px; border:none; border-radius:12px; cursor:pointer;
-      background:var(--btn); color:#fff; font-weight:800;
-      padding:0 12px; display:inline-flex; align-items:center; gap:8px;
-      transition:.15s transform,.15s background;
+      border:0; border-radius:12px; padding:10px 12px; cursor:pointer;
+      background:var(--btn); color:white; font-weight:900;
+      transition:.15s transform, .15s background;
+      display:inline-flex; align-items:center; gap:8px;
       user-select:none;
     }
-    .btn:hover{background:var(--btnH); transform: translateY(-1px)}
-    .btn:active{background:var(--btnA); transform: translateY(0)}
-    .btn.ghost{background:transparent; border:1px solid var(--stroke); color:var(--txt)}
-    .btn.ghost:hover{border-color:rgba(22,104,220,.65)}
-    .btn.small{height:34px; border-radius:10px; padding:0 10px; font-size:13px}
-    .btn.danger{background:#d94848}
-    .btn.danger:hover{background:#ff5a5a}
-    .btn.warn{background:#b8860b}
-    .btn.warn:hover{background:#d1a62a}
-    .chip{
-      height:34px; display:inline-flex; align-items:center; gap:8px;
-      padding:0 10px; border:1px solid var(--stroke); border-radius:999px;
-      background:rgba(0,0,0,.25); color:var(--muted); font-size:13px;
+    .btn:hover{background:var(--btnH)}
+    .btn:active{background:var(--btnA); transform: translateY(1px)}
+    .btn.ghost{
+      background:rgba(255,255,255,.06); border:1px solid var(--stroke); color:var(--txt);
     }
-    .wrap{max-width:1180px; margin:14px auto; padding:0 14px}
+    .btn.ghost:hover{background:rgba(255,255,255,.10)}
+    .pill{
+      padding:8px 10px; border:1px solid var(--stroke);
+      background:rgba(255,255,255,.05);
+      border-radius:999px; color:var(--muted); font-weight:800; font-size:12px;
+    }
+
+    .container{width:min(1200px,100%); margin:16px auto; padding:0 16px 24px}
     .topRow{
-      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
-      flex-wrap:wrap;
+      display:flex; align-items:flex-start; justify-content:space-between;
+      gap:12px; flex-wrap:wrap;
+      margin:14px 0 12px;
     }
-    .actionsRight{
-      display:flex; flex-direction:column; gap:10px; align-items:flex-end;
-    }
-    .actionsRight .row{display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end}
-    .panel{
-      border:1px solid var(--stroke);
-      background:var(--panel);
-      border-radius:var(--r);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
-      overflow:hidden;
-    }
-    .tabs{
-      display:flex; gap:8px; padding:10px; border-bottom:1px solid var(--stroke);
-      background:rgba(0,0,0,.18);
-    }
+    .tabs{display:flex; gap:10px; align-items:center}
     .tab{
-      height:34px; padding:0 12px; border-radius:999px;
-      border:1px solid var(--stroke); background:transparent; color:var(--muted);
-      cursor:pointer; font-weight:800;
+      border:1px solid var(--stroke); background:rgba(255,255,255,.06);
+      color:var(--muted); font-weight:900;
+      border-radius:999px; padding:9px 12px; cursor:pointer;
     }
-    .tab.active{background:rgba(22,104,220,.18); color:var(--txt); border-color:rgba(22,104,220,.5)}
-    .content{padding:12px}
-    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-    @media (max-width: 860px){ .grid2{grid-template-columns:1fr} }
-    .vault{
+    .tab.active{background:rgba(22,104,220,.18); color:var(--txt); border-color:rgba(22,104,220,.45)}
+    .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .hint{color:var(--muted); font-size:12px; line-height:1.4}
+
+    .grid{display:grid; gap:12px}
+    .card{
+      background:var(--panel);
       border:1px solid var(--stroke);
-      background:rgba(0,0,0,.18);
-      border-radius:14px;
+      border-radius:18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.45);
       overflow:hidden;
     }
-    .vaultHead{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:12px; border-bottom:1px solid var(--stroke);
+    .cardHead{
+      padding:14px 14px 10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
-    .vaultTitle{font-weight:900}
-    .vaultMeta{font-size:12px; color:var(--muted); margin-top:2px}
+    .title{
+      font-weight:1000; font-size:16px; margin:0;
+    }
+    .sub{margin-top:4px; color:var(--muted); font-size:12px; font-weight:700}
     .vaultBtns{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
-    .excel{
-      width:100%;
-      border-collapse:separate;
-      border-spacing:0;
-      font-size:13px;
-    }
-    .excel thead th{
-      position:sticky; top:64px; z-index:2;
-      background:rgba(0,0,0,.55);
-      border-bottom:1px solid var(--stroke);
-      padding:10px 10px;
+    .cardBody{padding:12px 14px 14px}
+
+    /* Excel-like table */
+    table{width:100%; border-collapse:separate; border-spacing:0}
+    th,td{padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.08); vertical-align:top}
+    th{
+      position:sticky; top:0;
+      background:rgba(10,14,28,.7);
+      backdrop-filter: blur(8px);
+      border-bottom:1px solid rgba(255,255,255,.10);
       text-align:left;
+      font-size:12px; letter-spacing:.2px;
       color:var(--muted);
-      backdrop-filter: blur(10px);
+      z-index:1;
     }
-    .excel tbody td{
-      border-bottom:1px solid rgba(255,255,255,.06);
-      padding:9px 10px;
-      vertical-align:top;
+    tr:hover td{background:rgba(255,255,255,.03)}
+    .tblWrap{max-height:360px; overflow:auto; border:1px solid rgba(255,255,255,.08); border-radius:14px}
+    .num{font-variant-numeric: tabular-nums}
+    .tag{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 8px; border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      color:var(--muted);
+      font-size:12px; font-weight:900;
+      white-space:nowrap;
     }
-    .excel tbody tr:hover td{background:rgba(255,255,255,.03)}
-    .num{text-align:right; font-variant-numeric: tabular-nums}
-    .neg{color:var(--bad); font-weight:900}
-    .pos{color:var(--ok); font-weight:900}
-    .muted{color:var(--muted)}
-    .footRow{
-      display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between;
-      padding:10px 12px; border-top:1px solid var(--stroke);
-      background:rgba(0,0,0,.18);
-    }
-    .kpi{display:flex; gap:10px; flex-wrap:wrap}
-    .kpi .box{
-      border:1px solid var(--stroke); background:rgba(0,0,0,.18);
-      border-radius:12px; padding:8px 10px; min-width:170px;
-    }
-    .kpi .box .t{font-size:12px; color:var(--muted)}
-    .kpi .box .v{font-size:18px; font-weight:900; margin-top:2px}
+    .tag.in{border-color:rgba(34,197,94,.35); color:rgba(186,255,214,.95); background:rgba(34,197,94,.12)}
+    .tag.out{border-color:rgba(239,68,68,.35); color:rgba(255,204,204,.95); background:rgba(239,68,68,.12)}
+    .tag.buy{border-color:rgba(245,158,11,.35); color:rgba(255,229,191,.95); background:rgba(245,158,11,.12)}
+    .tag.sell{border-color:rgba(34,197,94,.35); color:rgba(186,255,214,.95); background:rgba(34,197,94,.12)}
+    .profit.good{color:rgba(186,255,214,.95); font-weight:1000}
+    .profit.bad{color:rgba(255,204,204,.95); font-weight:1000}
+
     /* Modal */
-    .backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.65);
-      display:none; align-items:center; justify-content:center; z-index:999;
-      padding:16px;
+    .modalBack{
+      position:fixed; inset:0; background:rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center;
+      padding:18px; z-index:100;
     }
-    .backdrop.show{display:flex}
     .modal{
-      width:min(620px, 100%);
-      border:1px solid var(--stroke);
-      background:rgba(10,14,26,.92);
-      border-radius:16px;
-      box-shadow: var(--shadow);
+      width:min(640px,100%);
+      background:rgba(10,14,28,.92);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      box-shadow: 0 24px 90px rgba(0,0,0,.6);
       overflow:hidden;
-      backdrop-filter: blur(12px);
     }
-    .mHead{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:12px 12px; border-bottom:1px solid var(--stroke);
-      background:rgba(0,0,0,.25);
+    .modalHead{
+      padding:14px 14px 10px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.10);
     }
-    .mTitle{font-weight:900}
-    .mClose{
-      width:34px; height:34px; border-radius:10px; border:1px solid var(--stroke);
-      background:transparent; color:var(--txt); cursor:pointer;
-    }
-    .mBody{padding:12px}
-    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
-    input, select{
-      width:100%; height:42px; border-radius:12px;
-      border:1px solid var(--stroke);
-      background:rgba(0,0,0,.25);
+    .modalHead .x{
+      width:38px; height:38px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
       color:var(--txt);
-      padding:0 10px;
+      cursor:pointer;
+      display:grid; place-items:center;
+      font-weight:1000;
+    }
+    .modalBody{padding:12px 14px 14px}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width:700px){ .row{grid-template-columns:1fr} }
+    label{display:block; margin:10px 0 6px; color:var(--muted); font-weight:800; font-size:12px}
+    input,select,textarea{
+      width:100%; padding:11px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(0,0,0,.20);
+      color:var(--txt);
       outline:none;
     }
-    input:focus,select:focus{border-color:rgba(22,104,220,.7); box-shadow:0 0 0 3px rgba(22,104,220,.18)}
-    .mFoot{
-      display:flex; justify-content:flex-end; gap:10px; padding:12px;
-      border-top:1px solid var(--stroke);
-      background:rgba(0,0,0,.18);
+    input:focus,select:focus,textarea:focus{
+      border-color: rgba(22,104,220,.7); box-shadow: 0 0 0 4px rgba(22,104,220,.18)
     }
-    .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-    @media (max-width:640px){ .row2{grid-template-columns:1fr} }
+    textarea{min-height:84px; resize:vertical}
+    .modalFoot{
+      display:flex; justify-content:flex-end; gap:10px;
+      padding:12px 14px;
+      border-top:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.03);
+    }
+    .danger{background:#d11f3a}
+    .danger:hover{background:#e2445b}
+    .danger:active{background:#b31930}
     .toast{
       position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-      background:rgba(0,0,0,.68); border:1px solid var(--stroke);
-      padding:10px 12px; border-radius:12px; display:none; gap:10px; align-items:center;
-      backdrop-filter: blur(10px); z-index:1000;
+      background:rgba(0,0,0,.78); color:var(--txt);
+      border:1px solid rgba(255,255,255,.12);
+      padding:10px 12px; border-radius:12px; display:none;
+      max-width:min(720px,92vw);
+      z-index:999;
     }
-    .toast.show{display:flex}
+    .hr{height:1px;background:rgba(255,255,255,.10); margin:12px 0}
+    .kpiRow{display:flex; gap:10px; flex-wrap:wrap}
+    .kpi{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);
+      padding:10px 12px; border-radius:14px;
+      min-width: 190px;
+    }
+    .kpi .k{font-size:12px; color:var(--muted); font-weight:900}
+    .kpi .v{margin-top:6px; font-weight:1000; font-size:16px}
     .hide{display:none !important}
   </style>
 </head>
+
 <body>
-  <header>
-    <div class="brand"><span class="dot"></span> FARM VAULT <span class="muted" style="font-weight:800">ADMIN</span></div>
-
-    <div class="rightHead">
-      <button class="btn ghost" id="btnWallet">💰 Wallet</button>
-      <button class="btn" id="btnUser">👤 <span id="navUsername">Loading...</span></button>
+<header>
+  <div class="brand">
+    <div class="logo"></div>
+    <div>
+      FARM VAULT <span class="pill" id="rolePill">loading...</span>
+      <div class="hint" style="margin-top:2px">Realtime • Secure • Cloud</div>
     </div>
-  </header>
+  </div>
 
-  <div class="wrap">
-    <div class="topRow">
-      <div class="chip">
-        <span>Balance:</span> <b id="balanceText">RM 0.00</b>
-        <span class="muted" id="roleText" style="margin-left:8px"></span>
+  <div class="right">
+    <button class="btn ghost" id="btnBalance">💰 Modal: <span class="num" id="balanceText">0.00</span></button>
+    <button class="btn ghost" id="btnUser">👤 <span id="usernameText">...</span></button>
+    <button class="btn danger" id="btnLogout">Logout</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="topRow">
+    <div class="tabs">
+      <button class="tab active" id="tabOpen">Open Vault</button>
+      <button class="tab" id="tabHistory">History</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="btnAddPoint">➕ Add Point</button>
+      <button class="btn" id="btnNewVault">📁 Open New Vault</button>
+      <div class="hint">
+        <b>Tip:</b> Create vault ikut bulan/lot. Latest vault akan muncul paling atas.
       </div>
+    </div>
+  </div>
 
-      <div class="actionsRight">
-        <div class="row">
-          <button class="btn ghost" id="btnAddPoint">➕ Add Point</button>
-          <button class="btn" id="btnNewVault">📁 Open New Vault</button>
+  <!-- OPEN -->
+  <div id="viewOpen" class="grid"></div>
+
+  <!-- HISTORY -->
+  <div id="viewHistory" class="grid hide"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODALS -->
+<div class="modalBack" id="mBalance">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div class="title">Modal Saya</div>
+        <div class="sub">Balance ini digunakan untuk Cash Transfer, Buy dan Sell.</div>
+      </div>
+      <button class="x" data-close="mBalance">✕</button>
+    </div>
+    <div class="modalBody">
+      <div class="kpiRow">
+        <div class="kpi">
+          <div class="k">Current Balance</div>
+          <div class="v num" id="balanceBig">0.00</div>
+        </div>
+        <div class="kpi">
+          <div class="k">Last Update</div>
+          <div class="v num" id="balanceUpdated">-</div>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div class="hint">Balance disimpan di path: <b>finance/balance</b>. Ledger log disimpan di <b>finance/ledger</b>.</div>
+    </div>
+    <div class="modalFoot">
+      <button class="btn ghost" data-close="mBalance">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modalBack" id="mAddPoint">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div class="title">Add Point (Modal In/Out)</div>
+        <div class="sub">Admin sahaja boleh buat ini.</div>
+      </div>
+      <button class="x" data-close="mAddPoint">✕</button>
+    </div>
+    <div class="modalBody">
+      <label>Type</label>
+      <select id="apType">
+        <option value="in">IN (Tambah Modal)</option>
+        <option value="out">OUT (Tolak Modal)</option>
+      </select>
+
+      <div class="row">
+        <div>
+          <label>Amount</label>
+          <input id="apAmount" type="number" min="0" step="0.01" placeholder="contoh 100000" />
+        </div>
+        <div>
+          <label>Note</label>
+          <input id="apNote" placeholder="contoh: topup / keluarkan modal" />
         </div>
       </div>
     </div>
-
-    <div style="height:12px"></div>
-
-    <div class="panel">
-      <div class="tabs">
-        <button class="tab active" data-tab="open">Open Vaults</button>
-        <button class="tab" data-tab="history">History</button>
-      </div>
-      <div class="content">
-        <div id="tabOpen"></div>
-        <div id="tabHistory" class="hide"></div>
-      </div>
+    <div class="modalFoot">
+      <button class="btn ghost" data-close="mAddPoint">Cancel</button>
+      <button class="btn" id="apSave">Save</button>
     </div>
   </div>
+</div>
 
-  <!-- Modal -->
-  <div class="backdrop" id="backdrop">
-    <div class="modal">
-      <div class="mHead">
-        <div class="mTitle" id="mTitle">Modal</div>
-        <button class="mClose" id="mClose">✕</button>
+<div class="modalBack" id="mNewVault">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div class="title">Open New Vault</div>
+        <div class="sub">Isi title contoh: “Feb 2026”, “Lot A”, “Batch 01”.</div>
       </div>
-      <div class="mBody" id="mBody"></div>
-      <div class="mFoot" id="mFoot"></div>
+      <button class="x" data-close="mNewVault">✕</button>
+    </div>
+    <div class="modalBody">
+      <label>Title</label>
+      <input id="nvTitle" placeholder="contoh: FEB 2026" />
+      <label>Note (optional)</label>
+      <textarea id="nvNote" placeholder="catatan vault..."></textarea>
+    </div>
+    <div class="modalFoot">
+      <button class="btn ghost" data-close="mNewVault">Cancel</button>
+      <button class="btn" id="nvCreate">Create</button>
     </div>
   </div>
+</div>
 
-  <div class="toast" id="toast"><span id="toastMsg"></span></div>
+<div class="modalBack" id="mCash">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div class="title">Cash Transfer</div>
+        <div class="sub" id="cashVaultTitle">-</div>
+      </div>
+      <button class="x" data-close="mCash">✕</button>
+    </div>
+    <div class="modalBody">
+      <label>Type</label>
+      <select id="cashType">
+        <option value="cash_in">Cash-IN (Tambah Balance)</option>
+        <option value="cash_out">Cash-OUT (Tolak Balance)</option>
+      </select>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import {
-      getAuth, onAuthStateChanged, signOut
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import {
-      getDatabase, ref, get, set, update, push, remove, onValue, runTransaction,
-      serverTimestamp, query, orderByChild
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+      <div class="row">
+        <div>
+          <label>Amount</label>
+          <input id="cashAmount" type="number" min="0" step="0.01" placeholder="contoh 1000" />
+        </div>
+        <div>
+          <label>Note</label>
+          <input id="cashNote" placeholder="contoh: cash keluar/masuk" />
+        </div>
+      </div>
+    </div>
+    <div class="modalFoot">
+      <button class="btn ghost" data-close="mCash">Cancel</button>
+      <button class="btn" id="cashSave">Save</button>
+    </div>
+  </div>
+</div>
 
-    // ================== Firebase Config (TUKAR INI) ==================
-const firebaseConfig = {
-  apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
-  authDomain: "farm-a9071.firebaseapp.com",
-  databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "farm-a9071",
-  storageBucket: "farm-a9071.firebasestorage.app",
-  messagingSenderId: "979250293394",
-  appId: "1:979250293394:web:af419dd2b325017a41944b"
-};
-    // ================================================================
+<div class="modalBack" id="mBuy">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div class="title">Buy</div>
+        <div class="sub" id="buyVaultTitle">-</div>
+      </div>
+      <button class="x" data-close="mBuy">✕</button>
+    </div>
+    <div class="modalBody">
+      <label>Category</label>
+      <select id="buyCat">
+        <option value="baby_pig">Bayi Babi</option>
+        <option value="feed">Pakan Babi</option>
+        <option value="other">Other</option>
+      </select>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+      <div class="row">
+        <div>
+          <label>Qty (ekor / unit)</label>
+          <input id="buyQty" type="number" min="0" step="1" placeholder="contoh 10" />
+        </div>
+        <div>
+          <label>Price per Unit</label>
+          <input id="buyPrice" type="number" min="0" step="0.01" placeholder="contoh 250" />
+        </div>
+      </div>
 
-    const $ = (id)=>document.getElementById(id);
-    const money = (n)=>`RM ${Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
-    const nowISO = ()=> new Date().toISOString();
+      <div class="row">
+        <div>
+          <label>Total Price</label>
+          <input id="buyTotal" type="number" min="0" step="0.01" placeholder="auto kira" />
+          <div class="hint" id="buyBalanceHint"></div>
+        </div>
+        <div>
+          <label>Note</label>
+          <input id="buyNote" placeholder="contoh: batch A / supplier ..." />
+        </div>
+      </div>
+    </div>
+    <div class="modalFoot">
+      <button class="btn ghost" data-close="mBuy">Cancel</button>
+      <button class="btn" id="buySave">Save</button>
+    </div>
+  </div>
+</div>
 
-    function toast(msg){
-      $("toastMsg").textContent = msg;
-      $("toast").classList.add("show");
-      clearTimeout(window.__t);
-      window.__t = setTimeout(()=> $("toast").classList.remove("show"), 2200);
-    }
+<div class="modalBack" id="mSell">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div class="title">Sell</div>
+        <div class="sub" id="sellVaultTitle">-</div>
+      </div>
+      <button class="x" data-close="mSell">✕</button>
+    </div>
+    <div class="modalBody">
+      <div class="row">
+        <div>
+          <label>Price per Kg</label>
+          <input id="sellPriceKg" type="number" min="0" step="0.01" placeholder="contoh 12.50" />
+        </div>
+        <div>
+          <label>Total Kg</label>
+          <input id="sellKg" type="number" min="0" step="0.01" placeholder="contoh 350" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Total Ekor</label>
+          <input id="sellEkor" type="number" min="0" step="1" placeholder="contoh 20" />
+        </div>
+        <div>
+          <label>Total Hasil (auto)</label>
+          <input id="sellTotal" type="number" min="0" step="0.01" placeholder="auto kira" />
+        </div>
+      </div>
+      <label>Note</label>
+      <input id="sellNote" placeholder="contoh: buyer / invoice ..." />
+    </div>
+    <div class="modalFoot">
+      <button class="btn ghost" data-close="mSell">Cancel</button>
+      <button class="btn" id="sellSave">Save</button>
+    </div>
+  </div>
+</div>
 
-    // ======= Modal helpers =======
-    function openModal(title, bodyHTML, footButtonsHTML){
-      $("mTitle").textContent = title;
-      $("mBody").innerHTML = bodyHTML;
-      $("mFoot").innerHTML = footButtonsHTML || "";
-      $("backdrop").classList.add("show");
-    }
-    function closeModal(){ $("backdrop").classList.remove("show"); }
-    $("mClose").addEventListener("click", closeModal);
-    $("backdrop").addEventListener("click", (e)=>{ if(e.target === $("backdrop")) closeModal(); });
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getAuth, onAuthStateChanged, signOut
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import {
+    getDatabase, ref, get, set, push, update, remove, onValue,
+    serverTimestamp, query, orderByChild, limitToLast
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-    // ======= State =======
-    let currentUser = null;
-    let profile = null;
-    let isAdmin = false;
-    let walletBalance = 0;
+  // === CONFIG KAU ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
+    authDomain: "farm-a9071.firebaseapp.com",
+    databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "farm-a9071",
+    storageBucket: "farm-a9071.firebasestorage.app",
+    messagingSenderId: "979250293394",
+    appId: "1:979250293394:web:af419dd2b325017a41944b"
+  };
 
-    function setRoleUI(){
-      $("roleText").textContent = isAdmin ? "• ADMIN" : "• USER";
-      $("btnAddPoint").classList.toggle("hide", !isAdmin);
-    }
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
 
-    async function loadProfile(uid){
-      const p = await get(ref(db, `users/${uid}/profile`));
-      profile = p.exists() ? p.val() : { username: "User" };
-      $("navUsername").textContent = profile.username || "User";
-    }
+  const $ = (id)=>document.getElementById(id);
+  const toast = (msg)=>{
+    const el = $("toast");
+    el.textContent = msg;
+    el.style.display="block";
+    clearTimeout(window.__t);
+    window.__t = setTimeout(()=> el.style.display="none", 2600);
+  };
 
-    async function loadAdminFlag(uid){
-      // Admin ditentukan oleh node: admins/{uid} = true
-      const a = await get(ref(db, `admins/${uid}`));
-      isAdmin = !!(a.exists() && a.val() === true);
-      setRoleUI();
-    }
+  const fmt = (n)=> (Number(n||0)).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
+  const fmtDT = (ms)=> {
+    if(!ms) return "-";
+    const d = new Date(ms);
+    return d.toLocaleString();
+  };
 
-    function watchWallet(uid){
-      onValue(ref(db, `wallets/${uid}/balance`), (snap)=>{
-        walletBalance = snap.exists() ? Number(snap.val()||0) : 0;
-        $("balanceText").textContent = money(walletBalance);
-        $("balanceText").className = walletBalance < 0 ? "neg" : "";
-      });
-    }
+  let me = { uid:null, username:null, isAdmin:false };
+  let currentBalance = 0;
 
-    // ======= Wallet ops (admin only for Add Point) =======
-    async function walletAdjust(uid, type, amount, note){
-      amount = Number(amount||0);
-      if(!(amount > 0)) throw new Error("Amount invalid");
-      const delta = (type === "IN") ? amount : -amount;
-      const txRef = push(ref(db, `walletTx/${uid}`));
-      const tx = { type, amount, delta, note: note||"", createdAt: serverTimestamp(), createdAtISO: nowISO() };
+  // UI state
+  let activeView = "open"; // open | history
+  let ctxVaultId = null;   // modal context
 
-      // atomic update balance
-      await runTransaction(ref(db, `wallets/${uid}/balance`), (cur)=>{
-        cur = Number(cur||0);
-        return cur + delta;
-      });
+  // ===== MODAL helper =====
+  function openModal(id){ $(id).style.display="flex"; }
+  function closeModal(id){ $(id).style.display="none"; }
+  document.addEventListener("click",(e)=>{
+    const t = e.target;
+    if(t?.dataset?.close) closeModal(t.dataset.close);
+    if(t.classList.contains("modalBack")) t.style.display="none";
+  });
 
-      await set(txRef, tx);
-      await update(ref(db, `wallets/${uid}`), { updatedAt: serverTimestamp(), updatedAtISO: nowISO() });
-    }
+  // ===== ROLE =====
+  async function loadRole(uid){
+    const r = await get(ref(db, `roles/${uid}`));
+    const role = r.exists() ? r.val() : {};
+    me.isAdmin = role?.isAdmin === true;
+    me.username = role?.username || me.username || "user";
+    $("rolePill").textContent = me.isAdmin ? "ADMIN" : "LIMITED";
+    $("usernameText").textContent = me.username;
 
-    // ======= Vault model =======
-    // vaults/{uid}/{vaultId}: { title, status:'open'|'closed', createdAt, updatedAt, buyTotal, sellTotal, sellKg, sellEkor }
-    // vaultTx/{uid}/{vaultId}/{txId}: { kind:'cash'|'buy'|'sell', ... , createdAt }
-    function vaultRoot(uid){ return ref(db, `vaults/${uid}`); }
-    function vaultTxRoot(uid, vaultId){ return ref(db, `vaultTx/${uid}/${vaultId}`); }
+    // permission UI
+    $("btnAddPoint").classList.toggle("hide", !me.isAdmin);
+  }
 
-    async function createVault(uid, title){
-      const vRef = push(vaultRoot(uid));
-      const v = {
-        title: title || "Untitled",
-        status: "open",
-        createdAt: serverTimestamp(),
-        createdAtISO: nowISO(),
-        updatedAt: serverTimestamp(),
-        updatedAtISO: nowISO(),
-        buyTotal: 0,
-        sellTotal: 0,
-        sellKg: 0,
-        sellEkor: 0
-      };
-      await set(vRef, v);
-      toast("Vault created ✅");
-    }
+  // ===== BALANCE =====
+  function wireBalanceListener(){
+    onValue(ref(db,"finance/balance"), (snap)=>{
+      const v = snap.val() || {};
+      currentBalance = Number(v.amount||0);
+      $("balanceText").textContent = fmt(currentBalance);
+      $("balanceBig").textContent  = fmt(currentBalance);
+      $("balanceUpdated").textContent = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
+    });
+  }
 
-    async function vaultCash(uid, vaultId, type, amount){
-      amount = Number(amount||0);
-      if(!(amount > 0)) throw new Error("Amount invalid");
-      const delta = (type === "CASHIN") ? amount : -amount;
+  async function changeBalance(delta, meta){
+    // only admin should call (rules enforce)
+    const now = Date.now();
+    const ledRef = push(ref(db,"finance/ledger"));
+    const newAmount = currentBalance + delta;
 
-      // update wallet balance
-      await runTransaction(ref(db, `wallets/${uid}/balance`), (cur)=> Number(cur||0) + delta);
+    const updates = {};
+    updates["finance/balance"] = {
+      amount: newAmount,
+      updatedAt: serverTimestamp(),
+      updatedAtMs: now,
+      byUid: me.uid,
+      byUser: me.username
+    };
+    updates[`finance/ledger/${ledRef.key}`] = {
+      ...meta,
+      delta,
+      balanceAfter: newAmount,
+      at: serverTimestamp(),
+      atMs: now,
+      byUid: me.uid,
+      byUser: me.username
+    };
+    await update(ref(db), updates);
+  }
 
-      const txRef = push(vaultTxRoot(uid, vaultId));
-      await set(txRef, {
-        kind: "cash",
-        type, amount, delta,
-        createdAt: serverTimestamp(),
-        createdAtISO: nowISO()
-      });
+  // ===== VAULTS =====
+  function vaultRefOpen(){ return ref(db, "vaults/open"); }
+  function vaultRefHist(){ return ref(db, "vaults/history"); }
 
-      await update(ref(db, `vaults/${uid}/${vaultId}`), {
-        updatedAt: serverTimestamp(),
-        updatedAtISO: nowISO()
-      });
+  async function createVault(title, note){
+    const now = Date.now();
+    const vRef = push(vaultRefOpen());
+    await set(vRef, {
+      title: String(title||"").trim(),
+      note: String(note||"").trim(),
+      status: "open",
+      createdAt: serverTimestamp(),
+      createdAtMs: now,
+      createdByUid: me.uid,
+      createdBy: me.username,
+      summary: { totalCost:0, totalKg:0, totalEkor:0, totalRevenue:0, profit:0 }
+    });
+  }
 
-      toast("Cash transfer saved ✅");
-    }
+  async function addTx(vaultId, tx){
+    const now = Date.now();
+    const txRef = push(ref(db, `vaults/${activeView==="open" ? "open":"history"}/${vaultId}/transactions`));
+    await set(txRef, { ...tx, at: serverTimestamp(), atMs: now, byUid: me.uid, byUser: me.username });
+    await recomputeVaultSummary(vaultId, activeView==="open" ? "open":"history");
+  }
 
-    async function vaultBuy(uid, vaultId, category, ekor, pricePer, total){
-      ekor = Number(ekor||0);
-      pricePer = Number(pricePer||0);
-      total = Number(total||0);
-      if(!(total > 0)) throw new Error("Total invalid");
+  async function recomputeVaultSummary(vaultId, bucket){
+    const snap = await get(ref(db, `vaults/${bucket}/${vaultId}/transactions`));
+    const txs = snap.exists() ? snap.val() : {};
+    let totalCost=0, totalKg=0, totalEkor=0, totalRevenue=0;
 
-      // spend wallet
-      await runTransaction(ref(db, `wallets/${uid}/balance`), (cur)=> Number(cur||0) - total);
-
-      const txRef = push(vaultTxRoot(uid, vaultId));
-      await set(txRef, {
-        kind:"buy",
-        category,
-        ekor,
-        pricePer,
-        total,
-        createdAt: serverTimestamp(),
-        createdAtISO: nowISO()
-      });
-
-      // add buyTotal in vault
-      await runTransaction(ref(db, `vaults/${uid}/${vaultId}/buyTotal`), (cur)=> Number(cur||0) + total);
-      await update(ref(db, `vaults/${uid}/${vaultId}`), { updatedAt: serverTimestamp(), updatedAtISO: nowISO() });
-
-      toast("Buy saved ✅");
-    }
-
-    async function vaultSell(uid, vaultId, pricePerKg, totalKg, totalEkor){
-      pricePerKg = Number(pricePerKg||0);
-      totalKg = Number(totalKg||0);
-      totalEkor = Number(totalEkor||0);
-      if(!(pricePerKg > 0) || !(totalKg > 0)) throw new Error("Sell input invalid");
-
-      const total = pricePerKg * totalKg;
-
-      // add wallet
-      await runTransaction(ref(db, `wallets/${uid}/balance`), (cur)=> Number(cur||0) + total);
-
-      const txRef = push(vaultTxRoot(uid, vaultId));
-      await set(txRef, {
-        kind:"sell",
-        pricePerKg, totalKg, totalEkor,
-        total,
-        createdAt: serverTimestamp(),
-        createdAtISO: nowISO()
-      });
-
-      // aggregate sell stats
-      await runTransaction(ref(db, `vaults/${uid}/${vaultId}/sellTotal`), (cur)=> Number(cur||0) + total);
-      await runTransaction(ref(db, `vaults/${uid}/${vaultId}/sellKg`), (cur)=> Number(cur||0) + totalKg);
-      await runTransaction(ref(db, `vaults/${uid}/${vaultId}/sellEkor`), (cur)=> Number(cur||0) + totalEkor);
-
-      await update(ref(db, `vaults/${uid}/${vaultId}`), { updatedAt: serverTimestamp(), updatedAtISO: nowISO() });
-      toast("Sell saved ✅");
-    }
-
-    async function closeVault(uid, vaultId){
-      await update(ref(db, `vaults/${uid}/${vaultId}`), {
-        status:"closed",
-        updatedAt: serverTimestamp(),
-        updatedAtISO: nowISO(),
-        closedAt: serverTimestamp(),
-        closedAtISO: nowISO()
-      });
-      toast("Vault closed ✅");
-    }
-
-    // Edit / Delete tx (only admin for safety)
-    async function deleteVaultTx(uid, vaultId, txId, tx){
-      // rollback wallet + vault aggregates based on tx kind
-      if(tx.kind === "cash"){
-        const delta = Number(tx.delta||0);
-        // rollback wallet
-        await runTransaction(ref(db, `wallets/${uid}/balance`), (cur)=> Number(cur||0) - delta);
+    for(const k of Object.keys(txs)){
+      const t = txs[k];
+      if(t.kind==="buy"){
+        totalCost += Number(t.total||0);
       }
-      if(tx.kind === "buy"){
-        const total = Number(tx.total||0);
-        await runTransaction(ref(db, `wallets/${uid}/balance`), (cur)=> Number(cur||0) + total);
-        await runTransaction(ref(db, `vaults/${uid}/${vaultId}/buyTotal`), (cur)=> Number(cur||0) - total);
+      if(t.kind==="sell"){
+        totalRevenue += Number(t.total||0);
+        totalKg += Number(t.kg||0);
+        totalEkor += Number(t.ekor||0);
       }
-      if(tx.kind === "sell"){
-        const total = Number(tx.total||0);
-        await runTransaction(ref(db, `wallets/${uid}/balance`), (cur)=> Number(cur||0) - total);
-        await runTransaction(ref(db, `vaults/${uid}/${vaultId}/sellTotal`), (cur)=> Number(cur||0) - total);
-        await runTransaction(ref(db, `vaults/${uid}/${vaultId}/sellKg`), (cur)=> Number(cur||0) - Number(tx.totalKg||0));
-        await runTransaction(ref(db, `vaults/${uid}/${vaultId}/sellEkor`), (cur)=> Number(cur||0) - Number(tx.totalEkor||0));
-      }
-
-      await remove(ref(db, `vaultTx/${uid}/${vaultId}/${txId}`));
-      await update(ref(db, `vaults/${uid}/${vaultId}`), { updatedAt: serverTimestamp(), updatedAtISO: nowISO() });
-      toast("Deleted ✅");
     }
+    const profit = totalRevenue - totalCost;
 
-    // ======= UI Render =======
-    function tabSwitch(which){
-      document.querySelectorAll(".tab").forEach(b=>{
-        b.classList.toggle("active", b.dataset.tab === which);
-      });
-      $("tabOpen").classList.toggle("hide", which !== "open");
-      $("tabHistory").classList.toggle("hide", which !== "history");
-    }
-    document.querySelectorAll(".tab").forEach(b=> b.addEventListener("click", ()=> tabSwitch(b.dataset.tab)));
+    await update(ref(db, `vaults/${bucket}/${vaultId}`), {
+      summary: { totalCost, totalKg, totalEkor, totalRevenue, profit },
+      updatedAt: serverTimestamp(),
+      updatedAtMs: Date.now()
+    });
+  }
 
-    function vaultCardHTML(vId, v){
-      const buyTotal = Number(v.buyTotal||0);
-      const sellTotal = Number(v.sellTotal||0);
-      const profit = sellTotal - buyTotal;              // profit boleh negatif
-      const profitAbs = Math.abs(profit);
+  async function closeVault(vaultId){
+    // move open -> history (multi update)
+    const openSnap = await get(ref(db, `vaults/open/${vaultId}`));
+    if(!openSnap.exists()) return;
 
-      const profitClass = profit < 0 ? "neg" : "pos";
-      const profitSign = profit < 0 ? "-" : "";
+    const data = openSnap.val();
+    const now = Date.now();
 
-      const created = v.createdAtISO ? new Date(v.createdAtISO).toLocaleString() : "-";
-      const updated = v.updatedAtISO ? new Date(v.updatedAtISO).toLocaleString() : "-";
+    const updates = {};
+    updates[`vaults/history/${vaultId}`] = {
+      ...data,
+      status: "closed",
+      closedAt: serverTimestamp(),
+      closedAtMs: now,
+      closedByUid: me.uid,
+      closedBy: me.username
+    };
+    updates[`vaults/open/${vaultId}`] = null;
+    await update(ref(db), updates);
+  }
 
-      return `
-        <div class="vault" data-vid="${vId}">
-          <div class="vaultHead">
-            <div>
-              <div class="vaultTitle">${escapeHtml(v.title || "Untitled")} ${v.status==="closed" ? '<span class="muted">(Closed)</span>' : ''}</div>
-              <div class="vaultMeta">Created: ${created} • Updated: ${updated}</div>
-            </div>
-            <div class="vaultBtns">
-              <button class="btn small ghost" data-act="cash" ${v.status==="closed" ? "disabled" : ""}>Cash Transfer</button>
-              <button class="btn small ghost" data-act="buy"  ${v.status==="closed" ? "disabled" : ""}>Buy</button>
-              <button class="btn small ghost" data-act="sell" ${v.status==="closed" ? "disabled" : ""}>Sell</button>
-              <button class="btn small warn" data-act="close" ${v.status==="closed" ? "disabled" : ""}>Closing</button>
+  // ===== RENDER =====
+  function setView(v){
+    activeView = v;
+    $("tabOpen").classList.toggle("active", v==="open");
+    $("tabHistory").classList.toggle("active", v==="history");
+    $("viewOpen").classList.toggle("hide", v!=="open");
+    $("viewHistory").classList.toggle("hide", v!=="history");
+  }
+
+  function vaultCardHTML(vaultId, v, bucket){
+    const s = v.summary || { totalCost:0,totalKg:0,totalEkor:0,totalRevenue:0,profit:0 };
+    const profitClass = (s.profit||0) >= 0 ? "good" : "bad";
+    const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
+    const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
+    const closed  = v.closedAtMs  ? fmtDT(v.closedAtMs)  : "-";
+
+    const canEdit = me.isAdmin; // rule: farm88
+    const isHistory = bucket === "history";
+
+    return `
+      <div class="card" data-vid="${vaultId}" data-bucket="${bucket}">
+        <div class="cardHead">
+          <div>
+            <div class="title">${escapeHtml(v.title || "Untitled Vault")}</div>
+            <div class="sub">
+              Created: <span class="num">${created}</span>
+              ${isHistory ? ` • Closed: <span class="num">${closed}</span>` : ``}
+              <br>Updated: <span class="num">${updated}</span>
             </div>
           </div>
-
-          <div class="footRow">
-            <div class="kpi">
-              <div class="box"><div class="t">Total Buy</div><div class="v">${money(buyTotal)}</div></div>
-              <div class="box"><div class="t">Total Sell</div><div class="v">${money(sellTotal)}</div></div>
-              <div class="box"><div class="t">Total Kg</div><div class="v">${Number(v.sellKg||0).toLocaleString()}</div></div>
-              <div class="box"><div class="t">Total Ekor</div><div class="v">${Number(v.sellEkor||0).toLocaleString()}</div></div>
-              <div class="box">
-                <div class="t">Profit / Loss</div>
-                <div class="v ${profitClass}">${profitSign}${money(profitAbs)}</div>
-              </div>
-            </div>
+          <div class="vaultBtns">
+            ${!isHistory ? `
+              <button class="btn ghost" data-act="cash" data-id="${vaultId}">Cash Transfer</button>
+              <button class="btn ghost" data-act="buy" data-id="${vaultId}">Buy</button>
+              <button class="btn ghost" data-act="sell" data-id="${vaultId}">Sell</button>
+              <button class="btn danger" data-act="close" data-id="${vaultId}">Closing</button>
+            ` : `
+              ${canEdit ? `<button class="btn ghost" data-act="histEdit" data-id="${vaultId}">Edit Title</button>` : ``}
+            `}
+          </div>
+        </div>
+        <div class="cardBody">
+          <div class="kpiRow">
+            <div class="kpi"><div class="k">Total Buy (Cost)</div><div class="v num">${fmt(s.totalCost)}</div></div>
+            <div class="kpi"><div class="k">Total Sell (Revenue)</div><div class="v num">${fmt(s.totalRevenue)}</div></div>
+            <div class="kpi"><div class="k">Total Kg</div><div class="v num">${fmt(s.totalKg)}</div></div>
+            <div class="kpi"><div class="k">Total Ekor</div><div class="v num">${Number(s.totalEkor||0).toLocaleString()}</div></div>
+            <div class="kpi"><div class="k">Profit / Loss</div><div class="v num profit ${profitClass}">${fmt(s.profit)}</div></div>
           </div>
 
-          <div style="padding:12px">
-            <table class="excel">
+          <div class="hr"></div>
+          <div class="tblWrap">
+            <table>
               <thead>
                 <tr>
-                  <th style="width:140px">Date/Time</th>
                   <th style="width:120px">Type</th>
-                  <th>Detail</th>
-                  <th class="num" style="width:140px">Amount</th>
-                  <th style="width:150px">Actions</th>
+                  <th>Description</th>
+                  <th style="width:150px">Amount</th>
+                  <th style="width:180px">Date & Time</th>
+                  <th style="width:140px">Actions</th>
                 </tr>
               </thead>
-              <tbody data-txbody="${vId}">
-                <tr><td colspan="5" class="muted">Loading...</td></tr>
-              </tbody>
+              <tbody data-tbody="${vaultId}"><tr><td colspan="5" class="hint">Loading...</td></tr></tbody>
             </table>
           </div>
+
+          ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
         </div>
-      `;
+      </div>
+    `;
+  }
+
+  function txRowHTML(vaultId, txId, t, bucket){
+    const at = t.atMs ? fmtDT(t.atMs) : "-";
+    const canEdit = me.isAdmin || bucket==="open"; // open boleh guna (rules still protect add point)
+    let typeTag = `<span class="tag">TX</span>`;
+    if(t.kind==="cash") typeTag = `<span class="tag ${t.direction==="in"?"in":"out"}">${t.direction==="in"?"CASH-IN":"CASH-OUT"}</span>`;
+    if(t.kind==="buy")  typeTag = `<span class="tag buy">BUY</span>`;
+    if(t.kind==="sell") typeTag = `<span class="tag sell">SELL</span>`;
+
+    const amount = Number(t.total||t.amount||0);
+    const amountText = fmt(amount);
+
+    const desc = buildTxDesc(t);
+
+    // history edit/delete only for admin (request kau)
+    const showActions = bucket==="open" ? true : me.isAdmin;
+
+    return `
+      <tr data-txid="${txId}">
+        <td>${typeTag}</td>
+        <td>${escapeHtml(desc)}</td>
+        <td class="num">${amountText}</td>
+        <td class="num">${at}</td>
+        <td>
+          ${showActions ? `
+            <button class="btn ghost" style="padding:8px 10px" data-act="txDel" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">Delete</button>
+          ` : `<span class="hint">-</span>`}
+        </td>
+      </tr>
+    `;
+  }
+
+  function buildTxDesc(t){
+    if(t.kind==="cash"){
+      return `${t.direction==="in"?"Cash In":"Cash Out"} • ${t.note||""}`.trim();
+    }
+    if(t.kind==="buy"){
+      const cat = t.category==="baby_pig" ? "Bayi Babi" : (t.category==="feed" ? "Pakan Babi" : "Other");
+      return `Buy • ${cat} • qty ${t.qty||0} @ ${fmt(t.price||0)} • ${t.note||""}`.trim();
+    }
+    if(t.kind==="sell"){
+      return `Sell • ${fmt(t.priceKg||0)}/kg • ${fmt(t.kg||0)} kg • ${Number(t.ekor||0)} ekor • ${t.note||""}`.trim();
+    }
+    return t.note || "Transaction";
+  }
+
+  function escapeHtml(s){
+    return String(s||"").replace(/[&<>"']/g, m => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[m]));
+  }
+
+  function renderVaultList(targetId, data, bucket){
+    const el = $(targetId);
+    const entries = Object.entries(data||{});
+
+    // sort: latest createdAtMs desc
+    entries.sort((a,b)=> (Number(b[1]?.createdAtMs||0) - Number(a[1]?.createdAtMs||0)));
+
+    if(entries.length===0){
+      el.innerHTML = `<div class="card"><div class="cardBody"><div class="hint">No vault yet.</div></div></div>`;
+      return;
     }
 
-    function escapeHtml(s){
-      return String(s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
-    }
+    el.innerHTML = entries.map(([id,v]) => vaultCardHTML(id,v,bucket)).join("");
 
-    function txRowHTML(vId, txId, tx){
-      const dt = tx.createdAtISO ? new Date(tx.createdAtISO).toLocaleString() : "-";
-      let type = tx.kind;
-      let detail = "";
-      let amt = 0;
+    // now bind tx listeners per vault
+    for(const [id] of entries){
+      const txPath = `vaults/${bucket}/${id}/transactions`;
+      onValue(ref(db, txPath), (snap)=>{
+        const txs = snap.exists()? snap.val() : {};
+        const tbody = document.querySelector(`[data-tbody="${id}"]`);
+        if(!tbody) return;
 
-      if(tx.kind === "cash"){
-        type = tx.type === "CASHIN" ? "Cash In" : "Cash Out";
-        detail = `Wallet ${tx.type === "CASHIN" ? "IN" : "OUT"}`;
-        amt = Number(tx.amount||0);
-        if(tx.type === "CASHOUT") amt = -amt;
-      }
-      if(tx.kind === "buy"){
-        type = `Buy (${tx.category||"other"})`;
-        detail = `Ekor: ${Number(tx.ekor||0)} • Price/Ekor: ${money(tx.pricePer||0)}`;
-        amt = -Number(tx.total||0);
-      }
-      if(tx.kind === "sell"){
-        type = "Sell";
-        detail = `Price/Kg: ${money(tx.pricePerKg||0)} • Kg: ${Number(tx.totalKg||0)} • Ekor: ${Number(tx.totalEkor||0)}`;
-        amt = Number(tx.total||0);
-      }
-
-      const amtClass = amt < 0 ? "neg" : (amt > 0 ? "pos" : "");
-      const actionButtons = isAdmin
-        ? `<button class="btn small ghost" data-act="del" data-vid="${vId}" data-txid="${txId}">Delete</button>`
-        : `<span class="muted">No access</span>`;
-
-      return `
-        <tr>
-          <td class="muted">${dt}</td>
-          <td>${escapeHtml(type)}</td>
-          <td class="muted">${escapeHtml(detail)}</td>
-          <td class="num ${amtClass}">${money(Math.abs(amt))}${amt<0?" -":""}</td>
-          <td>${actionButtons}</td>
-        </tr>
-      `;
-    }
-
-    function renderOpenVaults(uid){
-      const openWrap = $("tabOpen");
-      onValue(query(ref(db, `vaults/${uid}`), orderByChild("updatedAtISO")), (snap)=>{
-        const all = snap.exists() ? snap.val() : {};
-        // sort newest updatedAtISO desc
-        const arr = Object.entries(all).map(([id,v])=>({id, v}));
-        arr.sort((a,b)=> String(b.v.updatedAtISO||"").localeCompare(String(a.v.updatedAtISO||"")));
-        const openArr = arr.filter(x=> (x.v.status||"open")==="open");
-
-        if(openArr.length === 0){
-          openWrap.innerHTML = `<div class="muted">No open vault yet. Click “Open New Vault”.</div>`;
+        const rows = Object.entries(txs);
+        rows.sort((a,b)=> Number(a[1]?.atMs||0) - Number(b[1]?.atMs||0)); // ascending
+        if(rows.length===0){
+          tbody.innerHTML = `<tr><td colspan="5" class="hint">No transaction yet.</td></tr>`;
           return;
         }
-
-        openWrap.innerHTML = openArr.map(x=> vaultCardHTML(x.id, x.v)).join("");
-
-        // attach actions + watch tx for each vault
-        openArr.forEach(({id})=>{
-          const body = document.querySelector(`[data-txbody="${id}"]`);
-          onValue(ref(db, `vaultTx/${uid}/${id}`), (txSnap)=>{
-            const txAll = txSnap.exists() ? txSnap.val() : {};
-            const txArr = Object.entries(txAll).map(([tid,t])=>({tid, t}));
-            txArr.sort((a,b)=> String(b.t.createdAtISO||"").localeCompare(String(a.t.createdAtISO||"")));
-            body.innerHTML = txArr.length
-              ? txArr.map(x=> txRowHTML(id, x.tid, x.t)).join("")
-              : `<tr><td colspan="5" class="muted">No transaction yet.</td></tr>`;
-          });
-        });
+        tbody.innerHTML = rows.map(([txId,t]) => txRowHTML(id,txId,t,bucket)).join("");
       });
     }
+  }
 
-    function renderHistory(uid){
-      const histWrap = $("tabHistory");
-      onValue(query(ref(db, `vaults/${uid}`), orderByChild("updatedAtISO")), (snap)=>{
-        const all = snap.exists() ? snap.val() : {};
-        const arr = Object.entries(all).map(([id,v])=>({id,v}));
-        arr.sort((a,b)=> String(b.v.updatedAtISO||"").localeCompare(String(a.v.updatedAtISO||"")));
-        const closed = arr.filter(x=> (x.v.status||"open")==="closed");
+  function wireVaultListeners(){
+    // Open vaults
+    onValue(query(vaultRefOpen(), orderByChild("createdAtMs"), limitToLast(80)), (snap)=>{
+      const data = snap.exists()? snap.val() : {};
+      renderVaultList("viewOpen", data, "open");
+    });
 
-        if(closed.length === 0){
-          histWrap.innerHTML = `<div class="muted">No history yet.</div>`;
-          return;
-        }
+    // History vaults
+    onValue(query(vaultRefHist(), orderByChild("createdAtMs"), limitToLast(120)), (snap)=>{
+      const data = snap.exists()? snap.val() : {};
+      renderVaultList("viewHistory", data, "history");
+    });
+  }
 
-        histWrap.innerHTML = closed.map(({id,v})=>{
-          const created = v.createdAtISO ? new Date(v.createdAtISO).toLocaleString() : "-";
-          const closedAt = v.closedAtISO ? new Date(v.closedAtISO).toLocaleString() : "-";
-          const buyTotal = Number(v.buyTotal||0);
-          const sellTotal = Number(v.sellTotal||0);
-          const profit = sellTotal - buyTotal;
-          const profitClass = profit < 0 ? "neg" : "pos";
-          const titleEdit = isAdmin
-            ? `<button class="btn small ghost" data-act="editTitle" data-vid="${id}">Edit</button>`
-            : ``;
+  // ===== EVENTS =====
+  $("btnBalance").addEventListener("click", ()=> openModal("mBalance"));
+  $("btnUser").addEventListener("click", ()=> toast(`Login as: ${me.username}`));
+  $("btnLogout").addEventListener("click", async ()=>{
+    await signOut(auth);
+    location.replace("../login/");
+  });
 
-          return `
-            <div class="vault" style="margin-bottom:12px">
-              <div class="vaultHead">
-                <div>
-                  <div class="vaultTitle">${escapeHtml(v.title||"Untitled")} <span class="muted">(Closed)</span></div>
-                  <div class="vaultMeta">Created: ${created} • Closed: ${closedAt}</div>
-                </div>
-                <div class="vaultBtns">
-                  ${titleEdit}
-                </div>
-              </div>
-              <div class="footRow">
-                <div class="kpi">
-                  <div class="box"><div class="t">Total Buy</div><div class="v">${money(buyTotal)}</div></div>
-                  <div class="box"><div class="t">Total Sell</div><div class="v">${money(sellTotal)}</div></div>
-                  <div class="box"><div class="t">Profit / Loss</div><div class="v ${profitClass}">${money(Math.abs(profit))}${profit<0?" -":""}</div></div>
-                </div>
-              </div>
-            </div>
-          `;
-        }).join("");
-      });
+  $("tabOpen").addEventListener("click", ()=> setView("open"));
+  $("tabHistory").addEventListener("click", ()=> setView("history"));
+
+  $("btnAddPoint").addEventListener("click", ()=>{
+    if(!me.isAdmin){ toast("Limited user: tiada akses Add Point."); return; }
+    $("apType").value="in"; $("apAmount").value=""; $("apNote").value="";
+    openModal("mAddPoint");
+  });
+
+  $("btnNewVault").addEventListener("click", ()=>{
+    $("nvTitle").value=""; $("nvNote").value="";
+    openModal("mNewVault");
+  });
+
+  $("apSave").addEventListener("click", async ()=>{
+    if(!me.isAdmin){ toast("No access."); return; }
+    const type = $("apType").value;
+    const amount = Number($("apAmount").value||0);
+    const note = $("apNote").value.trim();
+    if(amount<=0){ toast("Amount mesti > 0"); return; }
+
+    const delta = (type==="in") ? amount : -amount;
+
+    try{
+      await changeBalance(delta, { kind:"add_point", direction:type, amount, note });
+      closeModal("mAddPoint");
+      toast("Balance updated.");
+    }catch(e){
+      console.error(e);
+      toast(e?.message || "Failed");
+    }
+  });
+
+  $("nvCreate").addEventListener("click", async ()=>{
+    const title = $("nvTitle").value.trim();
+    const note  = $("nvNote").value.trim();
+    if(!title){ toast("Title wajib isi."); return; }
+    try{
+      await createVault(title, note);
+      closeModal("mNewVault");
+      toast("Vault created.");
+      setView("open");
+    }catch(e){
+      console.error(e);
+      toast(e?.message || "Failed");
+    }
+  });
+
+  // table button actions (event delegation)
+  document.addEventListener("click", async (e)=>{
+    const btn = e.target.closest("[data-act]");
+    if(!btn) return;
+
+    const act = btn.dataset.act;
+    const vid = btn.dataset.id;
+
+    if(act==="cash"){
+      ctxVaultId = vid;
+      const vSnap = await get(ref(db, `vaults/open/${vid}`));
+      $("cashVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
+      $("cashType").value="cash_in"; $("cashAmount").value=""; $("cashNote").value="";
+      openModal("mCash");
     }
 
-    // ======= Header actions =======
-    $("btnUser").addEventListener("click", ()=>{
-      openModal(
-        "Account",
-        `<div class="muted">Logged in as <b>${escapeHtml(profile?.username||"User")}</b></div>`,
-        `<button class="btn ghost" id="mCancel">Close</button>
-         <button class="btn danger" id="mLogout">Logout</button>`
-      );
-      $("mCancel").onclick = closeModal;
-      $("mLogout").onclick = async ()=>{
-        await signOut(auth);
-        location.replace("../login/");
-      };
-    });
+    if(act==="buy"){
+      ctxVaultId = vid;
+      const vSnap = await get(ref(db, `vaults/open/${vid}`));
+      $("buyVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
+      $("buyCat").value="baby_pig";
+      $("buyQty").value=""; $("buyPrice").value=""; $("buyTotal").value="";
+      $("buyNote").value="";
+      $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
+      openModal("mBuy");
+    }
 
-    $("btnWallet").addEventListener("click", async ()=>{
-      openModal(
-        "Wallet Balance",
-        `<div class="kpi">
-           <div class="box" style="min-width:100%"><div class="t">Current Balance</div><div class="v">${money(walletBalance)}</div></div>
-         </div>
-         <div class="muted" style="margin-top:10px">Balance berubah ikut Add Point / Cash Transfer / Buy / Sell.</div>`,
-        `<button class="btn ghost" id="mOk">OK</button>`
-      );
-      $("mOk").onclick = closeModal;
-    });
+    if(act==="sell"){
+      ctxVaultId = vid;
+      const vSnap = await get(ref(db, `vaults/open/${vid}`));
+      $("sellVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
+      $("sellPriceKg").value=""; $("sellKg").value=""; $("sellEkor").value=""; $("sellTotal").value="";
+      $("sellNote").value="";
+      openModal("mSell");
+    }
 
-    $("btnAddPoint").addEventListener("click", ()=>{
-      if(!isAdmin) return toast("No access");
-      openModal(
-        "Add Point (Wallet Adjust)",
-        `
-          <label>Type</label>
-          <select id="apType">
-            <option value="IN">IN (Tambah modal)</option>
-            <option value="OUT">OUT (Tolak modal)</option>
-          </select>
-
-          <div class="row2">
-            <div>
-              <label>Amount</label>
-              <input id="apAmount" type="number" min="0" step="0.01" placeholder="100000"/>
-            </div>
-            <div>
-              <label>Note (optional)</label>
-              <input id="apNote" placeholder="modal awal / adjustment"/>
-            </div>
-          </div>
-        `,
-        `<button class="btn ghost" id="apCancel">Cancel</button>
-         <button class="btn" id="apSave">Save</button>`
-      );
-      $("apCancel").onclick = closeModal;
-      $("apSave").onclick = async ()=>{
-        try{
-          await walletAdjust(currentUser.uid, $("apType").value, $("apAmount").value, $("apNote").value);
-          closeModal();
-        }catch(e){ toast(e?.message || "Failed"); }
-      };
-    });
-
-    $("btnNewVault").addEventListener("click", ()=>{
-      openModal(
-        "Open New Vault",
-        `
-          <label>Title</label>
-          <input id="vTitle" placeholder="Feb 2026 / Batch A / Bulan 2"/>
-          <div class="muted" style="margin-top:8px">Title boleh bulan/nama/angka.</div>
-        `,
-        `<button class="btn ghost" id="vCancel">Cancel</button>
-         <button class="btn" id="vCreate">Create</button>`
-      );
-      $("vCancel").onclick = closeModal;
-      $("vCreate").onclick = async ()=>{
-        const t = $("vTitle").value.trim();
-        if(t.length < 1) return toast("Title required");
-        await createVault(currentUser.uid, t);
-        closeModal();
-      };
-    });
-
-    // Delegated vault actions
-    document.addEventListener("click", async (e)=>{
-      const vaultEl = e.target.closest(".vault");
-      if(!vaultEl) return;
-
-      const vid = vaultEl.getAttribute("data-vid");
-      const actBtn = e.target.closest("button[data-act]");
-      if(!actBtn) return;
-
-      const act = actBtn.dataset.act;
-      if(!vid) return;
-
-      if(act === "cash"){
-        openModal(
-          "Cash Transfer",
-          `
-            <label>Type</label>
-            <select id="cType">
-              <option value="CASHIN">Cash In (Tambah wallet)</option>
-              <option value="CASHOUT">Cash Out (Tolak wallet)</option>
-            </select>
-            <label>Amount</label>
-            <input id="cAmount" type="number" min="0" step="0.01" placeholder="1000"/>
-          `,
-          `<button class="btn ghost" id="cCancel">Cancel</button>
-           <button class="btn" id="cSave">Save</button>`
-        );
-        $("cCancel").onclick = closeModal;
-        $("cSave").onclick = async ()=>{
-          try{
-            await vaultCash(currentUser.uid, vid, $("cType").value, $("cAmount").value);
-            closeModal();
-          }catch(err){ toast(err?.message || "Failed"); }
-        };
+    if(act==="close"){
+      if(!confirm("Closing vault? Vault akan dipindah ke History.")) return;
+      try{
+        await closeVault(vid);
+        toast("Vault closed → History.");
+      }catch(e){
+        console.error(e);
+        toast(e?.message || "Failed");
       }
+    }
 
-      if(act === "buy"){
-        openModal(
-          "Buy",
-          `
-            <label>Category</label>
-            <select id="bCat">
-              <option value="bayi babi">Bayi Babi</option>
-              <option value="pakan babi">Pakan Babi</option>
-              <option value="other">Other</option>
-            </select>
+    if(act==="txDel"){
+      const vaultId = btn.dataset.v;
+      const bucket  = btn.dataset.b;
+      const txId    = btn.dataset.t;
 
-            <div class="row2">
-              <div>
-                <label>Total Ekor (optional)</label>
-                <input id="bEkor" type="number" min="0" step="1" placeholder="10"/>
-              </div>
-              <div>
-                <label>Harga per-ekor (optional)</label>
-                <input id="bPrice" type="number" min="0" step="0.01" placeholder="200"/>
-              </div>
-            </div>
-
-            <label>Total Harga</label>
-            <input id="bTotal" type="number" min="0" step="0.01" placeholder="2000"/>
-            <div class="muted" id="bHint" style="margin-top:8px"></div>
-          `,
-          `<button class="btn ghost" id="bCancel">Cancel</button>
-           <button class="btn" id="bSave">Save</button>`
-        );
-        const bTotal = $("bTotal");
-        const hint = $("bHint");
-        function check(){
-          const total = Number(bTotal.value||0);
-          if(total > walletBalance){
-            bTotal.style.borderColor = "rgba(255,77,77,.8)";
-            hint.innerHTML = `<span class="neg">Modal tak cukup.</span> Balance sekarang: <b>${money(walletBalance)}</b>`;
-          }else{
-            bTotal.style.borderColor = "var(--stroke)";
-            hint.innerHTML = `Balance sekarang: <b>${money(walletBalance)}</b>`;
-          }
-        }
-        bTotal.addEventListener("input", check);
-        check();
-
-        $("bCancel").onclick = closeModal;
-        $("bSave").onclick = async ()=>{
-          try{
-            const total = Number($("bTotal").value||0);
-            if(total > walletBalance) return toast("Modal tak cukup");
-            await vaultBuy(currentUser.uid, vid, $("bCat").value, $("bEkor").value, $("bPrice").value, $("bTotal").value);
-            closeModal();
-          }catch(err){ toast(err?.message || "Failed"); }
-        };
-      }
-
-      if(act === "sell"){
-        openModal(
-          "Sell",
-          `
-            <div class="row2">
-              <div>
-                <label>Harga per-Kg</label>
-                <input id="sPrice" type="number" min="0" step="0.01" placeholder="12.5"/>
-              </div>
-              <div>
-                <label>Total Kg</label>
-                <input id="sKg" type="number" min="0" step="0.01" placeholder="100"/>
-              </div>
-            </div>
-            <div class="row2">
-              <div>
-                <label>Total Ekor</label>
-                <input id="sEkor" type="number" min="0" step="1" placeholder="10"/>
-              </div>
-              <div>
-                <label>Total Hasil (auto)</label>
-                <input id="sTotal" disabled/>
-              </div>
-            </div>
-          `,
-          `<button class="btn ghost" id="sCancel">Cancel</button>
-           <button class="btn" id="sSave">Save</button>`
-        );
-        const sPrice = $("sPrice"), sKg = $("sKg"), sTotal = $("sTotal");
-        function calc(){
-          const total = Number(sPrice.value||0) * Number(sKg.value||0);
-          sTotal.value = money(total);
-        }
-        sPrice.addEventListener("input", calc);
-        sKg.addEventListener("input", calc);
-        calc();
-
-        $("sCancel").onclick = closeModal;
-        $("sSave").onclick = async ()=>{
-          try{
-            await vaultSell(currentUser.uid, vid, sPrice.value, sKg.value, $("sEkor").value);
-            closeModal();
-          }catch(err){ toast(err?.message || "Failed"); }
-        };
-      }
-
-      if(act === "close"){
-        openModal(
-          "Closing Vault",
-          `<div class="muted">Bila closing, vault akan masuk History (tak boleh tambah transaction lagi).</div>`,
-          `<button class="btn ghost" id="clCancel">Cancel</button>
-           <button class="btn warn" id="clOk">Close Vault</button>`
-        );
-        $("clCancel").onclick = closeModal;
-        $("clOk").onclick = async ()=>{
-          await closeVault(currentUser.uid, vid);
-          closeModal();
-        };
-      }
-
-      if(act === "del"){
-        if(!isAdmin) return toast("No access");
-        const txId = actBtn.dataset.txid;
-        // get tx data first
-        const txSnap = await get(ref(db, `vaultTx/${currentUser.uid}/${vid}/${txId}`));
-        if(!txSnap.exists()) return;
-        const tx = txSnap.val();
-
-        openModal(
-          "Delete Transaction",
-          `<div class="muted">Confirm delete? Sistem akan rollback balance & totals.</div>`,
-          `<button class="btn ghost" id="dCancel">Cancel</button>
-           <button class="btn danger" id="dOk">Delete</button>`
-        );
-        $("dCancel").onclick = closeModal;
-        $("dOk").onclick = async ()=>{
-          await deleteVaultTx(currentUser.uid, vid, txId, tx);
-          closeModal();
-        };
-      }
-    });
-
-    // History edit title (admin only)
-    document.addEventListener("click", async (e)=>{
-      const b = e.target.closest("button[data-act='editTitle']");
-      if(!b) return;
-      if(!isAdmin) return toast("No access");
-      const vid = b.dataset.vid;
-
-      const vSnap = await get(ref(db, `vaults/${currentUser.uid}/${vid}`));
-      if(!vSnap.exists()) return;
-      const v = vSnap.val();
-
-      openModal(
-        "Edit Vault Title",
-        `<label>Title</label><input id="etTitle" value="${escapeHtml(v.title||"")}"/>`,
-        `<button class="btn ghost" id="etCancel">Cancel</button>
-         <button class="btn" id="etSave">Save</button>`
-      );
-      $("etCancel").onclick = closeModal;
-      $("etSave").onclick = async ()=>{
-        const t = $("etTitle").value.trim();
-        if(!t) return toast("Title required");
-        await update(ref(db, `vaults/${currentUser.uid}/${vid}`), { title:t, updatedAt: serverTimestamp(), updatedAtISO: nowISO() });
-        toast("Updated ✅");
-        closeModal();
-      };
-    });
-
-    // ======= Auth boot =======
-    onAuthStateChanged(auth, async (user)=>{
-      if(!user){
-        location.replace("../login/");
+      // history delete only admin (UI already hides, but double guard)
+      if(bucket==="history" && !me.isAdmin){
+        toast("Limited user: tiada akses delete history.");
         return;
       }
-      currentUser = user;
-      await loadProfile(user.uid);
-      await loadAdminFlag(user.uid);
-      watchWallet(user.uid);
 
-      renderOpenVaults(user.uid);
-      renderHistory(user.uid);
-    });
-  </script>
+      if(!confirm("Delete transaction?")) return;
+
+      try{
+        await remove(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
+        await recomputeVaultSummary(vaultId, bucket);
+        toast("Deleted.");
+      }catch(e){
+        console.error(e);
+        toast(e?.message || "Failed");
+      }
+    }
+
+    if(act==="histEdit"){
+      if(!me.isAdmin){ toast("No access."); return; }
+      const newTitle = prompt("New title?");
+      if(!newTitle) return;
+      try{
+        await update(ref(db, `vaults/history/${vid}`), { title: newTitle.trim(), updatedAt: serverTimestamp(), updatedAtMs: Date.now() });
+        toast("Updated title.");
+      }catch(e){
+        console.error(e);
+        toast(e?.message || "Failed");
+      }
+    }
+  });
+
+  // cash save
+  $("cashSave").addEventListener("click", async ()=>{
+    const type = $("cashType").value;
+    const amount = Number($("cashAmount").value||0);
+    const note = $("cashNote").value.trim();
+    if(amount<=0){ toast("Amount mesti > 0"); return; }
+
+    const direction = (type==="cash_in") ? "in" : "out";
+    const delta = (direction==="in") ? amount : -amount;
+
+    try{
+      // adjust balance (admin only by rules; but we allow UI for all, rules will block limited)
+      await changeBalance(delta, { kind:"cash_transfer", direction, amount, note, vaultId: ctxVaultId });
+
+      // add vault transaction
+      await addTx(ctxVaultId, { kind:"cash", direction, amount, total: amount, note });
+
+      closeModal("mCash");
+      toast("Cash transfer saved.");
+    }catch(e){
+      console.error(e);
+      toast(e?.message || "Failed (maybe limited user no access).");
+    }
+  });
+
+  // BUY auto calc
+  function calcBuy(){
+    const qty = Number($("buyQty").value||0);
+    const price = Number($("buyPrice").value||0);
+    const totalManual = Number($("buyTotal").value||0);
+
+    const auto = qty>0 && price>0 ? qty*price : 0;
+    // kalau user isi total, kita ikut input dia; tapi kalau kosong, guna auto
+    const total = ($("buyTotal").value.trim()==="") ? auto : totalManual;
+
+    // validate vs balance
+    const enough = total <= currentBalance;
+    $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
+    $("buyBalanceHint").textContent = enough
+      ? `Balance OK. After buy: ${fmt(currentBalance - total)}`
+      : `Balance tak cukup. Need: ${fmt(total)} (Balance: ${fmt(currentBalance)})`;
+  }
+  ["buyQty","buyPrice","buyTotal"].forEach(id=> $(id).addEventListener("input", calcBuy));
+
+  $("buySave").addEventListener("click", async ()=>{
+    const category = $("buyCat").value;
+    const qty = Number($("buyQty").value||0);
+    const price = Number($("buyPrice").value||0);
+    const total = Number($("buyTotal").value||0) || (qty*price);
+    const note = $("buyNote").value.trim();
+
+    if(total<=0){ toast("Total mesti > 0"); return; }
+    if(total > currentBalance){
+      toast("Modal tak cukup untuk buy.");
+      return;
+    }
+
+    try{
+      // deduct balance
+      await changeBalance(-total, { kind:"buy", category, qty, price, total, note, vaultId: ctxVaultId });
+      await addTx(ctxVaultId, { kind:"buy", category, qty, price, total, note });
+      closeModal("mBuy");
+      toast("Buy saved.");
+    }catch(e){
+      console.error(e);
+      toast(e?.message || "Failed (maybe limited user no access).");
+    }
+  });
+
+  // SELL auto calc
+  function calcSell(){
+    const priceKg = Number($("sellPriceKg").value||0);
+    const kg = Number($("sellKg").value||0);
+    const total = priceKg * kg;
+    $("sellTotal").value = total ? total.toFixed(2) : "";
+  }
+  ["sellPriceKg","sellKg"].forEach(id=> $(id).addEventListener("input", calcSell));
+
+  $("sellSave").addEventListener("click", async ()=>{
+    const priceKg = Number($("sellPriceKg").value||0);
+    const kg = Number($("sellKg").value||0);
+    const ekor = Number($("sellEkor").value||0);
+    const total = Number($("sellTotal").value||0) || (priceKg*kg);
+    const note = $("sellNote").value.trim();
+
+    if(total<=0 || kg<=0){ toast("Price/Kg dan Kg mesti isi."); return; }
+
+    try{
+      // add balance (sell adds money)
+      await changeBalance(+total, { kind:"sell", priceKg, kg, ekor, total, note, vaultId: ctxVaultId });
+      await addTx(ctxVaultId, { kind:"sell", priceKg, kg, ekor, total, note });
+      closeModal("mSell");
+      toast("Sell saved.");
+    }catch(e){
+      console.error(e);
+      toast(e?.message || "Failed (maybe limited user no access).");
+    }
+  });
+
+  // ===== AUTH BOOT =====
+  onAuthStateChanged(auth, async (user)=>{
+    if(!user){
+      location.replace("../login/");
+      return;
+    }
+    me.uid = user.uid;
+
+    // load profile username
+    const p = await get(ref(db, `profiles/${me.uid}`));
+    me.username = p.exists() ? (p.val().username || "user") : "user";
+    $("usernameText").textContent = me.username;
+
+    await loadRole(me.uid);
+
+    // balance
+    wireBalanceListener();
+
+    // vault listeners
+    wireVaultListeners();
+
+    // default view
+    setView("open");
+
+    toast("Ready.");
+  });
+</script>
 </body>
 </html>
