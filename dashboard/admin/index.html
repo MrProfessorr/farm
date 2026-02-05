@@ -549,10 +549,17 @@
   let ctxVaultId = null;   // modal context
   let ctxAvailablePig = 0;
   let ctxMissingPig = 0;
+  let ctxEdit = null; 
 
   // ===== MODAL helper =====
   function openModal(id){ $(id).style.display="flex"; }
-  function closeModal(id){ $(id).style.display="none"; }
+  function closeModal(id){
+  $(id).style.display="none";
+
+  if(id==="mCash" || id==="mBuy" || id==="mMissing" || id==="mSell"){
+    ctxEdit = null;
+  }
+}
   document.addEventListener("click",(e)=>{
     const t = e.target;
     if(t?.dataset?.close) closeModal(t.dataset.close);
@@ -930,10 +937,19 @@ ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.
         <td class="num ${amtClass}">${amountText}</td>
         <td class="num">${at}</td>
         <td>
-          ${showActions ? `
-            <button class="btn ghost" style="padding:8px 10px" data-act="txDel" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">Delete</button>
-          ` : `<span class="hint">-</span>`}
-        </td>
+  ${showActions ? `
+    <div style="display:flex; gap:8px; justify-content:flex-end">
+      <button class="btn ghost" style="padding:8px 10px"
+        data-act="txEdit" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
+        Edit
+      </button>
+      <button class="btn ghost" style="padding:8px 10px"
+        data-act="txDel" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
+        Delete
+      </button>
+    </div>
+  ` : `<span class="hint">-</span>`}
+</td>
       </tr>
     `;
   }
@@ -960,6 +976,25 @@ ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.
       "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
     }[m]));
   }
+  function txBalanceEffect(t){
+  if(!t) return 0;
+
+  if(t.kind === "cash"){
+    const amt = Number(t.amount || t.total || 0);
+    return (t.direction === "in") ? amt : -amt;
+  }
+
+  if(t.kind === "buy"){
+    return -Math.abs(Number(t.total || 0));
+  }
+
+  if(t.kind === "sell"){
+    return Math.abs(Number(t.total || 0));
+  }
+
+  // missing memang tak sentuh balance
+  return 0;
+}
 
   function renderVaultList(targetId, data, bucket){
     const el = $(targetId);
@@ -1137,7 +1172,84 @@ if(act==="sell"){
         toast(e?.message || "Failed");
       }
     }
+    if(act==="txEdit"){
+  const vaultId = btn.dataset.v;
+  const bucket  = btn.dataset.b;
+  const txId    = btn.dataset.t;
 
+  const txSnap = await get(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
+  if(!txSnap.exists()){ toast("TX not found"); return; }
+
+  const t = txSnap.val();
+
+  // Safety: edit BUY/SELL/CASH perlu admin sebab akan adjust balance
+  if(!me.isAdmin && (t.kind==="buy" || t.kind==="sell" || t.kind==="cash")){
+    toast("Edit BUY/SELL/CASH hanya admin boleh.");
+    return;
+  }
+
+  ctxVaultId = vaultId;
+  ctxEdit = { vaultId, bucket, txId, oldTx: t };
+
+  // Open modal ikut jenis
+  if(t.kind==="cash"){
+    $("cashVaultTitle").textContent = `Edit Cash • Vault: ${vaultId}`;
+    $("cashType").value = (t.direction==="in") ? "cash_in" : "cash_out";
+    $("cashAmount").value = String(t.amount ?? t.total ?? "");
+    $("cashNote").value = String(t.note||"");
+    openModal("mCash");
+  }
+
+  if(t.kind==="buy"){
+    $("buyVaultTitle").textContent = `Edit Buy • Vault: ${vaultId}`;
+    $("buyCat").value = t.category || "baby_pig";
+    $("buyQty").value = String(t.qty ?? "");
+    $("buyPrice").value = String(t.price ?? "");
+    $("buyTotal").value = String(t.total ?? "");
+    $("buyNote").value = String(t.note||"");
+    $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
+    openModal("mBuy");
+    calcBuy();
+  }
+
+  if(t.kind==="missing"){
+    $("missingVaultTitle").textContent = `Edit Missing • Vault: ${vaultId}`;
+    $("missQty").value = String(t.qty ?? "");
+    $("missPrice").value = String(t.price ?? "");
+    $("missTotal").value = String(t.total ?? "");
+    $("missNote").value = String(t.note||"");
+    openModal("mMissing");
+    calcMissing();
+  }
+
+  if(t.kind==="sell"){
+    $("sellVaultTitle").textContent = `Edit Sell • Vault: ${vaultId}`;
+
+    // update context available (biar limit ekor masih ikut summary)
+    const vSnap = await get(ref(db, `vaults/open/${vaultId}`));
+    const s = (vSnap.exists() ? (vSnap.val().summary || {}) : {});
+    const babyQty = Number(s.babyPig?.qty || 0);
+    const missQty = Number(s.missing?.qty || 0);
+    ctxMissingPig = missQty;
+    ctxAvailablePig = Math.max(0, babyQty - missQty);
+
+    $("sellMissing").value = String(ctxMissingPig);
+    $("sellEkorHint").textContent = `Tersedia untuk jual: ${ctxAvailablePig} ekor`;
+
+    $("sellPriceKg").value = String(t.priceKg ?? "");
+    $("sellKg").value = String(t.kg ?? "");
+    $("sellEkor").value = String(t.ekor ?? "");
+    $("sellTotal").value = String(t.total ?? "");
+    $("sellNote").value = String(t.note||"");
+
+    $("sellEkor").style.borderColor = "rgba(255,255,255,.12)";
+    openModal("mSell");
+    calcSell();
+    validateSellEkor();
+  }
+
+  return;
+}
     if(act==="txDel"){
       const vaultId = btn.dataset.v;
       const bucket  = btn.dataset.b;
@@ -1214,74 +1326,169 @@ if(act==="vaultUnclose"){
 }
   });
 
-  // cash save
-  $("cashSave").addEventListener("click", async ()=>{
-    const type = $("cashType").value;
-    const amount = Number($("cashAmount").value||0);
-    const note = $("cashNote").value.trim();
-    if(amount<=0){ toast("Amount mesti > 0"); return; }
+ // =====================
+// CASH SAVE (CREATE + EDIT)
+// =====================
+$("cashSave").addEventListener("click", async ()=>{
+  const type = $("cashType").value;
+  const amount = Number($("cashAmount").value||0);
+  const note = $("cashNote").value.trim();
+  if(amount<=0){ toast("Amount mesti > 0"); return; }
 
-    const direction = (type==="cash_in") ? "in" : "out";
-    const delta = (direction==="in") ? amount : -amount;
+  const direction = (type==="cash_in") ? "in" : "out";
+  const delta = (direction==="in") ? amount : -amount;
 
-    try{
-      // adjust balance (admin only by rules; but we allow UI for all, rules will block limited)
-      await changeBalance(delta, { kind:"cash_transfer", direction, amount, note, vaultId: ctxVaultId });
+  const newTx = { kind:"cash", direction, amount, total: amount, note };
 
-      // add vault transaction
-      await addTx(ctxVaultId, { kind:"cash", direction, amount, total: amount, note });
+  try{
+    // ===== EDIT MODE =====
+    if(ctxEdit && ctxEdit.txId){
+      const old = ctxEdit.oldTx;
 
+      const oldEff = txBalanceEffect(old);
+      const newEff = txBalanceEffect(newTx);
+      const diff = newEff - oldEff;
+
+      // adjust balance hanya beza
+      if(diff !== 0){
+        await changeBalance(diff, {
+          kind:"tx_edit_adjust",
+          txKind:"cash",
+          vaultId: ctxEdit.vaultId,
+          txId: ctxEdit.txId,
+          note:"Edit cash"
+        });
+      }
+
+      // update tx data
+      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+        ...newTx,
+        editedAt: serverTimestamp(),
+        editedAtMs: Date.now(),
+        editedByUid: me.uid,
+        editedBy: me.username
+      });
+
+      await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
+
+      ctxEdit = null;
       closeModal("mCash");
-      toast("Cash transfer saved.");
-    }catch(e){
-      console.error(e);
-      toast(e?.message || "Failed (maybe limited user no access).");
+      toast("Cash updated.");
+      return;
     }
-  });
 
-  // BUY auto calc
-  function calcBuy(){
-    const qty = Number($("buyQty").value||0);
-    const price = Number($("buyPrice").value||0);
-    const totalManual = Number($("buyTotal").value||0);
+    // ===== CREATE MODE =====
+    await changeBalance(delta, { kind:"cash_transfer", direction, amount, note, vaultId: ctxVaultId });
+    await addTx(ctxVaultId, newTx);
 
-    const auto = qty>0 && price>0 ? qty*price : 0;
-    // kalau user isi total, kita ikut input dia; tapi kalau kosong, guna auto
-    const total = ($("buyTotal").value.trim()==="") ? auto : totalManual;
-
-    // validate vs balance
-    const enough = total <= currentBalance;
-    $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
-    $("buyBalanceHint").textContent = enough
-      ? `Balance OK. After buy: ${fmt(currentBalance - total)}`
-      : `Balance tak cukup. Need: ${fmt(total)} (Balance: ${fmt(currentBalance)})`;
+    closeModal("mCash");
+    toast("Cash transfer saved.");
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed (maybe limited user no access).");
   }
-  ["buyQty","buyPrice","buyTotal"].forEach(id=> $(id).addEventListener("input", calcBuy));
+});
 
-  $("buySave").addEventListener("click", async ()=>{
-    const category = $("buyCat").value;
-    const qty = Number($("buyQty").value||0);
-    const price = Number($("buyPrice").value||0);
-    const total = Number($("buyTotal").value||0) || (qty*price);
-    const note = $("buyNote").value.trim();
 
-    if(total<=0){ toast("Total mesti > 0"); return; }
+// =====================
+// BUY AUTO CALC
+// =====================
+function calcBuy(){
+  const qty = Number($("buyQty").value||0);
+  const price = Number($("buyPrice").value||0);
+  const totalManual = Number($("buyTotal").value||0);
+
+  const auto = qty>0 && price>0 ? qty*price : 0;
+  const total = ($("buyTotal").value.trim()==="") ? auto : totalManual;
+
+  const enough = total <= currentBalance;
+  $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
+  $("buyBalanceHint").textContent = enough
+    ? `Balance OK. After buy: ${fmt(currentBalance - total)}`
+    : `Balance tak cukup. Need: ${fmt(total)} (Balance: ${fmt(currentBalance)})`;
+}
+["buyQty","buyPrice","buyTotal"].forEach(id=> $(id).addEventListener("input", calcBuy));
+
+
+// =====================
+// BUY SAVE (CREATE + EDIT)
+// =====================
+$("buySave").addEventListener("click", async ()=>{
+  const category = $("buyCat").value;
+  const qty = Number($("buyQty").value||0);
+  const price = Number($("buyPrice").value||0);
+  const total = Number($("buyTotal").value||0) || (qty*price);
+  const note = $("buyNote").value.trim();
+
+  if(total<=0){ toast("Total mesti > 0"); return; }
+
+  // kalau EDIT, jangan check balance pakai currentBalance bulat-bulat,
+  // sebab diff boleh kecil. Tapi kita masih boleh guard simple:
+  // jika tambah cost (diff negatif), pastikan cukup.
+  try{
+    const newTx = { kind:"buy", category, qty, price, total, note };
+
+    // ===== EDIT MODE =====
+    if(ctxEdit && ctxEdit.txId){
+      const old = ctxEdit.oldTx;
+
+      const oldEff = txBalanceEffect(old);
+      const newEff = txBalanceEffect(newTx);
+      const diff = newEff - oldEff; // buy negatif
+
+      // kalau diff negatif (lebih banyak cost), pastikan cukup balance
+      if(diff < 0 && Math.abs(diff) > currentBalance){
+        toast("Balance tak cukup untuk edit buy (tambahan cost).");
+        return;
+      }
+
+      if(diff !== 0){
+        await changeBalance(diff, {
+          kind:"tx_edit_adjust",
+          txKind:"buy",
+          vaultId: ctxEdit.vaultId,
+          txId: ctxEdit.txId,
+          note:"Edit buy"
+        });
+      }
+
+      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+        ...newTx,
+        editedAt: serverTimestamp(),
+        editedAtMs: Date.now(),
+        editedByUid: me.uid,
+        editedBy: me.username
+      });
+
+      await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
+
+      ctxEdit = null;
+      closeModal("mBuy");
+      toast("Buy updated.");
+      return;
+    }
+
+    // ===== CREATE MODE =====
     if(total > currentBalance){
       toast("Modal tak cukup untuk buy.");
       return;
     }
 
-    try{
-      // deduct balance
-      await changeBalance(-total, { kind:"buy", category, qty, price, total, note, vaultId: ctxVaultId });
-      await addTx(ctxVaultId, { kind:"buy", category, qty, price, total, note });
-      closeModal("mBuy");
-      toast("Buy saved.");
-    }catch(e){
-      console.error(e);
-      toast(e?.message || "Failed (maybe limited user no access).");
-    }
-  });
+    await changeBalance(-total, { kind:"buy", category, qty, price, total, note, vaultId: ctxVaultId });
+    await addTx(ctxVaultId, newTx);
+
+    closeModal("mBuy");
+    toast("Buy saved.");
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed (maybe limited user no access).");
+  }
+});
+
+
+// =====================
+// MISSING AUTO CALC
+// =====================
 function calcMissing(){
   const q = Number($("missQty").value||0);
   const p = Number($("missPrice").value||0);
@@ -1289,8 +1496,12 @@ function calcMissing(){
   $("missTotal").value = t ? t.toFixed(2) : "";
 }
 ["missQty","missPrice"].forEach(id=> $(id).addEventListener("input", calcMissing));
-  
-  $("missSave").addEventListener("click", async ()=>{
+
+
+// =====================
+// MISSING SAVE (CREATE + EDIT)
+// =====================
+$("missSave").addEventListener("click", async ()=>{
   const qty = Number($("missQty").value||0);
   const price = Number($("missPrice").value||0);
   const total = qty * price;
@@ -1299,9 +1510,28 @@ function calcMissing(){
   if(qty<=0 || price<=0){ toast("Missing & harga mesti > 0"); return; }
 
   try{
-    // CATATAN SAHAJA: tak sentuh balance
-    await addTx(ctxVaultId, { kind:"missing", qty, price, total, note });
+    const newTx = { kind:"missing", qty, price, total, note };
 
+    // ===== EDIT MODE =====
+    if(ctxEdit && ctxEdit.txId){
+      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+        ...newTx,
+        editedAt: serverTimestamp(),
+        editedAtMs: Date.now(),
+        editedByUid: me.uid,
+        editedBy: me.username
+      });
+
+      await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
+
+      ctxEdit = null;
+      closeModal("mMissing");
+      toast("Missing updated.");
+      return;
+    }
+
+    // ===== CREATE MODE =====
+    await addTx(ctxVaultId, newTx);
     closeModal("mMissing");
     toast("Missing saved.");
   }catch(e){
@@ -1309,42 +1539,97 @@ function calcMissing(){
     toast(e?.message || "Failed");
   }
 });
-  // SELL auto calc
-  function calcSell(){
-    const priceKg = Number($("sellPriceKg").value||0);
-    const kg = Number($("sellKg").value||0);
-    const total = priceKg * kg;
-    $("sellTotal").value = total ? total.toFixed(2) : "";
-  }
-  ["sellPriceKg","sellKg"].forEach(id=> $(id).addEventListener("input", calcSell));
 
-  $("sellSave").addEventListener("click", async ()=>{
-    const priceKg = Number($("sellPriceKg").value||0);
-    const kg = Number($("sellKg").value||0);
-    const ekor = Number($("sellEkor").value||0);
-    const total = Number($("sellTotal").value||0) || (priceKg*kg);
-    const note = $("sellNote").value.trim();
 
-    if(total<=0 || kg<=0){ toast("Price/Kg dan Kg mesti isi."); return; }
-    if(ekor > ctxAvailablePig){
+// =====================
+// SELL AUTO CALC
+// =====================
+function calcSell(){
+  const priceKg = Number($("sellPriceKg").value||0);
+  const kg = Number($("sellKg").value||0);
+  const total = priceKg * kg;
+  $("sellTotal").value = total ? total.toFixed(2) : "";
+}
+["sellPriceKg","sellKg"].forEach(id=> $(id).addEventListener("input", calcSell));
+
+
+// =====================
+// SELL SAVE (CREATE + EDIT)
+// =====================
+$("sellSave").addEventListener("click", async ()=>{
+  const priceKg = Number($("sellPriceKg").value||0);
+  const kg = Number($("sellKg").value||0);
+  const ekor = Number($("sellEkor").value||0);
+  const total = Number($("sellTotal").value||0) || (priceKg*kg);
+  const note = $("sellNote").value.trim();
+
+  if(total<=0 || kg<=0){ toast("Price/Kg dan Kg mesti isi."); return; }
+  if(ekor > ctxAvailablePig){
     toast(`Total ekor tak boleh lebih dari tersedia (${ctxAvailablePig}).`);
     $("sellEkor").focus();
     return;
   }
 
-    try{
-      // add balance (sell adds money)
-      await changeBalance(+total, { kind:"sell", priceKg, kg, ekor, total, note, vaultId: ctxVaultId });
-      await addTx(ctxVaultId, { kind:"sell", priceKg, kg, ekor, total, note });
+  try{
+    const newTx = { kind:"sell", priceKg, kg, ekor, total, note };
+
+    // ===== EDIT MODE =====
+    if(ctxEdit && ctxEdit.txId){
+      const old = ctxEdit.oldTx;
+
+      const oldEff = txBalanceEffect(old);
+      const newEff = txBalanceEffect(newTx);
+      const diff = newEff - oldEff; // sell positif
+
+      // kalau edit mengurangkan revenue (diff negatif), pastikan balance cukup untuk tolak balik
+      if(diff < 0 && Math.abs(diff) > currentBalance){
+        toast("Balance tak cukup untuk edit sell (kena tolak balik).");
+        return;
+      }
+
+      if(diff !== 0){
+        await changeBalance(diff, {
+          kind:"tx_edit_adjust",
+          txKind:"sell",
+          vaultId: ctxEdit.vaultId,
+          txId: ctxEdit.txId,
+          note:"Edit sell"
+        });
+      }
+
+      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+        ...newTx,
+        editedAt: serverTimestamp(),
+        editedAtMs: Date.now(),
+        editedByUid: me.uid,
+        editedBy: me.username
+      });
+
+      await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
+
+      ctxEdit = null;
       closeModal("mSell");
-      toast("Sell saved.");
-    }catch(e){
-      console.error(e);
-      toast(e?.message || "Failed (maybe limited user no access).");
+      toast("Sell updated.");
+      return;
     }
-  });
-  
-  function validateSellEkor(){
+
+    // ===== CREATE MODE =====
+    await changeBalance(+total, { kind:"sell", priceKg, kg, ekor, total, note, vaultId: ctxVaultId });
+    await addTx(ctxVaultId, newTx);
+
+    closeModal("mSell");
+    toast("Sell saved.");
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed (maybe limited user no access).");
+  }
+});
+
+
+// =====================
+// VALIDATE EKOR INPUT
+// =====================
+function validateSellEkor(){
   const ekor = Number($("sellEkor").value||0);
   const ok = ekor <= ctxAvailablePig;
 
