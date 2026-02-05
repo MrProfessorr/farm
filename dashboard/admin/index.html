@@ -1405,7 +1405,7 @@ function openViewNote(noteText){
         if(!tbody) return;
 
         const rows = Object.entries(txs);
-        rows.sort((a,b)=> Number(a[1]?.atMs||0) - Number(b[1]?.atMs||0)); // ascending
+        rows.sort((a,b)=> Number(b[1]?.atMs||0) - Number(a[1]?.atMs||0));
         if(rows.length===0){
           tbody.innerHTML = `<tr><td colspan="5" class="hint">No transaction yet.</td></tr>`;
           return;
