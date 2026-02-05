@@ -674,7 +674,7 @@ async function recomputeVaultSummary(vaultId, bucket){
     }
   }
 
-  const profit = totalRevenue > 0 ? (totalRevenue - totalCost) : 0;
+  const profit = totalRevenue - totalCost;
 
   const babyAvgPrice = babyQty > 0
     ? (babyPriceSum / babyQty)
@@ -728,6 +728,10 @@ summary: {
     const missQty = Number(s.missing?.qty || 0);
     const availablePig = Math.max(0, Number(bp.qty||0) - missQty);
     const profitClass = (s.profit||0) >= 0 ? "good" : "bad";
+    const salesValue = (Number(s.totalRevenue||0) > 0)
+    ? (Number(s.totalRevenue||0) - Number(s.totalCost||0))
+    : 0;
+    const salesClass = salesValue >= 0 ? "good" : "bad";
     const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
     const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
     const closed  = v.closedAtMs  ? fmtDT(v.closedAtMs)  : "-";
@@ -815,9 +819,9 @@ summary: {
     <div class="v num profit ${profitClass}">${fmt(s.profit)}</div>
   </div>
 
-  <div class="kpi">
+<div class="kpi">
   <div class="k">Sales</div>
-  <div class="v num ${profitClass}">${fmt(s.profit)}</div>
+  <div class="v num ${salesClass}">${fmt(salesValue)}</div>
 </div>
 </div>
 
