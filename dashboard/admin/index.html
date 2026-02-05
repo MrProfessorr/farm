@@ -199,6 +199,65 @@
     .amtNeg{ color: rgba(255, 204, 204, .95); font-weight: 1000; }
     .good{ color:#41d37e; font-weight:900; }
     .bad{ color:#ff6b6b; font-weight:900; }
+    /* ===== TABLE WRAP: boleh scroll kiri/kanan + atas/bawah ===== */
+.tblWrap{
+  width:100%;
+  overflow-x:auto;     /* scroll kanan kiri */
+  overflow-y:auto;     /* scroll atas bawah (kalau tinggi) */
+  -webkit-overflow-scrolling: touch;
+  border-radius: 14px;
+}
+
+/* Paksa table tak wrap, supaya tak turun line */
+.tblWrap table{
+  width:100%;
+  min-width: 980px;          /* penting: kalau screen kecil, dia akan scroll */
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+/* Semua cell jangan wrap */
+.tblWrap th,
+.tblWrap td{
+  white-space: nowrap;       /* ini yang buat text & button tak turun */
+}
+
+/* Kalau kau nak Description masih boleh panjang tanpa wrap, tapi ada ellipsis */
+.tblWrap td:nth-child(2){
+  max-width: 420px;          /* adjust ikut suka */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Actions jangan turun & spacing kemas */
+.tblWrap td:last-child > div{
+  flex-wrap: nowrap !important;
+}
+
+/* ===== Scrollbar style (grey, clean) ===== */
+/* Chrome/Edge/Safari */
+.tblWrap::-webkit-scrollbar{
+  height: 10px;  /* horizontal */
+  width: 10px;   /* vertical */
+}
+.tblWrap::-webkit-scrollbar-track{
+  background: rgba(255,255,255,.06);
+  border-radius: 999px;
+}
+.tblWrap::-webkit-scrollbar-thumb{
+  background: rgba(160,160,160,.45); /* grey */
+  border-radius: 999px;
+  border: 2px solid rgba(0,0,0,.25);
+}
+.tblWrap::-webkit-scrollbar-thumb:hover{
+  background: rgba(190,190,190,.65);
+}
+
+/* Firefox */
+.tblWrap{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(170,170,170,.55) rgba(255,255,255,.06);
+}
   </style>
 </head>
 
