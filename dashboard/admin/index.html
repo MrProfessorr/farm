@@ -429,16 +429,23 @@
           <input id="sellKg" type="number" min="0" step="0.01" placeholder="contoh 350" />
         </div>
       </div>
-      <div class="row">
-        <div>
-          <label>Total Ekor</label>
-          <input id="sellEkor" type="number" min="0" step="1" placeholder="contoh 20" />
-        </div>
-        <div>
-          <label>Total Hasil (auto)</label>
-          <input id="sellTotal" type="number" min="0" step="0.01" placeholder="auto kira" />
-        </div>
-      </div>
+<div class="row">
+  <div>
+    <label>Total Ekor</label>
+    <input id="sellEkor" type="number" min="0" step="1" placeholder="contoh 20" />
+    <div class="hint" id="sellEkorHint"></div>
+  </div>
+
+  <div>
+    <label>Missing (auto)</label>
+    <input id="sellMissing" type="number" disabled placeholder="auto" />
+  </div>
+
+  <div>
+    <label>Total Hasil (auto)</label>
+    <input id="sellTotal" type="number" min="0" step="0.01" placeholder="auto kira" />
+  </div>
+</div>
       <label>Note</label>
       <input id="sellNote" placeholder="contoh: buyer / invoice ..." />
     </div>
@@ -538,6 +545,8 @@
   // UI state
   let activeView = "open"; // open | history
   let ctxVaultId = null;   // modal context
+  let ctxAvailablePig = 0;
+  let ctxMissingPig = 0;
 
   // ===== MODAL helper =====
   function openModal(id){ $(id).style.display="flex"; }
@@ -714,6 +723,8 @@ summary: {
   function vaultCardHTML(vaultId, v, bucket){
     const s = v.summary || { totalCost:0,totalKg:0,totalEkor:0,totalRevenue:0,profit:0 };
     const bp = (s.babyPig || { qty:0, avgPrice:0, total:0 });
+    const missQty = Number(s.missing?.qty || 0);
+    const availablePig = Math.max(0, Number(bp.qty||0) - missQty);
     const profitClass = (s.profit||0) >= 0 ? "good" : "bad";
     const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
     const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
@@ -790,6 +801,11 @@ summary: {
  <div class="kpi">
   <div class="k">Missing</div>
   <div class="v num">${Number((s.missing?.qty)||0).toLocaleString()}</div>
+</div>
+
+<div class="kpi">
+  <div class="k">Tersedia Babi</div>
+  <div class="v num">${availablePig.toLocaleString()}</div>
 </div>
 
   <div class="kpi">
@@ -1018,14 +1034,30 @@ summary: {
   openModal("mMissing");
 }
 
-    if(act==="sell"){
-      ctxVaultId = vid;
-      const vSnap = await get(ref(db, `vaults/open/${vid}`));
-      $("sellVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
-      $("sellPriceKg").value=""; $("sellKg").value=""; $("sellEkor").value=""; $("sellTotal").value="";
-      $("sellNote").value="";
-      openModal("mSell");
-    }
+if(act==="sell"){
+  ctxVaultId = vid;
+  const vSnap = await get(ref(db, `vaults/open/${vid}`));
+  $("sellVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
+
+  const s = (vSnap.exists() ? (vSnap.val().summary || {}) : {});
+  const babyQty = Number(s.babyPig?.qty || 0);
+  const missQty = Number(s.missing?.qty || 0);
+
+  ctxMissingPig = missQty;
+  ctxAvailablePig = Math.max(0, babyQty - missQty);
+
+  $("sellMissing").value = String(ctxMissingPig);
+  $("sellEkorHint").textContent = `Tersedia untuk jual: ${ctxAvailablePig} ekor`;
+
+  $("sellPriceKg").value=""; $("sellKg").value="";
+  $("sellEkor").value=""; $("sellTotal").value="";
+  $("sellNote").value="";
+
+  // reset border
+  $("sellEkor").style.borderColor = "rgba(255,255,255,.12)";
+
+  openModal("mSell");
+}
 
     if(act==="close"){
       if(!confirm("Closing vault? Vault akan dipindah ke History.")) return;
@@ -1187,6 +1219,11 @@ function calcMissing(){
     const note = $("sellNote").value.trim();
 
     if(total<=0 || kg<=0){ toast("Price/Kg dan Kg mesti isi."); return; }
+    if(ekor > ctxAvailablePig){
+    toast(`Total ekor tak boleh lebih dari tersedia (${ctxAvailablePig}).`);
+    $("sellEkor").focus();
+    return;
+  }
 
     try{
       // add balance (sell adds money)
@@ -1199,6 +1236,19 @@ function calcMissing(){
       toast(e?.message || "Failed (maybe limited user no access).");
     }
   });
+  
+  function validateSellEkor(){
+  const ekor = Number($("sellEkor").value||0);
+  const ok = ekor <= ctxAvailablePig;
+
+  $("sellEkor").style.borderColor = ok ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.85)";
+  $("sellEkorHint").textContent = ok
+    ? `Tersedia untuk jual: ${ctxAvailablePig} ekor`
+    : `Maksimum boleh jual: ${ctxAvailablePig} ekor (kau isi ${ekor})`;
+
+  return ok;
+}
+$("sellEkor").addEventListener("input", validateSellEkor);
 
   // ===== AUTH BOOT =====
   onAuthStateChanged(auth, async (user)=>{
