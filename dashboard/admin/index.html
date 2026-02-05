@@ -1070,29 +1070,24 @@ function txRowHTML(vaultId, txId, t, bucket){
 }
 
 function buildTxDesc(t){
-  // Description sekarang ringkas, Type dah cover BUY/SELL/MISSING/CASH
   if(t.kind==="cash"){
-    const base = t.direction==="in" ? "Cash In" : "Cash Out";
-    return t.note ? `${base} • ${t.note}` : base;
+    return t.direction==="in" ? "Cash In" : "Cash Out";
   }
 
   if(t.kind==="buy"){
-    const cat = t.category==="baby_pig" ? "Bayi Babi"
-              : (t.category==="feed" ? "Pakan Babi" : "Other");
-    return t.note ? `${cat} • ${t.note}` : cat;
+    return t.category==="baby_pig" ? "Bayi Babi"
+         : (t.category==="feed" ? "Pakan Babi" : "Other");
   }
 
   if(t.kind==="missing"){
-    return t.note ? t.note : "-";
+    return "Missing";
   }
 
   if(t.kind==="sell"){
-    // kg masih relevant sebab kita tak buat kolum kg
-    const base = `${fmt(t.kg||0)} kg`;
-    return t.note ? `${base} • ${t.note}` : base;
+    return `${fmt(t.kg||0)} kg`;
   }
 
-  return t.note || "Transaction";
+  return "Transaction";
 }
 
   function escapeHtml(s){
