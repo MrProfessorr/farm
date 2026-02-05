@@ -893,15 +893,19 @@ async function uncloseVault(vaultId){
           <div class="hr"></div>
           <div class="tblWrap">
             <table>
-              <thead>
-                <tr>
-                  <th style="width:120px">Type</th>
-                  <th>Description</th>
-                  <th style="width:150px">Amount</th>
-                  <th style="width:180px">Date & Time</th>
-                  <th style="width:140px">Actions</th>
-                </tr>
-              </thead>
+             <thead>
+  <tr>
+    <th style="width:120px">Type</th>
+    <th>Description</th>
+
+    <th style="width:120px">Berapa Ekor</th>
+    <th style="width:150px">Harga Per-Ekor</th>
+
+    <th style="width:150px">Amount</th>
+    <th style="width:180px">Date & Time</th>
+    <th style="width:180px">Actions</th>
+  </tr>
+</thead>
               <tbody data-tbody="${vaultId}"><tr><td colspan="5" class="hint">Loading...</td></tr></tbody>
             </table>
           </div>
@@ -929,49 +933,72 @@ ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.
 
 function txRowHTML(vaultId, txId, t, bucket){
   const at = t.atMs ? fmtDT(t.atMs) : "-";
+
   let typeTag = `<span class="tag">TX</span>`;
   if(t.kind==="cash") typeTag = `<span class="tag ${t.direction==="in"?"in":"out"}">${t.direction==="in"?"CASH-IN":"CASH-OUT"}</span>`;
   if(t.kind==="buy")  typeTag = `<span class="tag buy">BUY</span>`;
   if(t.kind==="sell") typeTag = `<span class="tag sell">SELL</span>`;
   if(t.kind==="missing") typeTag = `<span class="tag out">MISSING</span>`;
 
+  // Amount
   let amount = Number(t.total||t.amount||0);
-  if(t.kind==="missing") amount = -Math.abs(amount);
-
+  if(t.kind==="missing") amount = -Math.abs(amount); // display negatif
   const amountText = fmt(amount);
   const amtClass = amount < 0 ? "amtNeg" : "";
 
+  // === NEW: qty (ekor) & unit price column ===
+  let qtyEkor = "";
+  let unitPrice = "";
+
+  if(t.kind==="buy"){
+    qtyEkor = Number(t.qty||0) ? String(Number(t.qty||0).toLocaleString()) : "";
+    unitPrice = Number(t.price||0) ? fmt(t.price||0) : "";
+  }else if(t.kind==="missing"){
+    qtyEkor = Number(t.qty||0) ? String(Number(t.qty||0).toLocaleString()) : "";
+    unitPrice = Number(t.price||0) ? fmt(t.price||0) : "";
+  }else if(t.kind==="sell"){
+    // sell pakai ekor + priceKg (kalau kau nak)
+    qtyEkor = Number(t.ekor||0) ? String(Number(t.ekor||0).toLocaleString()) : "";
+    // Kalau kau nak kolum ni khas “Harga Per-Ekor”, untuk sell memang tak sama.
+    // Jadi aku letak kosong. Kalau kau nak letak Harga/Kg, uncomment bawah:
+    // unitPrice = Number(t.priceKg||0) ? fmt(t.priceKg||0) : "";
+    unitPrice = "";
+  }else{
+    qtyEkor = "";
+    unitPrice = "";
+  }
+
+  // Description (dah tak ada "qty @ ...")
   const desc = buildTxDesc(t);
 
-  // open: semua boleh buat action, history: admin sahaja
+  // actions: open semua boleh, history admin sahaja
   const showActions = bucket==="open" ? true : me.isAdmin;
 
-  // NOTE utk view
-  const noteText = String(t.note || "").trim();
-  const hasNote = noteText.length > 0;
-  const encNote = encodeURIComponent(noteText);
+  const hasNote = String(t.note||"").trim().length > 0;
 
   return `
     <tr data-txid="${txId}">
       <td>${typeTag}</td>
       <td>${escapeHtml(desc)}</td>
+
+      <td class="num">${escapeHtml(qtyEkor || "-")}</td>
+      <td class="num">${escapeHtml(unitPrice || "-")}</td>
+
       <td class="num ${amtClass}">${amountText}</td>
       <td class="num">${at}</td>
       <td>
         ${showActions ? `
-          <div style="display:flex; gap:8px; justify-content:flex-end">
+          <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
             ${hasNote ? `
               <button class="btn ghost" style="padding:8px 10px"
-                data-act="txView" data-note="${encNote}">
+                data-act="txView" data-note="${escapeHtml(t.note)}">
                 View
               </button>
             ` : ``}
-
             <button class="btn ghost" style="padding:8px 10px"
               data-act="txEdit" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
               Edit
             </button>
-
             <button class="btn ghost" style="padding:8px 10px"
               data-act="txDel" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
               Delete
@@ -984,23 +1011,29 @@ function txRowHTML(vaultId, txId, t, bucket){
 }
 
 function buildTxDesc(t){
+  // Description sekarang ringkas, Type dah cover BUY/SELL/MISSING/CASH
   if(t.kind==="cash"){
-    return `${t.direction==="in"?"Cash In":"Cash Out"}`.trim();
+    const base = t.direction==="in" ? "Cash In" : "Cash Out";
+    return t.note ? `${base} • ${t.note}` : base;
   }
+
   if(t.kind==="buy"){
-    const cat = t.category==="baby_pig" ? "Bayi Babi" : (t.category==="feed" ? "Pakan Babi" : "Other");
-    // TAK LETAK "Buy" & TAK LETAK note
-    return `${cat} • qty ${t.qty||0} @ ${fmt(t.price||0)}`.trim();
+    const cat = t.category==="baby_pig" ? "Bayi Babi"
+              : (t.category==="feed" ? "Pakan Babi" : "Other");
+    return t.note ? `${cat} • ${t.note}` : cat;
   }
+
   if(t.kind==="missing"){
-    // TAK LETAK "Missing" & TAK LETAK note
-    return `${Number(t.qty||0)} ekor @ ${fmt(t.price||0)}`.trim();
+    return t.note ? t.note : "-";
   }
+
   if(t.kind==="sell"){
-    // TAK LETAK "Sell" & TAK LETAK note
-    return `${fmt(t.priceKg||0)}/kg • ${fmt(t.kg||0)} kg • ${Number(t.ekor||0)} ekor`.trim();
+    // kg masih relevant sebab kita tak buat kolum kg
+    const base = `${fmt(t.kg||0)} kg`;
+    return t.note ? `${base} • ${t.note}` : base;
   }
-  return "Transaction";
+
+  return t.note || "Transaction";
 }
 
   function escapeHtml(s){
