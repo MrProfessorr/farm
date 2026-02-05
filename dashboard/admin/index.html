@@ -383,6 +383,18 @@ select.native-select {
   font-size: 12px;
   opacity:.65;
 }
+/* Buang arrow (spinner) untuk input number - Chrome/Edge/Safari */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Buang arrow (spinner) untuk Firefox */
+input[type="number"]{
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
   </style>
 </head>
 
