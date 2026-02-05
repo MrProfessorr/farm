@@ -721,7 +721,35 @@ async function recomputeVaultSummary(vaultId, bucket){
     updates[`vaults/open/${vaultId}`] = null;
     await update(ref(db), updates);
   }
+async function uncloseVault(vaultId){
+  // move history -> open
+  const histSnap = await get(ref(db, `vaults/history/${vaultId}`));
+  if(!histSnap.exists()) return;
 
+  const data = histSnap.val();
+  const now = Date.now();
+
+  const updates = {};
+  updates[`vaults/open/${vaultId}`] = {
+    ...data,
+    status: "open",
+    reopenedAt: serverTimestamp(),
+    reopenedAtMs: now,
+    reopenedByUid: me.uid,
+    reopenedBy: me.username
+  };
+
+  // buang closed fields supaya nampak clean (optional tapi cantik)
+  updates[`vaults/open/${vaultId}/closedAt`] = null;
+  updates[`vaults/open/${vaultId}/closedAtMs`] = null;
+  updates[`vaults/open/${vaultId}/closedByUid`] = null;
+  updates[`vaults/open/${vaultId}/closedBy`] = null;
+
+  // delete dari history
+  updates[`vaults/history/${vaultId}`] = null;
+
+  await update(ref(db), updates);
+}
   // ===== RENDER =====
   function setView(v){
     activeView = v;
@@ -861,11 +889,16 @@ ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.
   ${
     (!isHistory)
       ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
-      : (me.isAdmin
-          ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>`
-          : ``)
+      : (
+          me.isAdmin
+            ? `
+              <button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>
+              <button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>
+            `
+            : ``
+        )
   }
-      </div>
+</div>
         </div>
       </div>
     `;
@@ -1162,6 +1195,22 @@ if(act==="vaultDel"){
   }catch(e){
     console.error(e);
     toast("Failed delete vault.");
+  }
+}
+if(act==="vaultUnclose"){
+  if(!me.isAdmin){
+    toast("Admin sahaja boleh Unclosing.");
+    return;
+  }
+  if(!confirm("Unclosing vault ini? Vault akan balik ke Open Vault.")) return;
+
+  try{
+    await uncloseVault(vid);
+    toast("Vault moved back to Open Vault.");
+    setView("open"); // optional: auto pindah tab open
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed unclosing.");
   }
 }
   });
