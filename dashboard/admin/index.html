@@ -499,7 +499,24 @@
     </div>
   </div>
 </div>
-  
+
+<!-- VIEW NOTE MODAL -->
+<div class="modalBack" id="mViewNote" style="display:none;">
+  <div class="modal" style="max-width:520px;">
+    <div class="modalHead" style="display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-weight:800;">Note</div>
+      <button class="btn ghost" data-close="mViewNote" type="button" aria-label="Close">✕</button>
+    </div>
+
+    <div class="modalBody">
+      <div id="viewNoteText" class="hint" style="white-space:pre-wrap;line-height:1.45;"></div>
+    </div>
+
+    <div class="modalFoot" style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn ghost" data-close="mViewNote" type="button">Close</button>
+    </div>
+  </div>
+</div>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import {
@@ -910,66 +927,81 @@ ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.
     `;
   }
 
-  function txRowHTML(vaultId, txId, t, bucket){
-    const at = t.atMs ? fmtDT(t.atMs) : "-";
-    const canEdit = me.isAdmin || bucket==="open"; // open boleh guna (rules still protect add point)
-    let typeTag = `<span class="tag">TX</span>`;
-    if(t.kind==="cash") typeTag = `<span class="tag ${t.direction==="in"?"in":"out"}">${t.direction==="in"?"CASH-IN":"CASH-OUT"}</span>`;
-    if(t.kind==="buy")  typeTag = `<span class="tag buy">BUY</span>`;
-    if(t.kind==="sell") typeTag = `<span class="tag sell">SELL</span>`;
-    if(t.kind==="missing") typeTag = `<span class="tag out">MISSING</span>`;
+function txRowHTML(vaultId, txId, t, bucket){
+  const at = t.atMs ? fmtDT(t.atMs) : "-";
+  let typeTag = `<span class="tag">TX</span>`;
+  if(t.kind==="cash") typeTag = `<span class="tag ${t.direction==="in"?"in":"out"}">${t.direction==="in"?"CASH-IN":"CASH-OUT"}</span>`;
+  if(t.kind==="buy")  typeTag = `<span class="tag buy">BUY</span>`;
+  if(t.kind==="sell") typeTag = `<span class="tag sell">SELL</span>`;
+  if(t.kind==="missing") typeTag = `<span class="tag out">MISSING</span>`;
 
-    let amount = Number(t.total||t.amount||0);
-    if(t.kind==="missing") amount = -Math.abs(amount); // display negatif
+  let amount = Number(t.total||t.amount||0);
+  if(t.kind==="missing") amount = -Math.abs(amount);
 
-    const amountText = fmt(amount);
-    const amtClass = amount < 0 ? "amtNeg" : "";
+  const amountText = fmt(amount);
+  const amtClass = amount < 0 ? "amtNeg" : "";
 
-    const desc = buildTxDesc(t);
+  const desc = buildTxDesc(t);
 
-    // history edit/delete only for admin (request kau)
-    const showActions = bucket==="open" ? true : me.isAdmin;
+  // open: semua boleh buat action, history: admin sahaja
+  const showActions = bucket==="open" ? true : me.isAdmin;
 
-    return `
-      <tr data-txid="${txId}">
-        <td>${typeTag}</td>
-        <td>${escapeHtml(desc)}</td>
-        <td class="num ${amtClass}">${amountText}</td>
-        <td class="num">${at}</td>
-        <td>
-  ${showActions ? `
-    <div style="display:flex; gap:8px; justify-content:flex-end">
-      <button class="btn ghost" style="padding:8px 10px"
-        data-act="txEdit" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
-        Edit
-      </button>
-      <button class="btn ghost" style="padding:8px 10px"
-        data-act="txDel" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
-        Delete
-      </button>
-    </div>
-  ` : `<span class="hint">-</span>`}
-</td>
-      </tr>
-    `;
+  // NOTE utk view
+  const noteText = String(t.note || "").trim();
+  const hasNote = noteText.length > 0;
+  const encNote = encodeURIComponent(noteText);
+
+  return `
+    <tr data-txid="${txId}">
+      <td>${typeTag}</td>
+      <td>${escapeHtml(desc)}</td>
+      <td class="num ${amtClass}">${amountText}</td>
+      <td class="num">${at}</td>
+      <td>
+        ${showActions ? `
+          <div style="display:flex; gap:8px; justify-content:flex-end">
+            ${hasNote ? `
+              <button class="btn ghost" style="padding:8px 10px"
+                data-act="txView" data-note="${encNote}">
+                View
+              </button>
+            ` : ``}
+
+            <button class="btn ghost" style="padding:8px 10px"
+              data-act="txEdit" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
+              Edit
+            </button>
+
+            <button class="btn ghost" style="padding:8px 10px"
+              data-act="txDel" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
+              Delete
+            </button>
+          </div>
+        ` : `<span class="hint">-</span>`}
+      </td>
+    </tr>
+  `;
+}
+
+function buildTxDesc(t){
+  if(t.kind==="cash"){
+    return `${t.direction==="in"?"Cash In":"Cash Out"}`.trim();
   }
-
-  function buildTxDesc(t){
-    if(t.kind==="cash"){
-      return `${t.direction==="in"?"Cash In":"Cash Out"} • ${t.note||""}`.trim();
-    }
-    if(t.kind==="buy"){
-      const cat = t.category==="baby_pig" ? "Bayi Babi" : (t.category==="feed" ? "Pakan Babi" : "Other");
-      return `Buy • ${cat} • qty ${t.qty||0} @ ${fmt(t.price||0)} • ${t.note||""}`.trim();
-    }
-    if(t.kind==="missing"){
-     return `Missing • ${Number(t.qty||0)} ekor @ ${fmt(t.price||0)} • ${t.note||""}`.trim();
-    }
-    if(t.kind==="sell"){
-      return `Sell • ${fmt(t.priceKg||0)}/kg • ${fmt(t.kg||0)} kg • ${Number(t.ekor||0)} ekor • ${t.note||""}`.trim();
-    }
-    return t.note || "Transaction";
+  if(t.kind==="buy"){
+    const cat = t.category==="baby_pig" ? "Bayi Babi" : (t.category==="feed" ? "Pakan Babi" : "Other");
+    // TAK LETAK "Buy" & TAK LETAK note
+    return `${cat} • qty ${t.qty||0} @ ${fmt(t.price||0)}`.trim();
   }
+  if(t.kind==="missing"){
+    // TAK LETAK "Missing" & TAK LETAK note
+    return `${Number(t.qty||0)} ekor @ ${fmt(t.price||0)}`.trim();
+  }
+  if(t.kind==="sell"){
+    // TAK LETAK "Sell" & TAK LETAK note
+    return `${fmt(t.priceKg||0)}/kg • ${fmt(t.kg||0)} kg • ${Number(t.ekor||0)} ekor`.trim();
+  }
+  return "Transaction";
+}
 
   function escapeHtml(s){
     return String(s||"").replace(/[&<>"']/g, m => ({
@@ -995,7 +1027,11 @@ ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.
   // missing memang tak sentuh balance
   return 0;
 }
-
+function openViewNote(noteText){
+  const txt = String(noteText || "").trim();
+  $("viewNoteText").textContent = txt ? txt : "No note.";
+  openModal("mViewNote");
+}
   function renderVaultList(targetId, data, bucket){
     const el = $(targetId);
     const entries = Object.entries(data||{});
@@ -1248,6 +1284,11 @@ if(act==="sell"){
     validateSellEkor();
   }
 
+  return;
+}
+  if(act==="txView"){
+  const note = decodeURIComponent(btn.dataset.note || "");
+  openViewNote(note);
   return;
 }
     if(act==="txDel"){
