@@ -3,212 +3,184 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Farm Vault Login</title>
+  <title>Farm Login</title>
   <style>
     :root{
       --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
-      --bg:#0b1220; --card:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.12);
-      --txt:#eaf0ff; --muted:rgba(234,240,255,.72);
-      --ok:#20c997; --bad:#ff4d4d;
+      --bg:#0b1220; --card:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.12); --txt:#eaf1ff; --muted:rgba(234,241,255,.7);
     }
     *{box-sizing:border-box}
     body{
-      margin:0; min-height:100vh; display:grid; place-items:center; padding:24px;
+      margin:0; min-height:100vh; display:grid; place-items:center;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--txt);
       background:
-        radial-gradient(900px 600px at 20% 10%, rgba(22,104,220,.35), transparent 60%),
-        radial-gradient(900px 600px at 80% 30%, rgba(60,137,232,.20), transparent 60%),
-        linear-gradient(180deg, #070A16, #000 65%, #0b1220);
+        radial-gradient(1000px 700px at 15% 15%, rgba(22,104,220,.28), transparent 55%),
+        radial-gradient(900px 700px at 85% 25%, rgba(60,137,232,.18), transparent 55%),
+        linear-gradient(180deg,#060914,#0b1220 55%,#050815);
+      padding:20px;
     }
-    .wrap{width:min(980px,100%); display:grid; grid-template-columns:1.15fr .85fr; gap:16px}
-    @media (max-width: 880px){ .wrap{grid-template-columns:1fr} }
+    .wrap{width:min(980px,100%); display:grid; grid-template-columns: 1.1fr .9fr; gap:16px}
+    @media (max-width: 900px){ .wrap{grid-template-columns:1fr} }
     .hero,.card{
       border:1px solid var(--stroke);
-      background:var(--card);
       border-radius:18px;
-      backdrop-filter: blur(12px);
+      background:var(--card);
+      backdrop-filter: blur(10px);
       box-shadow: 0 18px 60px rgba(0,0,0,.45);
       overflow:hidden;
     }
     .hero{padding:22px}
-    .brand{display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.6px}
-    .dot{width:10px;height:10px;border-radius:99px;background:var(--btn);box-shadow:0 0 18px rgba(22,104,220,.65)}
-    .hero h1{margin:14px 0 6px; font-size:28px}
+    .hero h1{margin:0 0 8px; font-size:26px}
     .hero p{margin:0; color:var(--muted); line-height:1.55}
+    .badge{display:inline-flex; gap:8px; align-items:center; padding:10px 12px; border-radius:999px; margin-top:14px;
+      border:1px solid var(--stroke); background:rgba(255,255,255,.05); color:var(--muted); font-weight:600}
+    .dot{width:10px;height:10px;border-radius:50%; background:var(--btn)}
     .card{padding:18px}
-    label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px}
+    .title{font-size:18px; font-weight:800; margin:0 0 10px}
+    label{display:block; margin:12px 0 8px; color:var(--muted); font-weight:700; font-size:13px}
     input{
-      width:100%; height:44px; border-radius:12px;
-      border:1px solid var(--stroke); background:rgba(0,0,0,.25);
-      color:var(--txt); padding:0 12px; outline:none;
+      width:100%; padding:12px 12px; border-radius:12px;
+      border:1px solid var(--stroke); outline:none;
+      background:rgba(0,0,0,.25); color:var(--txt);
     }
-    input:focus{border-color:rgba(22,104,220,.7); box-shadow:0 0 0 3px rgba(22,104,220,.18)}
-    .row{display:flex; gap:10px}
-    .row > *{flex:1}
+    input:focus{border-color: rgba(22,104,220,.7); box-shadow: 0 0 0 4px rgba(22,104,220,.18)}
+    .row{display:flex; gap:10px; align-items:center; margin-top:14px}
     .btn{
-      height:44px; border:none; border-radius:12px; cursor:pointer;
-      background:var(--btn); color:#fff; font-weight:800;
-      transition: .15s transform, .15s background;
+      width:100%; border:0; border-radius:12px; padding:12px 14px; cursor:pointer;
+      background:var(--btn); color:white; font-weight:900; letter-spacing:.2px;
+      transition:.15s transform, .15s background;
     }
-    .btn:hover{background:var(--btnH); transform: translateY(-1px)}
-    .btn:active{background:var(--btnA); transform: translateY(0)}
-    .btn.ghost{
-      background:transparent; border:1px solid var(--stroke); color:var(--txt)
-    }
-    .btn.ghost:hover{border-color:rgba(22,104,220,.65)}
-    .hint{margin-top:12px; font-size:12px; color:var(--muted)}
+    .btn:hover{background:var(--btnH)}
+    .btn:active{background:var(--btnA); transform: translateY(1px)}
+    .hint{margin-top:12px; font-size:12px; color:var(--muted); line-height:1.5}
     .toast{
       position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-      background:rgba(0,0,0,.65); border:1px solid var(--stroke);
-      padding:10px 12px; border-radius:12px; display:none; gap:10px; align-items:center;
-      backdrop-filter: blur(10px);
+      background:rgba(0,0,0,.75); color:var(--txt);
+      border:1px solid rgba(255,255,255,.12);
+      padding:10px 12px; border-radius:12px; display:none;
+      max-width:min(560px,92vw);
     }
-    .toast.show{display:flex}
-    .pill{font-size:12px; padding:3px 8px; border-radius:99px; border:1px solid var(--stroke); color:var(--muted)}
+    .small{font-size:12px; color:var(--muted)}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="hero">
-      <div class="brand"><span class="dot"></span> FARM VAULT</div>
-      <h1>Login untuk urus vault & transaksi</h1>
-      <p>Login guna <b>username</b> + <b>password</b>. Data simpan dalam Firebase (boleh buka dari device lain).</p>
-      <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap">
-        <span class="pill">Excel-like table</span>
-        <span class="pill">Vault + History</span>
-        <span class="pill">Buy / Sell / Cash Transfer</span>
-        <span class="pill">Role Admin/User</span>
-      </div>
-      <p class="hint" style="margin-top:14px">
-        Contoh admin: <b>farm88</b> (ada Add Point & Edit History). User biasa: <b>farm99</b>.
-      </p>
+      <h1>Farm Vault System</h1>
+      <p>Sistem simpan modal, beli/jual babi, cash transfer, dan history vault. Data disimpan dalam Firebase (tak hilang walau tukar device).</p>
+      <div class="badge"><span class="dot"></span> Login guna username + password</div>
+      <p class="hint"><b>Admin:</b> farm88 (nampak Add Point + edit history)<br><b>Limited:</b> farm99 (tak nampak Add Point + edit history)</p>
     </div>
 
     <div class="card">
-      <h3 style="margin:0 0 6px">Sign in</h3>
-      <div class="hint">Jika first time, tekan “Create account”.</div>
-
+      <div class="title">Login</div>
       <label>Username</label>
-      <input id="username" placeholder="farm88" autocomplete="username"/>
-
+      <input id="username" autocomplete="username" placeholder="contoh: farm88" />
       <label>Password</label>
-      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password"/>
-
-      <div class="row" style="margin-top:14px">
-        <button class="btn" id="btnLogin">Login</button>
-        <button class="btn ghost" id="btnRegister">Create account</button>
+      <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+      <div class="row">
+        <button class="btn" id="btnLogin">Sign In / Create Account</button>
       </div>
-
-      <div class="hint" style="margin-top:12px">
-        * Username akan disimpan sebagai profile dan dipaparkan dekat admin header.
+      <div class="hint">
+        Sistem ni guna Firebase Auth Email/Password, tapi UI kau cuma pakai <b>username</b>.
+        Username akan auto jadi email: <span class="small">username@farm.local</span>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"><span id="toastMsg"></span></div>
+  <div class="toast" id="toast"></div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import {
-      getAuth, setPersistence, browserLocalPersistence,
-      createUserWithEmailAndPassword, signInWithEmailAndPassword,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-    import {
-      getDatabase, ref, get, set, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getAuth, setPersistence, browserLocalPersistence,
+    signInWithEmailAndPassword, createUserWithEmailAndPassword
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+  import { getDatabase, ref, get, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
-    // ================== Firebase Config (TUKAR INI) ==================
- const firebaseConfig = {
-  apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
-  authDomain: "farm-a9071.firebaseapp.com",
-  databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "farm-a9071",
-  storageBucket: "farm-a9071.firebasestorage.app",
-  messagingSenderId: "979250293394",
-  appId: "1:979250293394:web:af419dd2b325017a41944b"
-};
-    // ================================================================
+  // === CONFIG KAU ===
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXGxdJOEbcotIXRWyDGHNNCbcmFev-qZY",
+    authDomain: "farm-a9071.firebaseapp.com",
+    databaseURL: "https://farm-a9071-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "farm-a9071",
+    storageBucket: "farm-a9071.firebasestorage.app",
+    messagingSenderId: "979250293394",
+    appId: "1:979250293394:web:af419dd2b325017a41944b"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getDatabase(app);
 
-    const $ = (id)=>document.getElementById(id);
-    const toast = (msg)=>{
-      $("toastMsg").textContent = msg;
-      $("toast").classList.add("show");
-      clearTimeout(window.__t);
-      window.__t = setTimeout(()=> $("toast").classList.remove("show"), 2200);
-    };
+  const $ = (id)=>document.getElementById(id);
+  const toast = (msg)=>{
+    const el = $("toast");
+    el.textContent = msg;
+    el.style.display = "block";
+    clearTimeout(window.__t);
+    window.__t = setTimeout(()=> el.style.display="none", 2800);
+  };
 
-    // Convert username -> pseudo email
-    function toPseudoEmail(username){
-      const u = (username||"").trim().toLowerCase();
-      if(!u) return "";
-      // keep simple safe chars
-      const safe = u.replace(/[^a-z0-9._-]/g,"");
-      return `${safe}@farm.local`;
+  const ADMIN_USERNAMES = new Set(["farm88"]); // tambah kalau perlu
+
+  function toEmail(username){
+    return `${String(username||"").trim().toLowerCase()}@farm.local`;
+  }
+
+  async function ensureProfile(uid, username){
+    const pRef = ref(db, `profiles/${uid}`);
+    const snap = await get(pRef);
+    if(!snap.exists()){
+      await set(pRef, {
+        username,
+        createdAt: serverTimestamp()
+      });
     }
-
-    async function ensureProfile(user, username){
-      const uid = user.uid;
-      const pRef = ref(db, `users/${uid}/profile`);
-      const snap = await get(pRef);
-      if(!snap.exists()){
-        await set(pRef, {
-          username: username.trim(),
-          createdAt: serverTimestamp()
-        });
-      }
-      // Ensure wallet exists
-      const wRef = ref(db, `wallets/${uid}`);
-      const ws = await get(wRef);
-      if(!ws.exists()){
-        await set(wRef, { balance: 0, updatedAt: serverTimestamp() });
-      }
+    // set role (simple)
+    const isAdmin = ADMIN_USERNAMES.has(username);
+    const roleRef = ref(db, `roles/${uid}`);
+    const rSnap = await get(roleRef);
+    if(!rSnap.exists()){
+      await set(roleRef, { isAdmin, username, updatedAt: serverTimestamp() });
     }
+  }
 
-    await setPersistence(auth, browserLocalPersistence);
+  $("btnLogin").addEventListener("click", async ()=>{
+    const username = $("username").value.trim().toLowerCase();
+    const password = $("password").value;
 
-    onAuthStateChanged(auth, (user)=>{
-      if(user){
-        location.replace("../admin/");
-      }
-    });
+    if(username.length < 3){ toast("Username terlalu pendek."); return; }
+    if(password.length < 6){ toast("Password minimum 6 karakter."); return; }
 
-    $("btnRegister").addEventListener("click", async ()=>{
-      const username = $("username").value.trim();
-      const pw = $("password").value;
-      if(username.length < 3) return toast("Username min 3 chars");
-      if(pw.length < 6) return toast("Password min 6 chars");
+    const email = toEmail(username);
 
-      const email = toPseudoEmail(username);
+    try{
+      await setPersistence(auth, browserLocalPersistence);
+
+      let cred;
       try{
-        const cred = await createUserWithEmailAndPassword(auth, email, pw);
-        await ensureProfile(cred.user, username);
-        toast("Account created ✅");
-        location.replace("../admin/");
-      }catch(e){
-        toast(e?.message || "Register failed");
+        cred = await signInWithEmailAndPassword(auth, email, password);
+      }catch(err){
+        // auto create kalau belum ada
+        if(String(err?.code||"").includes("auth/user-not-found")){
+          cred = await createUserWithEmailAndPassword(auth, email, password);
+        }else{
+          throw err;
+        }
       }
-    });
 
-    $("btnLogin").addEventListener("click", async ()=>{
-      const username = $("username").value.trim();
-      const pw = $("password").value;
-      if(!username || !pw) return toast("Fill username & password");
-      const email = toPseudoEmail(username);
-      try{
-        const cred = await signInWithEmailAndPassword(auth, email, pw);
-        await ensureProfile(cred.user, username);
-        toast("Login ✅");
-        location.replace("../admin/");
-      }catch(e){
-        toast(e?.message || "Login failed");
-      }
-    });
-  </script>
+      await ensureProfile(cred.user.uid, username);
+
+      // redirect
+      location.replace("../admin/");
+    }catch(e){
+      console.error(e);
+      toast(e?.message || "Login failed");
+    }
+  });
+</script>
 </body>
 </html>
