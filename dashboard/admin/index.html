@@ -722,33 +722,32 @@ async function recomputeVaultSummary(vaultId, bucket){
     await update(ref(db), updates);
   }
 async function uncloseVault(vaultId){
-  // move history -> open
   const histSnap = await get(ref(db, `vaults/history/${vaultId}`));
   if(!histSnap.exists()) return;
 
   const data = histSnap.val();
   const now = Date.now();
 
-  const updates = {};
-  updates[`vaults/open/${vaultId}`] = {
-    ...data,
+  // buang field closing dari history supaya open jadi "clean"
+  const {
+    closedAt, closedAtMs, closedBy, closedByUid,
+    ...rest
+  } = data || {};
+
+  const openData = {
+    ...rest,
     status: "open",
     reopenedAt: serverTimestamp(),
     reopenedAtMs: now,
     reopenedByUid: me.uid,
-    reopenedBy: me.username
+    reopenedBy: me.username,
   };
 
-  // buang closed fields supaya nampak clean (optional tapi cantik)
-  updates[`vaults/open/${vaultId}/closedAt`] = null;
-  updates[`vaults/open/${vaultId}/closedAtMs`] = null;
-  updates[`vaults/open/${vaultId}/closedByUid`] = null;
-  updates[`vaults/open/${vaultId}/closedBy`] = null;
+  // 1) letak balik ke OPEN
+  await set(ref(db, `vaults/open/${vaultId}`), openData);
 
-  // delete dari history
-  updates[`vaults/history/${vaultId}`] = null;
-
-  await update(ref(db), updates);
+  // 2) buang dari HISTORY
+  await remove(ref(db, `vaults/history/${vaultId}`));
 }
   // ===== RENDER =====
   function setView(v){
