@@ -641,6 +641,8 @@ async function recomputeVaultSummary(vaultId, bucket){
 
   let totalCost=0, totalKg=0, totalEkor=0, totalRevenue=0;
   let missingQty = 0;
+  let sellKgSum = 0;
+  let sellPriceKgWeighted = 0; // sum(priceKg * kg)
 
   // === tambahan: summary BUY Bayi Babi ===
   let babyQty = 0;
@@ -667,25 +669,34 @@ async function recomputeVaultSummary(vaultId, bucket){
       }
     }
 
-    if(t.kind==="sell"){
-      totalRevenue += Number(t.total||0);
-      totalKg += Number(t.kg||0);
-      totalEkor += Number(t.ekor||0);
-    }
+if(t.kind==="sell"){
+  const kg = Number(t.kg||0);
+  const pk = Number(t.priceKg||0);
+
+  totalRevenue += Number(t.total||0);
+  totalKg += kg;
+  totalEkor += Number(t.ekor||0);
+
+  // untuk avg price/kg
+  if(kg > 0 && pk > 0){
+    sellKgSum += kg;
+    sellPriceKgWeighted += (pk * kg);
   }
+}
 
   const profit = totalRevenue - totalCost;
 
   const babyAvgPrice = babyQty > 0
     ? (babyPriceSum / babyQty)
     : 0;
-
+  const avgPriceKg = sellKgSum > 0 ? (sellPriceKgWeighted / sellKgSum) : 0;
   await update(ref(db, `vaults/${bucket}/${vaultId}`), {
 summary: {
   totalCost, totalKg, totalEkor, totalRevenue, profit,
   babyPig:{ qty:babyQty, avgPrice:babyAvgPrice, total:babyTotal },
-
-  missing: { qty: missingQty }
+  missing:{ qty: missingQty },
+  sell: { avgPriceKg },
+  availablePig: Math.max(0, babyQty - missingQty - totalEkor)
 },
     updatedAt: serverTimestamp(),
     updatedAtMs: Date.now()
@@ -725,8 +736,8 @@ summary: {
   function vaultCardHTML(vaultId, v, bucket){
     const s = v.summary || { totalCost:0,totalKg:0,totalEkor:0,totalRevenue:0,profit:0 };
     const bp = (s.babyPig || { qty:0, avgPrice:0, total:0 });
-    const missQty = Number(s.missing?.qty || 0);
-    const availablePig = Math.max(0, Number(bp.qty||0) - missQty);
+    const availablePig = Number(s.availablePig ?? Math.max(0, Number(bp.qty||0) - Number(s.missing?.qty||0) - Number(s.totalEkor||0)));
+    const avgPriceKg = Number(s.sell?.avgPriceKg || 0);
     const profitClass = (s.profit||0) >= 0 ? "good" : "bad";
     const salesValue = (Number(s.totalRevenue||0) > 0)
     ? (Number(s.totalRevenue||0) - Number(s.totalCost||0))
@@ -793,6 +804,11 @@ summary: {
     <div class="k">Total Sell (Revenue)</div>
     <div class="v num">${fmt(s.totalRevenue)}</div>
   </div>
+
+<div class="kpi">
+  <div class="k">Harga per Kg</div>
+  <div class="v num">${fmt(avgPriceKg)}</div>
+</div>
 
   <div class="kpi">
     <div class="k">Total Kg</div>
