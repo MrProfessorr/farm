@@ -32,7 +32,7 @@
       border-bottom:1px solid var(--stroke);
     }
     .brand{display:flex; gap:10px; align-items:center; font-weight:900; letter-spacing:.4px}
-    .brand .logo{
+    .brand{
       width:34px; height:34px; border-radius:12px;
       background: linear-gradient(135deg,var(--btn),#5fb1ff);
       box-shadow: 0 14px 28px rgba(22,104,220,.24);
@@ -401,11 +401,7 @@ input[type="number"]{
 <body>
 <header>
   <div class="brand">
-    <div class="logo"></div>
-    <div>
-      FARM VAULT <span class="pill" id="rolePill">loading...</span>
-      <div class="hint" style="margin-top:2px">Realtime • Secure • Cloud</div>
-    </div>
+    <div class="pill" id="rolePill">loading...</div>
   </div>
 
   <div class="right">
