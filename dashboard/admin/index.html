@@ -31,12 +31,6 @@
       backdrop-filter: blur(10px);
       border-bottom:1px solid var(--stroke);
     }
-    .brand{display:flex; gap:10px; align-items:center; font-weight:900; letter-spacing:.4px}
-    .brand{
-      width:34px; height:34px; border-radius:12px;
-      background: linear-gradient(135deg,var(--btn),#5fb1ff);
-      box-shadow: 0 14px 28px rgba(22,104,220,.24);
-    }
     .right{display:flex; align-items:center; gap:10px}
     .btn-modal{
       border:0; border-radius:6px;padding: 0px 15px; cursor:pointer;
@@ -400,10 +394,7 @@ input[type="number"]{
 
 <body>
 <header>
-  <div class="brand">
-    <div class="pill" id="rolePill">loading...</div>
-  </div>
-
+  <div class="pill" id="rolePill">loading...</div>
   <div class="right">
     <button class="btn-modal" id="btnBalance">Wallet: <span class="num" id="balanceText">0.00</span></button>
     <button class="btn-user" id="btnUser">👤 <span id="usernameText">...</span></button>
