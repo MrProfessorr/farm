@@ -669,14 +669,34 @@
           </div>
         </div>
         <div class="cardBody">
-          <div class="kpiRow">
-            <div class="kpi"><div class="k">Total Buy (Cost)</div><div class="v num">${fmt(s.totalCost)}</div></div>
-            <div class="kpi"><div class="k">Total Sell (Revenue)</div><div class="v num">${fmt(s.totalRevenue)}</div></div>
-            <div class="kpi"><div class="k">Total Kg</div><div class="v num">${fmt(s.totalKg)}</div></div>
-            <div class="kpi"><div class="k">Total Ekor</div><div class="v num">${Number(s.totalEkor||0).toLocaleString()}</div></div>
-            <div class="kpi"><div class="k">Profit / Loss</div><div class="v num profit ${profitClass}">${fmt(s.profit)}</div></div>
-          </div>
+        <div class="kpiRow" style="margin-bottom:10px">
+  <div class="kpi">
+    <div class="k">Total Buy (Cost)</div>
+    <div class="v num">${fmt(s.totalCost)}</div>
+  </div>
+</div>
 
+<div class="kpiRow">
+  <div class="kpi">
+    <div class="k">Total Sell (Revenue)</div>
+    <div class="v num">${fmt(s.totalRevenue)}</div>
+  </div>
+
+  <div class="kpi">
+    <div class="k">Total Kg</div>
+    <div class="v num">${fmt(s.totalKg)}</div>
+  </div>
+
+  <div class="kpi">
+    <div class="k">Total Ekor</div>
+    <div class="v num">${Number(s.totalEkor||0).toLocaleString()}</div>
+  </div>
+
+  <div class="kpi">
+    <div class="k">Profit / Loss</div>
+    <div class="v num profit ${profitClass}">${fmt(s.profit)}</div>
+  </div>
+</div>
           <div class="hr"></div>
           <div class="tblWrap">
             <table>
