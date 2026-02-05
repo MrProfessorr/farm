@@ -196,6 +196,7 @@
     .kpi .k{font-size:12px; color:var(--muted); font-weight:900}
     .kpi .v{margin-top:6px; font-weight:1000; font-size:16px}
     .hide{display:none !important}
+    .amtNeg{ color: rgba(255, 204, 204, .95); font-weight: 1000; }
   </style>
 </head>
 
@@ -447,7 +448,49 @@
     </div>
   </div>
 </div>
+<div class="modalBack" id="mMissing">
+  <div class="modal">
+    <div class="modalHead">
+      <div>
+        <div class="title">Missing</div>
+        <div class="sub" id="missingVaultTitle">-</div>
+      </div>
+      <button class="x" data-close="mMissing">✕</button>
+    </div>
 
+    <div class="modalBody">
+      <div class="row">
+        <div>
+          <label>Missing (ekor)</label>
+          <input id="missQty" type="number" min="0" step="1" placeholder="contoh 2" />
+        </div>
+        <div>
+          <label>Harga per-Ekor</label>
+          <input id="missPrice" type="number" min="0" step="0.01" placeholder="contoh 25000" />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Total (auto)</label>
+          <input id="missTotal" type="number" disabled placeholder="auto kira" />
+        </div>
+        <div>
+          <label>Note</label>
+          <input id="missNote" placeholder="contoh: missing sebab sakit / hilang" />
+        </div>
+      </div>
+
+      <div class="hint">Ini catatan sahaja. Tak tambah/tolak modal dan tak masuk Total Buy.</div>
+    </div>
+
+    <div class="modalFoot">
+      <button class="btn ghost" data-close="mMissing">Cancel</button>
+      <button class="btn" id="missSave">Save</button>
+    </div>
+  </div>
+</div>
+  
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import {
@@ -586,6 +629,7 @@ async function recomputeVaultSummary(vaultId, bucket){
   const txs = snap.exists() ? snap.val() : {};
 
   let totalCost=0, totalKg=0, totalEkor=0, totalRevenue=0;
+  let missingQty = 0;
 
   // === tambahan: summary BUY Bayi Babi ===
   let babyQty = 0;
@@ -594,7 +638,10 @@ async function recomputeVaultSummary(vaultId, bucket){
 
   for(const k of Object.keys(txs)){
     const t = txs[k];
-
+    
+    if(t.kind==="missing"){
+  missingQty += Number(t.qty||0);
+  }
     if(t.kind==="buy"){
       const tTotal = Number(t.total||0);
       totalCost += tTotal;
@@ -623,16 +670,12 @@ async function recomputeVaultSummary(vaultId, bucket){
     : 0;
 
   await update(ref(db, `vaults/${bucket}/${vaultId}`), {
-    summary: {
-      totalCost, totalKg, totalEkor, totalRevenue, profit,
+summary: {
+  totalCost, totalKg, totalEkor, totalRevenue, profit,
+  babyPig:{ qty:babyQty, avgPrice:babyAvgPrice, total:babyTotal },
 
-      // tambah field baru
-      babyPig: {
-        qty: babyQty,
-        avgPrice: babyAvgPrice,
-        total: babyTotal
-      }
-    },
+  missing: { qty: missingQty }
+},
     updatedAt: serverTimestamp(),
     updatedAtMs: Date.now()
   });
@@ -694,6 +737,7 @@ async function recomputeVaultSummary(vaultId, bucket){
             ${!isHistory ? `
               <button class="btn ghost" data-act="cash" data-id="${vaultId}">Cash Transfer</button>
               <button class="btn ghost" data-act="buy" data-id="${vaultId}">Buy</button>
+              <button class="btn ghost" data-act="missing" data-id="${vaultId}">Missing</button>
               <button class="btn ghost" data-act="sell" data-id="${vaultId}">Sell</button>
               <button class="btn danger" data-act="close" data-id="${vaultId}">Closing</button>
             ` : `
@@ -742,6 +786,11 @@ async function recomputeVaultSummary(vaultId, bucket){
     <div class="k">Total Ekor</div>
     <div class="v num">${Number(s.totalEkor||0).toLocaleString()}</div>
   </div>
+  
+ <div class="kpi">
+  <div class="k">Missing</div>
+  <div class="v num">${Number((s.missing?.qty)||0).toLocaleString()}</div>
+</div>
 
   <div class="kpi">
     <div class="k">Profit / Loss</div>
@@ -777,9 +826,13 @@ async function recomputeVaultSummary(vaultId, bucket){
     if(t.kind==="cash") typeTag = `<span class="tag ${t.direction==="in"?"in":"out"}">${t.direction==="in"?"CASH-IN":"CASH-OUT"}</span>`;
     if(t.kind==="buy")  typeTag = `<span class="tag buy">BUY</span>`;
     if(t.kind==="sell") typeTag = `<span class="tag sell">SELL</span>`;
+    if(t.kind==="missing") typeTag = `<span class="tag out">MISSING</span>`;
 
-    const amount = Number(t.total||t.amount||0);
+    let amount = Number(t.total||t.amount||0);
+    if(t.kind==="missing") amount = -Math.abs(amount); // display negatif
+
     const amountText = fmt(amount);
+    const amtClass = amount < 0 ? "amtNeg" : "";
 
     const desc = buildTxDesc(t);
 
@@ -790,7 +843,7 @@ async function recomputeVaultSummary(vaultId, bucket){
       <tr data-txid="${txId}">
         <td>${typeTag}</td>
         <td>${escapeHtml(desc)}</td>
-        <td class="num">${amountText}</td>
+        <td class="num ${amtClass}">${amountText}</td>
         <td class="num">${at}</td>
         <td>
           ${showActions ? `
@@ -808,6 +861,9 @@ async function recomputeVaultSummary(vaultId, bucket){
     if(t.kind==="buy"){
       const cat = t.category==="baby_pig" ? "Bayi Babi" : (t.category==="feed" ? "Pakan Babi" : "Other");
       return `Buy • ${cat} • qty ${t.qty||0} @ ${fmt(t.price||0)} • ${t.note||""}`.trim();
+    }
+    if(t.kind==="missing"){
+     return `Missing • ${Number(t.qty||0)} ekor @ ${fmt(t.price||0)} • ${t.note||""}`.trim();
     }
     if(t.kind==="sell"){
       return `Sell • ${fmt(t.priceKg||0)}/kg • ${fmt(t.kg||0)} kg • ${Number(t.ekor||0)} ekor • ${t.note||""}`.trim();
@@ -950,6 +1006,17 @@ async function recomputeVaultSummary(vaultId, bucket){
       $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
       openModal("mBuy");
     }
+    if(act==="missing"){
+  ctxVaultId = vid;
+  const vSnap = await get(ref(db, `vaults/open/${vid}`));
+  $("missingVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
+
+  $("missQty").value="";
+  $("missPrice").value="";
+  $("missTotal").value="";
+  $("missNote").value="";
+  openModal("mMissing");
+}
 
     if(act==="sell"){
       ctxVaultId = vid;
@@ -1076,7 +1143,33 @@ async function recomputeVaultSummary(vaultId, bucket){
       toast(e?.message || "Failed (maybe limited user no access).");
     }
   });
+function calcMissing(){
+  const q = Number($("missQty").value||0);
+  const p = Number($("missPrice").value||0);
+  const t = q*p;
+  $("missTotal").value = t ? t.toFixed(2) : "";
+}
+["missQty","missPrice"].forEach(id=> $(id).addEventListener("input", calcMissing));
+  
+  $("missSave").addEventListener("click", async ()=>{
+  const qty = Number($("missQty").value||0);
+  const price = Number($("missPrice").value||0);
+  const total = qty * price;
+  const note = $("missNote").value.trim();
 
+  if(qty<=0 || price<=0){ toast("Missing & harga mesti > 0"); return; }
+
+  try{
+    // CATATAN SAHAJA: tak sentuh balance
+    await addTx(ctxVaultId, { kind:"missing", qty, price, total, note });
+
+    closeModal("mMissing");
+    toast("Missing saved.");
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed");
+  }
+});
   // SELL auto calc
   function calcSell(){
     const priceKg = Number($("sellPriceKg").value||0);
