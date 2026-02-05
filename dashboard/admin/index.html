@@ -197,6 +197,8 @@
     .kpi .v{margin-top:6px; font-weight:1000; font-size:16px}
     .hide{display:none !important}
     .amtNeg{ color: rgba(255, 204, 204, .95); font-weight: 1000; }
+    .good{ color:#41d37e; font-weight:900; }
+    .bad{ color:#ff6b6b; font-weight:900; }
   </style>
 </head>
 
@@ -812,6 +814,10 @@ summary: {
     <div class="k">Profit / Loss</div>
     <div class="v num profit ${profitClass}">${fmt(s.profit)}</div>
   </div>
+</div>
+<div class="kpi">
+  <div class="k">Sales</div>
+  <div class="v num ${profitClass}">${fmt(s.profit)}</div>
 </div>
           <div class="hr"></div>
           <div class="tblWrap">
