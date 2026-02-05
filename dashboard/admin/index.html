@@ -297,6 +297,92 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(170,170,170,.55) rgba(255,255,255,.06);
 }
+/* ===== CUSTOM SELECT (Replace browser <select>) ===== */
+select.native-select {
+  position:absolute !important;
+  opacity:0 !important;
+  pointer-events:none !important;
+  width:0 !important;
+  height:0 !important;
+}
+
+/* wrapper auto created by JS */
+.cs {
+  position: relative;
+  width: 100%;
+  user-select: none;
+}
+
+.cs__btn{
+  width: 100%;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor:pointer;
+
+  background: rgba(10, 18, 28, .85);
+  border: 1px solid rgba(77,163,255,.35);
+  color:#fff;
+  outline:none;
+}
+
+.cs__btn:focus{
+  border-color: rgba(77,163,255,.75);
+  box-shadow: 0 0 0 3px rgba(77,163,255,.15);
+}
+
+.cs__value{
+  font-weight: 700;
+  letter-spacing:.2px;
+}
+
+.cs__arrow{
+  opacity:.9;
+  font-size: 12px;
+  color: #4da3ff;
+  transform: translateY(-1px);
+}
+
+/* dropdown menu */
+.cs__menu{
+  position:absolute;
+  left:0;
+  top: calc(100% + 6px);
+  width:100%;
+  z-index: 99999;
+  border-radius: 12px;
+  overflow: hidden;
+
+  background: rgba(8, 14, 22, .98);
+  border: 1px solid rgba(77,163,255,.28);
+  box-shadow: 0 16px 40px rgba(0,0,0,.45);
+  display:none;
+}
+
+.cs.open .cs__menu{ display:block; }
+
+.cs__opt{
+  padding: 10px 12px;
+  cursor:pointer;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap:10px;
+}
+
+.cs__opt:hover{ background: rgba(26, 59, 93, .85); }
+.cs__opt[aria-selected="true"]{
+  background: rgba(77,163,255,.18);
+}
+
+.cs__hint{
+  font-size: 12px;
+  opacity:.65;
+}
   </style>
 </head>
 
@@ -380,7 +466,7 @@
     </div>
     <div class="modalBody">
       <label>Type</label>
-      <select id="apType">
+      <select id="apType" class="js-custom-select">
         <option value="in">IN (Tambah Modal)</option>
         <option value="out">OUT (Tolak Modal)</option>
       </select>
@@ -436,7 +522,7 @@
     </div>
     <div class="modalBody">
       <label>Type</label>
-      <select id="cashType">
+      <select id="cashType" class="js-custom-select">
         <option value="cash_in">Cash-IN (Tambah Balance)</option>
         <option value="cash_out">Cash-OUT (Tolak Balance)</option>
       </select>
@@ -470,7 +556,7 @@
     </div>
     <div class="modalBody">
       <label>Category</label>
-      <select id="buyCat">
+      <select id="buyCat" class="js-custom-select">
         <option value="baby_pig">Bayi Babi</option>
         <option value="feed">Pakan Babi</option>
         <option value="other">Other</option>
@@ -638,6 +724,138 @@
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
+  // ===== CUSTOM SELECT BUILDER =====
+function initCustomSelects(root=document){
+  const selects = Array.from(root.querySelectorAll("select.js-custom-select"));
+  selects.forEach(sel => makeCustomSelect(sel));
+}
+
+function makeCustomSelect(selectEl){
+  if(selectEl.dataset.csBuilt === "1") return; // avoid double build
+  selectEl.dataset.csBuilt = "1";
+
+  // hide native select but keep it for value/logic
+  selectEl.classList.add("native-select");
+
+  // wrapper
+  const wrap = document.createElement("div");
+  wrap.className = "cs";
+  wrap.tabIndex = 0;
+
+  // button
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "cs__btn";
+
+  const value = document.createElement("span");
+  value.className = "cs__value";
+
+  const arrow = document.createElement("span");
+  arrow.className = "cs__arrow";
+  arrow.textContent = "▾";
+
+  btn.appendChild(value);
+  btn.appendChild(arrow);
+
+  // menu
+  const menu = document.createElement("div");
+  menu.className = "cs__menu";
+
+  function renderValue(){
+    const opt = selectEl.options[selectEl.selectedIndex];
+    value.textContent = opt ? opt.textContent : "Select...";
+  }
+
+  function rebuildOptions(){
+    menu.innerHTML = "";
+    Array.from(selectEl.options).forEach((o, idx)=>{
+      const item = document.createElement("div");
+      item.className = "cs__opt";
+      item.setAttribute("role","option");
+      item.dataset.value = o.value;
+      item.dataset.index = String(idx);
+      item.textContent = o.textContent;
+
+      // selected state
+      item.setAttribute("aria-selected", o.selected ? "true":"false");
+
+      item.addEventListener("click", ()=>{
+        // set native select value
+        selectEl.selectedIndex = idx;
+        renderValue();
+
+        // update aria-selected
+        menu.querySelectorAll(".cs__opt").forEach(x=>x.setAttribute("aria-selected","false"));
+        item.setAttribute("aria-selected","true");
+
+        // trigger events so your existing code works
+        selectEl.dispatchEvent(new Event("change",{bubbles:true}));
+        selectEl.dispatchEvent(new Event("input",{bubbles:true}));
+
+        closeAllCustomSelects();
+      });
+
+      menu.appendChild(item);
+    });
+  }
+
+  function open(){
+    closeAllCustomSelects();
+    wrap.classList.add("open");
+  }
+  function close(){
+    wrap.classList.remove("open");
+  }
+  function toggle(){
+    wrap.classList.contains("open") ? close() : open();
+  }
+
+  btn.addEventListener("click", (e)=>{
+    e.preventDefault();
+    toggle();
+  });
+
+  // keyboard support basic
+  wrap.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") close();
+    if(e.key === "Enter" || e.key === " "){
+      e.preventDefault();
+      toggle();
+    }
+  });
+
+  // build DOM: insert wrapper before select, move select inside wrapper
+  selectEl.parentNode.insertBefore(wrap, selectEl);
+  wrap.appendChild(btn);
+  wrap.appendChild(selectEl);
+  wrap.appendChild(menu);
+
+  // initial render
+  rebuildOptions();
+  renderValue();
+
+  // if native select changes by code, update UI
+  selectEl.addEventListener("change", ()=>{
+    // refresh aria-selected
+    menu.querySelectorAll(".cs__opt").forEach(x=>{
+      x.setAttribute("aria-selected", x.dataset.value === selectEl.value ? "true":"false");
+    });
+    renderValue();
+  });
+
+  // if options are changed dynamically later (rare), you can call rebuildOptions()
+  wrap._csRebuild = rebuildOptions;
+}
+
+function closeAllCustomSelects(){
+  document.querySelectorAll(".cs.open").forEach(x=>x.classList.remove("open"));
+}
+
+// click outside to close
+document.addEventListener("click", (e)=>{
+  if(!e.target.closest(".cs")) closeAllCustomSelects();
+});
+
   const toast = (msg)=>{
     const el = $("toast");
     el.textContent = msg;
@@ -1807,31 +2025,23 @@ function validateSellEkor(){
 $("sellEkor").addEventListener("input", validateSellEkor);
 
   // ===== AUTH BOOT =====
-  onAuthStateChanged(auth, async (user)=>{
-    if(!user){
-      location.replace("../login/");
-      return;
-    }
-    me.uid = user.uid;
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){ location.replace("../login/"); return; }
 
-    // load profile username
-    const p = await get(ref(db, `profiles/${me.uid}`));
-    me.username = p.exists() ? (p.val().username || "user") : "user";
-    $("usernameText").textContent = me.username;
+  me.uid = user.uid;
 
-    await loadRole(me.uid);
+  const p = await get(ref(db, `profiles/${me.uid}`));
+  me.username = p.exists() ? (p.val().username || "user") : "user";
+  $("usernameText").textContent = me.username;
 
-    // balance
-    wireBalanceListener();
+  await loadRole(me.uid);
 
-    // vault listeners
-    wireVaultListeners();
-
-    // default view
-    setView("open");
-
-    toast("Ready.");
-  });
+  wireBalanceListener();
+  wireVaultListeners();
+  setView("open");
+  initCustomSelects();
+  toast("Ready.");
+});
 </script>
 </body>
 </html>
