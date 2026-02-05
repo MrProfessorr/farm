@@ -855,7 +855,17 @@ async function recomputeVaultSummary(vaultId, bucket){
             </table>
           </div>
 
-          ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
+${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
+
+<div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px">
+  ${
+    (!isHistory)
+      ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
+      : (me.isAdmin
+          ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>`
+          : ``)
+  }
+      </div>
         </div>
       </div>
     `;
@@ -1131,6 +1141,29 @@ if(act==="sell"){
         toast(e?.message || "Failed");
       }
     }
+if(act==="vaultDel"){
+  const bucket = btn.dataset.b || "open";
+
+  // kalau history, admin sahaja boleh
+  if(bucket==="history" && !me.isAdmin){
+    toast("Admin sahaja boleh delete vault history.");
+    return;
+  }
+
+  const msg = bucket==="history"
+    ? "Delete vault HISTORY ini? Semua data akan hilang (tak boleh undo)."
+    : "Delete vault ini? Semua transaksi dalam vault akan hilang.";
+
+  if(!confirm(msg)) return;
+
+  try{
+    await remove(ref(db, `vaults/${bucket}/${vid}`));
+    toast("Vault deleted.");
+  }catch(e){
+    console.error(e);
+    toast("Failed delete vault.");
+  }
+}
   });
 
   // cash save
