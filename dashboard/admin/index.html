@@ -40,19 +40,23 @@
     .right{display:flex; align-items:center; gap:10px}
     .btn-modal{
       border:0; border-radius:6px;padding: 0px 15px; cursor:pointer;
-      background:#141414; color:white; border-color: #424242;
+      background:#141414; color:white; border:1px solid #424242;
       transition:.15s transform, .15s background;
       display:inline-flex; align-items:center; gap:8px;
       user-select:none;
       height: 32px;
       font-size: 14px;
+      transition: all 0.2s;
     }
     .btn-user{
-      border:0; border-radius:12px; padding:10px 12px; cursor:pointer;
-      background:var(--btn); color:white; font-weight:900;
+      border:0; border-radius:6px;padding: 0px 15px; cursor:pointer;
+      background:#141414; color:white; border:1px solid #424242;
       transition:.15s transform, .15s background;
       display:inline-flex; align-items:center; gap:8px;
       user-select:none;
+      height: 32px;
+      font-size: 14px;
+      transition: all 0.2s;
     }
     .btn-logout{
       border:0; border-radius:12px; padding:10px 12px; cursor:pointer;
@@ -60,13 +64,16 @@
       transition:.15s transform, .15s background;
       display:inline-flex; align-items:center; gap:8px;
       user-select:none;
+      transition: all 0.2s;
     }
     .btn{
-      border:0; border-radius:12px; padding:10px 12px; cursor:pointer;
-      background:var(--btn); color:white; font-weight:900;
+      border:0; border-radius:6px; padding: 0px 15px; cursor:pointer;
+      background:var(--btn); color:white; font-weight:400;
       transition:.15s transform, .15s background;
       display:inline-flex; align-items:center; gap:8px;
       user-select:none;
+      font-size: 14px;height: 32px;
+      transition: all 0.2s;
     }
     .btn:hover{background:var(--btnH)}
     .btn:active{background:var(--btnA); transform: translateY(1px)}
