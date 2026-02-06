@@ -1200,7 +1200,9 @@ function vaultCardHTML(vaultId, v, bucket){
 
   const avgPriceKg = Number(s.sell?.avgPriceKg || 0);
 
-  const profitVal = Number(s.profit || 0);
+  const SALES_RATE = 0.40;
+  const salesValue = profitVal * SALES_RATE;
+  const salesClass = salesValue >= 0 ? "kpiGood" : "kpiBad";
   const profitClass = profitVal >= 0 ? "kpiGood" : "kpiBad";
 
   const salesValue = (Number(s.totalRevenue||0) > 0)
@@ -1254,7 +1256,7 @@ function vaultCardHTML(vaultId, v, bucket){
               <tr><td>Harga Per-Ekor</td><td class="kpiGood">${fmt(bp.avgPrice||0)}</td></tr>
               <tr><td>Total Harga</td><td class="kpiGood">${fmt(bp.total||0)}</td></tr>
               <tr><td>Profit / Loss</td><td class="${profitClass}">${fmt(profitVal)}</td></tr>
-              <tr><td>Sales</td><td class="${salesClass}">${fmt(salesValue)}</td></tr>
+              <tr><td>Sales (40%)</td><td class="${salesClass}">${fmt(salesValue)}</td></tr>
             </table>
           </div>
 
