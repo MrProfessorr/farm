@@ -29,6 +29,16 @@
       border-bottom:1px solid var(--stroke);
     }
     .right{display:flex; align-items:center; gap:10px}
+    .btn-delete{
+      border: 1px solid rgb(196 19 19); 
+      border-radius:6px; padding: 8px 10px; cursor:pointer;
+      background: rgb(0 0 0 / 0%);
+      color:#f52020; font-weight:400;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+      font-size: 14px;height: 32px;
+      transition: all 0.2s;
+    }
     .btn-edit{
       border: 1px solid rgba(22, 104, 220, .45); 
       border-radius:6px; padding: 8px 10px; cursor:pointer;
@@ -1339,7 +1349,7 @@ function txRowHTML(vaultId, txId, t, bucket){
               data-act="txEdit" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
               Edit
             </button>
-            <button class="btn ghost" style="padding:8px 10px"
+            <button class="btn-delete" style="padding:8px 10px"
               data-act="txDel" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
               Delete
             </button>
