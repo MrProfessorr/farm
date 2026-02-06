@@ -1151,17 +1151,16 @@ async function recomputeVaultSummary(vaultId, bucket){
     await update(ref(db), updates);
   }
 async function uncloseVault(vaultId){
-  const histSnap = await get(ref(db, `vaults/history/${vaultId}`));
+  const histPath = `vaults/history/${vaultId}`;
+  const openPath = `vaults/open/${vaultId}`;
+
+  const histSnap = await get(ref(db, histPath));
   if(!histSnap.exists()) return;
 
-  const data = histSnap.val();
+  const data = histSnap.val() || {};
   const now = Date.now();
 
-  // buang field closing dari history supaya open jadi "clean"
-  const {
-    closedAt, closedAtMs, closedBy, closedByUid,
-    ...rest
-  } = data || {};
+  const { closedAt, closedAtMs, closedBy, closedByUid, ...rest } = data;
 
   const openData = {
     ...rest,
@@ -1170,13 +1169,16 @@ async function uncloseVault(vaultId){
     reopenedAtMs: now,
     reopenedByUid: me.uid,
     reopenedBy: me.username,
+    updatedAt: serverTimestamp(),
+    updatedAtMs: now
   };
 
-  // 1) letak balik ke OPEN
-  await set(ref(db, `vaults/open/${vaultId}`), openData);
+  // 🔥 IMPORTANT: multi-location update supaya listener trigger betul
+  const updates = {};
+  updates[openPath] = openData;
+  updates[histPath] = null;
 
-  // 2) buang dari HISTORY
-  await remove(ref(db, `vaults/history/${vaultId}`));
+  await update(ref(db), updates);
 }
   // ===== RENDER =====
   function setView(v){
@@ -1463,7 +1465,7 @@ function openViewNote(noteText){
         const rows = Object.entries(txs);
         rows.sort((a,b)=> Number(b[1]?.atMs||0) - Number(a[1]?.atMs||0));
         if(rows.length===0){
-          tbody.innerHTML = `<tr><td colspan="5" class="hint">No transaction yet.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="hint">No transaction yet.</td></tr>`;
           return;
         }
         tbody.innerHTML = rows.map(([txId,t]) => txRowHTML(id,txId,t,bucket)).join("");
