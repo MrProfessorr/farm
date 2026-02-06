@@ -473,8 +473,8 @@ input[type="number"]{
 }
 
 /* guna class .good/.bad kau yang memang dah ada */
-.kpiTable .good{ color:#00ff6b; }
-.kpiTable .bad{ color:red; }
+.kpiTable .kpiGood{ color:#008000; }
+.kpiTable .kpiBad{ color:red; }
   </style>
 </head>
 
@@ -1201,12 +1201,12 @@ function vaultCardHTML(vaultId, v, bucket){
   const avgPriceKg = Number(s.sell?.avgPriceKg || 0);
 
   const profitVal = Number(s.profit || 0);
-  const profitClass = profitVal >= 0 ? "good" : "bad";
+  const profitClass = profitVal >= 0 ? "kpiGood" : "kpiBad";
 
   const salesValue = (Number(s.totalRevenue||0) > 0)
     ? (Number(s.totalRevenue||0) - Number(s.totalCost||0))
     : 0;
-  const salesClass = salesValue >= 0 ? "good" : "bad";
+  const salesClass = salesValue >= 0 ? "kpiGood" : "kpiBad";
 
   const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
   const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
