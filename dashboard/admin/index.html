@@ -32,17 +32,25 @@
     .btn-modal{
       border:0; border-radius:6px;padding: 0px 15px; cursor:pointer;
       background:#141414; color:white; border:1px solid #424242;
-      transition:.15s transform, .15s background;
       display:inline-flex; align-items:center; gap:8px;
       user-select:none;
       height: 32px;
       font-size: 14px;
       transition: all 0.2s;
     }
+    .btn-view{
+      border: 1px solid var(--stroke); border-radius:6px; padding: 8px 10px; cursor:pointer;
+      background:var(--btn); color:white; font-weight:400;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+      font-size: 14px;height: 32px;
+      transition: all 0.2s;
+    }
+    .btn-view:hover{background:#3c89e8;}
+    .btn-view:active{background:#1554ad;}
     .btn-user{
       border:0; border-radius:6px;padding: 0px 15px; cursor:pointer;
       background:#141414; color:white; border:1px solid #424242;
-      transition:.15s transform, .15s background;
       display:inline-flex; align-items:center; gap:8px;
       user-select:none;
       height: 32px;
@@ -52,7 +60,6 @@
     .btn-logout{
       border:0; border-radius:6px; padding:0px 15px; cursor:pointer;
       background:#d11f3a; color:white;
-      transition:.15s transform, .15s background;
       display:inline-flex; align-items:center; gap:8px;
       user-select:none;
       transition: all 0.2s;
@@ -689,7 +696,7 @@ input[type="number"]{
   <div class="modal" style="max-width:520px;">
     <div class="modalHead" style="display:flex;align-items:center;justify-content:space-between;">
       <div style="font-weight:800;">Note</div>
-      <button class="btn-logout" data-close="mViewNote" type="button" aria-label="Close">✕</button>
+      <button class="btn ghost" data-close="mViewNote" type="button" aria-label="Close">✕</button>
     </div>
 
     <div class="modalBody">
@@ -1313,7 +1320,7 @@ function txRowHTML(vaultId, txId, t, bucket){
         ${showActions ? `
           <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
             ${hasNote ? `
-              <button class="btn ghost" style="padding:8px 10px"
+              <button class="btn-view" style="padding:8px 10px"
                 data-act="txView" data-note="${escapeHtml(t.note)}">
                 View
               </button>
