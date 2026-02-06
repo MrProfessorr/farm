@@ -29,6 +29,16 @@
       border-bottom:1px solid var(--stroke);
     }
     .right{display:flex; align-items:center; gap:10px}
+    .btn-edit{
+      border: 1px solid rgba(22, 104, 220, .45); 
+      border-radius:6px; padding: 8px 10px; cursor:pointer;
+      background: rgba(22, 104, 220, .18); 
+      color:white; font-weight:400;
+      display:inline-flex; align-items:center; gap:8px;
+      user-select:none;
+      font-size: 14px;height: 32px;
+      transition: all 0.2s;
+    }
     .btn-modal{
       border:0; border-radius:6px;padding: 0px 15px; cursor:pointer;
       background:#141414; color:white; border:1px solid #424242;
@@ -1325,7 +1335,7 @@ function txRowHTML(vaultId, txId, t, bucket){
                 View
               </button>
             ` : ``}
-            <button class="btn ghost" style="padding:8px 10px"
+            <button class="btn-edit" style="padding:8px 10px"
               data-act="txEdit" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
               Edit
             </button>
