@@ -526,6 +526,21 @@ input[type="number"]{
 
 .userMenuItem .miIcon{ display:grid; place-items:center; opacity:.95; }
 .userMenuItem .miText{ text-align:center;}
+.walletBtn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.walletIcon{
+  display:flex;
+  align-items:center;
+  color:#4da3ff; /* boleh tukar ikut theme */
+}
+
+.walletBtn:hover .walletIcon{
+  transform: translateY(-1px);
+}
   </style>
 </head>
 
@@ -533,7 +548,15 @@ input[type="number"]{
 <header>
   <div class="pill" id="rolePill">loading...</div>
   <div class="right">
-    <button class="btn-modal" id="btnBalance">Wallet: <span class="num" id="balanceText">0.00</span></button>
+  <button class="btn-modal walletBtn" id="btnBalance">
+  <span class="walletIcon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+      <path d="M5 19V5zm0 2q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v2.5h-2V5H5v14h14v-2.5h2V19q0 .825-.587 1.413T19 21zm8-4q-.825 0-1.412-.587T11 15V9q0-.825.588-1.412T13 7h7q.825 0 1.413.588T22 9v6q0 .825-.587 1.413T20 17zm7-2V9h-7v6zm-4-1.5q.625 0 1.063-.437T17.5 12t-.437-1.062T16 10.5t-1.062.438T14.5 12t.438 1.063T16 13.5"/>
+    </svg>
+  </span>
+
+  <span class="num" id="balanceText">0.00</span>
+</button>
   <!-- USER DROPDOWN -->
   <div class="userDrop" id="userDrop">
     <button class="btn-user" id="btnUser" type="button" aria-haspopup="menu" aria-expanded="false">
