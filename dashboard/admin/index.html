@@ -1201,12 +1201,12 @@ function vaultCardHTML(vaultId, v, bucket){
   const avgPriceKg = Number(s.sell?.avgPriceKg || 0);
 
   const profitVal = Number(s.profit || 0);
-  const profitClass = profitVal >= 0 ? "kpiGood" : "kpiBad";
+  const profitClass = profitVal >= 0 ? "good" : "bad";
 
   const salesValue = (Number(s.totalRevenue||0) > 0)
     ? (Number(s.totalRevenue||0) - Number(s.totalCost||0))
     : 0;
-  const salesClass = salesValue >= 0 ? "kpiGood" : "kpiBad";
+  const salesClass = salesValue >= 0 ? "good" : "bad";
 
   const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
   const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
