@@ -420,6 +420,58 @@ input[type="number"]{
   -moz-appearance: textfield;
   appearance: textfield;
 }
+/* ===== KPI TABLE (BUY LEFT / SELL RIGHT) ===== */
+.kpiSplit{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
+  margin:12px 0 10px;
+}
+@media (max-width: 900px){
+  .kpiSplit{ grid-template-columns: 1fr; } /* phone: kanan turun bawah */
+}
+
+.kpiTableCard{
+  background:#141414;                 /* match theme kau */
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:14px;
+  overflow:hidden;
+}
+
+.kpiTableHead{
+  padding:12px 14px;
+  font-weight:800;
+  color:rgba(255,255,255,.9);
+  border-bottom:1px solid rgba(255,255,255,.10);
+  background:#1d1d1d;                 /* sama macam table head */
+}
+
+.kpiTable{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.kpiTable td{
+  padding:10px 14px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  font-size:14px;
+}
+
+.kpiTable tr:last-child td{ border-bottom:0; }
+.kpiTable td:first-child{
+  text-align:left;
+  color:rgba(255,255,255,.75);
+  font-weight:600;
+}
+.kpiTable td:last-child{
+  text-align:right;
+  font-variant-numeric: tabular-nums;
+  font-weight:800;
+}
+
+/* guna class .good/.bad kau yang memang dah ada */
+.kpiTable .good{ color:#00ff6b; }
+.kpiTable .bad{ color:red; }
   </style>
 </head>
 
@@ -1132,154 +1184,132 @@ async function uncloseVault(vaultId){
     $("viewHistory").classList.toggle("hide", v!=="history");
   }
 
-  function vaultCardHTML(vaultId, v, bucket){
-    const s = v.summary || { totalCost:0,totalKg:0,totalEkor:0,totalRevenue:0,profit:0 };
-    const bp = (s.babyPig || { qty:0, avgPrice:0, total:0 });
-    const availablePig = Number(s.availablePig ?? Math.max(0, Number(bp.qty||0) - Number(s.missing?.qty||0) - Number(s.totalEkor||0)));
-    const avgPriceKg = Number(s.sell?.avgPriceKg || 0);
-    const profitClass = (s.profit||0) >= 0 ? "good" : "bad";
-    const salesValue = (Number(s.totalRevenue||0) > 0)
+function vaultCardHTML(vaultId, v, bucket){
+  const s = v.summary || { totalCost:0,totalKg:0,totalEkor:0,totalRevenue:0,profit:0 };
+  const bp = (s.babyPig || { qty:0, avgPrice:0, total:0 });
+
+  const missingQty = Number(s.missing?.qty || 0);
+  const totalEkor  = Number(s.totalEkor || 0);
+
+  const availablePig = Number(
+    s.availablePig ?? Math.max(0, Number(bp.qty||0) - missingQty - totalEkor)
+  );
+
+  const avgPriceKg = Number(s.sell?.avgPriceKg || 0);
+
+  const profitVal = Number(s.profit || 0);
+  const profitClass = profitVal >= 0 ? "kpiGood" : "kpiBad";
+
+  const salesValue = (Number(s.totalRevenue||0) > 0)
     ? (Number(s.totalRevenue||0) - Number(s.totalCost||0))
     : 0;
-    const salesClass = salesValue >= 0 ? "good" : "bad";
-    const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
-    const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
-    const closed  = v.closedAtMs  ? fmtDT(v.closedAtMs)  : "-";
+  const salesClass = salesValue >= 0 ? "kpiGood" : "kpiBad";
 
-    const canEdit = me.isAdmin; // rule: farm88
-    const isHistory = bucket === "history";
+  const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
+  const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
+  const closed  = v.closedAtMs  ? fmtDT(v.closedAtMs)  : "-";
 
-    return `
-      <div class="card" data-vid="${vaultId}" data-bucket="${bucket}">
-        <div class="cardHead">
-          <div>
-            <div class="title">${escapeHtml(v.title || "Untitled Vault")}</div>
-            <div class="sub">
-              Created: <span class="num">${created}</span>
-              ${isHistory ? ` • Closed: <span class="num">${closed}</span>` : ``}
-              <br>Updated: <span class="num">${updated}</span>
-            </div>
-          </div>
-          <div class="vaultBtns">
-            ${!isHistory ? `
-              <button class="btn ghost" data-act="cash" data-id="${vaultId}">Cash Transfer</button>
-              <button class="btn ghost" data-act="buy" data-id="${vaultId}">Buy</button>
-              <button class="btn ghost" data-act="missing" data-id="${vaultId}">Missing</button>
-              <button class="btn ghost" data-act="sell" data-id="${vaultId}">Sell</button>
-              <button class="btn danger" data-act="close" data-id="${vaultId}">Closing</button>
-            ` : `
-              ${canEdit ? `<button class="btn ghost" data-act="histEdit" data-id="${vaultId}">Edit Title</button>` : ``}
-            `}
+  const canEdit = me.isAdmin;
+  const isHistory = bucket === "history";
+
+  return `
+    <div class="card" data-vid="${vaultId}" data-bucket="${bucket}">
+      <div class="cardHead">
+        <div>
+          <div class="title">${escapeHtml(v.title || "Untitled Vault")}</div>
+          <div class="sub">
+            Created: <span class="num">${created}</span>
+            ${isHistory ? ` • Closed: <span class="num">${closed}</span>` : ``}
+            <br>Updated: <span class="num">${updated}</span>
           </div>
         </div>
-        <div class="cardBody">
-<div class="kpiRow" style="margin-bottom:10px">
-  <div class="kpi">
-    <div class="k">Total Buy (Cost)</div>
-    <div class="v num">${fmt(s.totalCost)}</div>
-  </div>
-</div>
 
-<!-- Tambah 3 box bawah Total Buy -->
-<div class="kpiRow" style="margin-bottom:14px">
-  <div class="kpi">
-    <div class="k">Bayi Babi</div>
-    <div class="v num">${Number(bp.qty||0).toLocaleString()}</div>
-  </div>
+        <div class="vaultBtns">
+          ${!isHistory ? `
+            <button class="btn ghost" data-act="cash" data-id="${vaultId}">Cash Transfer</button>
+            <button class="btn ghost" data-act="buy" data-id="${vaultId}">Buy</button>
+            <button class="btn ghost" data-act="missing" data-id="${vaultId}">Missing</button>
+            <button class="btn ghost" data-act="sell" data-id="${vaultId}">Sell</button>
+            <button class="btn danger" data-act="close" data-id="${vaultId}">Closing</button>
+          ` : `
+            ${canEdit ? `<button class="btn ghost" data-act="histEdit" data-id="${vaultId}">Edit Title</button>` : ``}
+          `}
+        </div>
+      </div>
 
-  <div class="kpi">
-    <div class="k">Harga per-Ekor</div>
-    <div class="v num">${fmt(bp.avgPrice||0)}</div>
-  </div>
+      <div class="cardBody">
 
-  <div class="kpi">
-    <div class="k">Total Harga</div>
-    <div class="v num">${fmt(bp.total||0)}</div>
-  </div>
-</div>
+        <!-- KPI BUY kiri + SELL kanan -->
+        <div class="kpiSplit">
 
-<div class="kpiRow">
-  <div class="kpi">
-    <div class="k">Total Sell (Revenue)</div>
-    <div class="v num">${fmt(s.totalRevenue)}</div>
-  </div>
-
-<div class="kpi">
-  <div class="k">Harga per Kg</div>
-  <div class="v num">${fmt(avgPriceKg)}</div>
-</div>
-
-  <div class="kpi">
-    <div class="k">Total Kg</div>
-    <div class="v num">${fmt(s.totalKg)}</div>
-  </div>
-
-  <div class="kpi">
-    <div class="k">Total Ekor</div>
-    <div class="v num">${Number(s.totalEkor||0).toLocaleString()}</div>
-  </div>
-  
- <div class="kpi">
-  <div class="k">Missing</div>
-  <div class="v num">${Number((s.missing?.qty)||0).toLocaleString()}</div>
-</div>
-
-<div class="kpi">
-  <div class="k">Tersedia Babi</div>
-  <div class="v num">${availablePig.toLocaleString()}</div>
-</div>
-
-  <div class="kpi">
-    <div class="k">Profit / Loss</div>
-    <div class="v num profit ${profitClass}">${fmt(s.profit)}</div>
-  </div>
-
-<div class="kpi">
-  <div class="k">Sales</div>
-  <div class="v num ${salesClass}">${fmt(salesValue)}</div>
-</div>
-</div>
-
-          <div class="hr"></div>
-          <div class="tblWrap">
-            <table>
-             <thead>
-  <tr>
-    <th style="width:120px">Type</th>
-    <th>Description</th>
-
-    <th style="width:120px">Berapa Ekor</th>
-    <th style="width:150px">Harga Per-Ekor</th>
-
-    <th style="width:150px">Amount</th>
-    <th style="width:180px">Date & Time</th>
-    <th style="width:180px">Actions</th>
-  </tr>
-</thead>
-              <tbody data-tbody="${vaultId}"><tr><td colspan="5" class="hint">Loading...</td></tr></tbody>
+          <!-- LEFT: BUY -->
+          <div class="kpiTableCard">
+            <div class="kpiTableHead">Total Buyed</div>
+            <table class="kpiTable">
+              <tr><td>Total Buy (Cost)</td><td class="kpiGood">${fmt(s.totalCost)}</td></tr>
+              <tr><td>Bayi Babi</td><td class="kpiBad">${Number(bp.qty||0).toLocaleString()}</td></tr>
+              <tr><td>Harga Per-Ekor</td><td class="kpiGood">${fmt(bp.avgPrice||0)}</td></tr>
+              <tr><td>Total Harga</td><td class="kpiGood">${fmt(bp.total||0)}</td></tr>
+              <tr><td>Profit / Loss</td><td class="${profitClass}">${fmt(profitVal)}</td></tr>
+              <tr><td>Sales</td><td class="${salesClass}">${fmt(salesValue)}</td></tr>
             </table>
           </div>
 
-${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
+          <!-- RIGHT: SELL -->
+          <div class="kpiTableCard">
+            <div class="kpiTableHead">Total Sell (Revenue)</div>
+            <table class="kpiTable">
+              <tr><td>Total Sell (Revenue)</td><td class="kpiGood">${fmt(s.totalRevenue)}</td></tr>
+              <tr><td>Harga per Kg</td><td class="kpiGood">${fmt(avgPriceKg)}</td></tr>
+              <tr><td>Total Kg</td><td class="kpiGood">${fmt(s.totalKg)}</td></tr>
+              <tr><td>Total Ekor</td><td class="kpiGood">${Number(s.totalEkor||0).toLocaleString()}</td></tr>
+              <tr><td>Missing</td><td class="kpiBad">${missingQty.toLocaleString()}</td></tr>
+              <tr><td>Tersedia Babi</td><td class="kpiGood">${availablePig.toLocaleString()}</td></tr>
+            </table>
+          </div>
 
-<div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px">
-  ${
-    (!isHistory)
-      ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
-      : (
-          me.isAdmin
-            ? `
-              <button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>
-              <button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>
-            `
-            : ``
-        )
-  }
-</div>
         </div>
+
+        <div class="hr"></div>
+
+        <div class="tblWrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:120px">Type</th>
+                <th>Description</th>
+                <th style="width:120px">Berapa Ekor</th>
+                <th style="width:150px">Harga Per-Ekor</th>
+                <th style="width:150px">Amount</th>
+                <th style="width:180px">Date & Time</th>
+                <th style="width:180px">Actions</th>
+              </tr>
+            </thead>
+            <tbody data-tbody="${vaultId}">
+              <tr><td colspan="7" class="hint">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px">
+          ${
+            (!isHistory)
+              ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
+              : (me.isAdmin
+                  ? `
+                    <button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>
+                    <button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>
+                  `
+                  : ``)
+          }
+        </div>
+
       </div>
-    `;
-  }
+    </div>
+  `;
+}
 
 function txRowHTML(vaultId, txId, t, bucket){
   const at = t.atMs ? fmtDT(t.atMs) : "-";
