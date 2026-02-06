@@ -1250,7 +1250,7 @@ function vaultCardHTML(vaultId, v, bucket){
             <div class="kpiTableHead">Total Buyed</div>
             <table class="kpiTable">
               <tr><td>Total Buy (Cost)</td><td class="kpiGood">${fmt(s.totalCost)}</td></tr>
-              <tr><td>Bayi Babi</td><td class="kpiBad">${Number(bp.qty||0).toLocaleString()}</td></tr>
+              <tr><td>Bayi Babi</td><td>${Number(bp.qty||0).toLocaleString()}</td></tr>
               <tr><td>Harga Per-Ekor</td><td class="kpiGood">${fmt(bp.avgPrice||0)}</td></tr>
               <tr><td>Total Harga</td><td class="kpiGood">${fmt(bp.total||0)}</td></tr>
               <tr><td>Profit / Loss</td><td class="${profitClass}">${fmt(profitVal)}</td></tr>
