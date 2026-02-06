@@ -1248,12 +1248,12 @@ function vaultCardHTML(vaultId, v, bucket){
           <div class="kpiTableCard">
             <div class="kpiTableHead">Total Buyed</div>
             <table class="kpiTable">
-              <tr><td>Total Semua Harga</td><td class="kpiGood">${fmt(s.totalCost)}</td></tr>
-              <tr><td>Pets</td><td>${Number(bp.qty||0).toLocaleString()}</td></tr>
-              <tr><td>Harga Quantity</td><td class="kpiGood">${fmt(bp.avgPrice||0)}</td></tr>
-              <tr><td>Total Harga</td><td class="kpiGood">${fmt(bp.total||0)}</td></tr>
-              <tr><td>Profit</td><td class="${profitClass}">${fmt(profitVal)}</td></tr>
-              <tr><td>Sales</td><td class="${salesClass}">${fmt(salesValue)}</td></tr>
+              <tr><td>Total Expenses</td><td class="kpiGood">${fmt(s.totalCost)}</td></tr>
+              <tr><td>Total Pets</td><td>${Number(bp.qty||0).toLocaleString()}</td></tr>
+              <tr><td>Total Price Quantity</td><td class="kpiGood">${fmt(bp.avgPrice||0)}</td></tr>
+              <tr><td>Total Price</td><td class="kpiGood">${fmt(bp.total||0)}</td></tr>
+              <tr><td>Total Profit</td><td class="${profitClass}">${fmt(profitVal)}</td></tr>
+              <tr><td>Total Sales</td><td class="${salesClass}">${fmt(salesValue)}</td></tr>
             </table>
           </div>
 
@@ -1261,12 +1261,12 @@ function vaultCardHTML(vaultId, v, bucket){
           <div class="kpiTableCard">
             <div class="kpiTableHead">Total Sell (Revenue)</div>
             <table class="kpiTable">
-              <tr><td>Total Semua Sell</td><td class="kpiGood">${fmt(s.totalRevenue)}</td></tr>
-              <tr><td>Harga Quantity KG</td><td class="kpiGood">${fmt(avgPriceKg)}</td></tr>
+              <tr><td>Total Sell</td><td class="kpiGood">${fmt(s.totalRevenue)}</td></tr>
+              <tr><td>Price Quantity KG</td><td class="kpiGood">${fmt(avgPriceKg)}</td></tr>
               <tr><td>Total KG</td><td class="kpiGood">${fmt(s.totalKg)}</td></tr>
               <tr><td>Total Quantity</td><td class="kpiGood">${Number(s.totalEkor||0).toLocaleString()}</td></tr>
-              <tr><td>Death</td><td class="kpiBad">${missingQty.toLocaleString()}</td></tr>
-              <tr><td>Available Pets</td><td class="kpiGood">${availablePig.toLocaleString()}</td></tr>
+              <tr><td>Total Death</td><td class="kpiBad">${missingQty.toLocaleString()}</td></tr>
+              <tr><td>Total Available</td><td class="kpiGood">${availablePig.toLocaleString()}</td></tr>
             </table>
           </div>
 
