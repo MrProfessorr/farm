@@ -1338,13 +1338,9 @@ function txRowHTML(vaultId, txId, t, bucket){
   }else if(t.kind==="missing"){
     qtyEkor = Number(t.qty||0) ? String(Number(t.qty||0).toLocaleString()) : "";
     unitPrice = Number(t.price||0) ? fmt(t.price||0) : "";
-  }else if(t.kind==="sell"){
-    // sell pakai ekor + priceKg (kalau kau nak)
-    qtyEkor = Number(t.ekor||0) ? String(Number(t.ekor||0).toLocaleString()) : "";
-    // Kalau kau nak kolum ni khas “Harga Per-Ekor”, untuk sell memang tak sama.
-    // Jadi aku letak kosong. Kalau kau nak letak Harga/Kg, uncomment bawah:
-    // unitPrice = Number(t.priceKg||0) ? fmt(t.priceKg||0) : "";
-    unitPrice = "";
+}else if(t.kind==="sell"){
+  qtyEkor = Number(t.ekor||0) ? String(Number(t.ekor||0).toLocaleString()) : "";
+  unitPrice = Number(t.priceKg||0) ? fmt(t.priceKg||0) : "";
   }else{
     qtyEkor = "";
     unitPrice = "";
