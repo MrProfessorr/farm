@@ -1200,14 +1200,13 @@ function vaultCardHTML(vaultId, v, bucket){
 
   const avgPriceKg = Number(s.sell?.avgPriceKg || 0);
 
-  const SALES_RATE = 0.40;              // 40%
-  const salesValue = profitVal * SALES_RATE;
-  const salesClass = salesValue >= 0 ? "kpiGood" : "kpiBad";
+  const profitVal   = Number(s.profit || 0);
   const profitClass = profitVal >= 0 ? "kpiGood" : "kpiBad";
 
-  const salesValue = (Number(s.totalRevenue||0) > 0)
-    ? (Number(s.totalRevenue||0) - Number(s.totalCost||0))
-    : 0;
+  const SALES_RATE  = 0.40;
+  const salesValue  = profitVal * SALES_RATE;
+  const salesClass  = salesValue >= 0 ? "kpiGood" : "kpiBad";
+
   const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
   const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
   const closed  = v.closedAtMs  ? fmtDT(v.closedAtMs)  : "-";
