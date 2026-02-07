@@ -1676,6 +1676,7 @@ function ensureRangePicker(vaultId){
 
   const input = document.querySelector(`[data-rangeinput="${vaultId}"]`);
   const presetWrap = document.querySelector(`[data-rangepresets="${vaultId}"]`);
+  const bar = document.querySelector(`[data-rangebar="${vaultId}"]`);
   if(!input || !presetWrap || typeof flatpickr === "undefined") return;
 
   const fp = flatpickr(input, {
