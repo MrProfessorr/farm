@@ -661,8 +661,6 @@ input[type="number"]{
 
   <!-- OPEN -->
   <div id="viewOpen" class="grid"></div>
-
-  <!-- HISTORY -->
   <div id="viewHistory" class="grid hide"></div>
 </div>
 
@@ -673,7 +671,7 @@ input[type="number"]{
   <div class="modal">
     <div class="modalHead">
       <div>
-        <div class="title">Modal Saya</div>
+        <div class="title">My Wallet</div>
         <div class="sub">Balance ini digunakan untuk Cash Transfer, Buy dan Sell.</div>
       </div>
       <button class="x" data-close="mBalance">✕</button>
@@ -839,7 +837,7 @@ input[type="number"]{
   <div class="modal">
     <div class="modalHead">
       <div>
-        <div class="title">Sell</div>
+        <div class="title">Selling</div>
         <div class="sub" id="sellVaultTitle">-</div>
       </div>
       <button class="x" data-close="mSell">✕</button>
@@ -847,7 +845,7 @@ input[type="number"]{
     <div class="modalBody">
       <div class="row">
         <div>
-          <label>Price per Kg</label>
+          <label>Price Quantity</label>
           <input id="sellPriceKg" type="number" min="0" step="0.01" placeholder="contoh 12.50" />
         </div>
         <div>
@@ -857,18 +855,18 @@ input[type="number"]{
       </div>
 <div class="row">
   <div>
-    <label>Total Ekor</label>
+    <label>Total Quantity</label>
     <input id="sellEkor" type="number" min="0" step="1" placeholder="contoh 20" />
     <div class="hint" id="sellEkorHint"></div>
   </div>
 
   <div>
-    <label>Missing (auto)</label>
+    <label>Death Pets</label>
     <input id="sellMissing" type="number" disabled placeholder="auto" />
   </div>
 
   <div>
-    <label>Total Hasil (auto)</label>
+    <label>Total Amount</label>
     <input id="sellTotal" type="number" min="0" step="0.01" placeholder="auto kira" />
   </div>
 </div>
@@ -885,7 +883,7 @@ input[type="number"]{
   <div class="modal">
     <div class="modalHead">
       <div>
-        <div class="title">Missing</div>
+        <div class="title">Death Pets</div>
         <div class="sub" id="missingVaultTitle">-</div>
       </div>
       <button class="x" data-close="mMissing">✕</button>
@@ -894,18 +892,18 @@ input[type="number"]{
     <div class="modalBody">
       <div class="row">
         <div>
-          <label>Missing (ekor)</label>
+          <label>Quantity Death</label>
           <input id="missQty" type="number" min="0" step="1" placeholder="contoh 2" />
         </div>
         <div>
-          <label>Harga per-Ekor</label>
+          <label>Price Quantity</label>
           <input id="missPrice" type="number" min="0" step="0.01" placeholder="contoh 25000" />
         </div>
       </div>
 
       <div class="row">
         <div>
-          <label>Total (auto)</label>
+          <label>Total Amount</label>
           <input id="missTotal" type="number" disabled placeholder="auto kira" />
         </div>
         <div>
@@ -914,7 +912,7 @@ input[type="number"]{
         </div>
       </div>
 
-      <div class="hint">Ini catatan sahaja. Tak tambah/tolak modal dan tak masuk Total Buy.</div>
+      <div class="hint">Make sure then Submit.</div>
     </div>
 
     <div class="modalFoot">
