@@ -1729,6 +1729,7 @@ function initVaultDateRangeUI(vaultId){
     onReady: (dates, str, inst)=>{
       // ✅ pastikan text sentiasa 2 tarikh (walaupun flatpickr nak override)
       input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
+      clearActivePreset(vaultId);
       setTimeout(()=>{ input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`; }, 0);
     },
 
@@ -1772,9 +1773,7 @@ function initVaultDateRangeUI(vaultId){
       }
     }
   });
-
-  // ✅ set active preset sekali
-  setActivePreset(vaultId, "thisMonth");
+  //setActivePreset(vaultId, "thisMonth");
 }
   function wireVaultListeners(){
     // Open vaults
