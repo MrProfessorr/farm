@@ -548,6 +548,46 @@ input[type="number"]{
 
 .userMenuItem .miIcon{ display:grid; place-items:center; opacity:.95; }
 .userMenuItem .miText{ text-align:center;}
+.rangeBar{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:10px 12px; margin:10px 0 12px;
+  border:1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.04);
+  border-radius:12px;
+}
+.rangeLeft{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
+.rangeInputs{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.rangeInputs input[type="date"]{
+  height:36px; padding:0 10px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.35); color:#fff; outline:none;
+}
+.rangeInputs .arrow{opacity:.75; font-weight:800;}
+.rangePreview{
+  font-size:13px; opacity:.85; padding:6px 10px;
+  border-radius:10px; border:1px dashed rgba(255,255,255,.15);
+  background: rgba(0,0,0,.22); white-space:nowrap;
+}
+.rangeRight{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;}
+.qbtn{
+  height:34px; padding:0 10px; border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.35);
+  color:#e9ecff; cursor:pointer; font-weight:700; font-size:13px;
+}
+.qbtn:hover{border-color: rgba(46,145,255,.60);}
+.qbtn.active{
+  background: rgba(46,145,255,.25);
+  border-color: rgba(46,145,255,.85);
+  box-shadow: 0 0 0 2px rgba(46,145,255,.18) inset;
+}
+.qbtn.ghost{opacity:.85;}
+
+@media (max-width:720px){
+  .rangeBar{flex-direction:column; align-items:stretch;}
+  .rangeRight{justify-content:flex-start;}
+  .rangePreview{width:100%; text-align:center;}
+}
   </style>
 </head>
 
@@ -1378,7 +1418,28 @@ function vaultCardHTML(vaultId, v, bucket){
         </div>
 
         <div class="hr"></div>
+        
+      <!-- ✅ DATE RANGE BAR (PER VAULT) -->
+<div class="rangeBar" data-rangebar="${vaultId}">
+  <div class="rangeLeft">
+    <div class="rangeInputs">
+      <input type="date" class="dateFrom" data-datefrom="${vaultId}">
+      <span class="arrow">→</span>
+      <input type="date" class="dateTo" data-dateto="${vaultId}">
+    </div>
+    <div class="rangePreview" data-preview="${vaultId}">[ - → - ]</div>
+  </div>
 
+  <div class="rangeRight" data-quick="${vaultId}">
+    <button class="qbtn" data-q="today" data-v="${vaultId}">Today</button>
+    <button class="qbtn" data-q="yesterday" data-v="${vaultId}">Yesterday</button>
+    <button class="qbtn" data-q="thisWeek" data-v="${vaultId}">This Week</button>
+    <button class="qbtn" data-q="lastWeek" data-v="${vaultId}">Last Week</button>
+    <button class="qbtn" data-q="thisMonth" data-v="${vaultId}">This Month</button>
+    <button class="qbtn" data-q="lastMonth" data-v="${vaultId}">Last Month</button>
+    <button class="qbtn ghost" data-q="clear" data-v="${vaultId}">Clear</button>
+  </div>
+</div>
         <div class="tblWrap">
           <table>
             <thead>
@@ -1460,7 +1521,7 @@ function txRowHTML(vaultId, txId, t, bucket){
   const hasNote = String(t.note||"").trim().length > 0;
 
   return `
-    <tr data-txid="${txId}">
+    <tr data-txid="${txId}" data-atms="${Number(t.atMs||0)}">
       <td>${typeTag}</td>
       <td>${escapeHtml(desc)}</td>
 
@@ -1572,9 +1633,144 @@ function openViewNote(noteText){
           return;
         }
         tbody.innerHTML = rows.map(([txId,t]) => txRowHTML(id,txId,t,bucket)).join("");
+        initRangeBarForVault(id);
+        filterVaultTable(id);
       });
     }
   }
+  // ===== DATE RANGE FILTER (PER VAULT) =====
+function pad2(n){ return String(n).padStart(2,"0"); }
+function toISODate(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0); }
+function endOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23,59,59,999); }
+function startOfWeek(d){
+  const x = startOfDay(d);
+  const day = x.getDay(); // 0 Sun
+  const diff = (day === 0 ? -6 : 1 - day); // Monday start
+  x.setDate(x.getDate()+diff);
+  return x;
+}
+function endOfWeek(d){
+  const s = startOfWeek(d);
+  const e = new Date(s); e.setDate(e.getDate()+6);
+  return endOfDay(e);
+}
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1, 0,0,0,0); }
+function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0, 23,59,59,999); }
+
+function setActiveQuick(vaultId, key){
+  document.querySelectorAll(`[data-quick="${vaultId}"] .qbtn`).forEach(b=>{
+    b.classList.toggle("active", b.dataset.q === key);
+  });
+}
+
+function updatePreview(vaultId){
+  const fromEl = document.querySelector(`[data-datefrom="${vaultId}"]`);
+  const toEl   = document.querySelector(`[data-dateto="${vaultId}"]`);
+  const pv     = document.querySelector(`[data-preview="${vaultId}"]`);
+  if(!fromEl || !toEl || !pv) return;
+  pv.textContent = `[ ${fromEl.value || "-"} → ${toEl.value || "-"} ]`;
+}
+
+function filterVaultTable(vaultId){
+  const fromEl = document.querySelector(`[data-datefrom="${vaultId}"]`);
+  const toEl   = document.querySelector(`[data-dateto="${vaultId}"]`);
+  const tbody  = document.querySelector(`[data-tbody="${vaultId}"]`);
+  if(!fromEl || !toEl || !tbody) return;
+
+  updatePreview(vaultId);
+
+  const fromVal = fromEl.value;
+  const toVal   = toEl.value;
+
+  if(!fromVal && !toVal){
+    [...tbody.rows].forEach(r=> r.style.display="");
+    return;
+  }
+
+  const from = fromVal ? startOfDay(new Date(fromVal)) : null;
+  const to   = toVal ? endOfDay(new Date(toVal)) : null;
+
+  [...tbody.rows].forEach(tr=>{
+    const atMs = Number(tr.dataset.atms || 0);
+    if(!atMs){ tr.style.display=""; return; }
+    const d = new Date(atMs);
+
+    let ok = true;
+    if(from && d < from) ok = false;
+    if(to && d > to) ok = false;
+
+    tr.style.display = ok ? "" : "none";
+  });
+}
+
+function applyQuickRange(vaultId, key){
+  const fromEl = document.querySelector(`[data-datefrom="${vaultId}"]`);
+  const toEl   = document.querySelector(`[data-dateto="${vaultId}"]`);
+  if(!fromEl || !toEl) return;
+
+  const now = new Date();
+  let from, to;
+
+  if(key === "clear"){
+    fromEl.value = "";
+    toEl.value = "";
+    setActiveQuick(vaultId, "clear");
+    filterVaultTable(vaultId);
+    return;
+  }
+
+  if(key==="today"){ from = startOfDay(now); to = endOfDay(now); }
+  else if(key==="yesterday"){
+    const y = new Date(now); y.setDate(y.getDate()-1);
+    from = startOfDay(y); to = endOfDay(y);
+  }
+  else if(key==="thisWeek"){ from = startOfWeek(now); to = endOfWeek(now); }
+  else if(key==="lastWeek"){
+    const lw = new Date(now); lw.setDate(lw.getDate()-7);
+    from = startOfWeek(lw); to = endOfWeek(lw);
+  }
+  else if(key==="thisMonth"){ from = startOfMonth(now); to = endOfMonth(now); }
+  else if(key==="lastMonth"){
+    const lm = new Date(now.getFullYear(), now.getMonth()-1, 1);
+    from = startOfMonth(lm); to = endOfMonth(lm);
+  } else return;
+
+  fromEl.value = toISODate(from);
+  toEl.value   = toISODate(to);
+
+  setActiveQuick(vaultId, key);
+  filterVaultTable(vaultId);
+}
+
+function initRangeBarForVault(vaultId){
+  const fromEl = document.querySelector(`[data-datefrom="${vaultId}"]`);
+  const toEl   = document.querySelector(`[data-dateto="${vaultId}"]`);
+  const quick  = document.querySelector(`[data-quick="${vaultId}"]`);
+  if(!fromEl || !toEl || !quick) return;
+
+  // avoid double bind
+  if(fromEl.dataset.bound === "1") return;
+  fromEl.dataset.bound = "1";
+  toEl.dataset.bound = "1";
+
+  fromEl.addEventListener("change", ()=>{
+    setActiveQuick(vaultId, "");
+    filterVaultTable(vaultId);
+  });
+  toEl.addEventListener("change", ()=>{
+    setActiveQuick(vaultId, "");
+    filterVaultTable(vaultId);
+  });
+
+  quick.addEventListener("click", (e)=>{
+    const b = e.target.closest(".qbtn");
+    if(!b) return;
+    applyQuickRange(vaultId, b.dataset.q);
+  });
+
+  updatePreview(vaultId);
+}
 
   function wireVaultListeners(){
     // Open vaults
