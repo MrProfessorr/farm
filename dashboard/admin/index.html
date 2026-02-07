@@ -715,11 +715,11 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Amount</label>
-          <input id="apAmount" type="number" min="0" step="0.01" placeholder="contoh 100000" />
+          <input id="apAmount" type="number" min="0" step="0.01" />
         </div>
         <div>
           <label>Note</label>
-          <input id="apNote" placeholder="contoh: topup / keluarkan modal" />
+          <input id="apNote" />
         </div>
       </div>
     </div>
@@ -741,9 +741,9 @@ input[type="number"]{
     </div>
     <div class="modalBody">
       <label>Title</label>
-      <input id="nvTitle" placeholder="contoh: FEB 2026" />
+      <input id="nvTitle" />
       <label>Note (optional)</label>
-      <textarea id="nvNote" placeholder="catatan vault..."></textarea>
+      <textarea id="nvNote"></textarea>
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mNewVault">Cancel</button>
@@ -771,11 +771,11 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Amount</label>
-          <input id="cashAmount" type="number" min="0" step="0.01" placeholder="contoh 1000" />
+          <input id="cashAmount" type="number" min="0" step="0.01" />
         </div>
         <div>
           <label>Note</label>
-          <input id="cashNote" placeholder="contoh: cash keluar/masuk" />
+          <input id="cashNote" />
         </div>
       </div>
     </div>
@@ -806,23 +806,23 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Quantity</label>
-          <input id="buyQty" type="number" min="0" step="1" placeholder="contoh 10" />
+          <input id="buyQty" type="number" min="0" step="1" />
         </div>
         <div>
           <label>Price Quantity</label>
-          <input id="buyPrice" type="number" min="0" step="0.01" placeholder="contoh 250" />
+          <input id="buyPrice" type="number" min="0" step="0.01" />
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Total Price</label>
-          <input id="buyTotal" type="number" min="0" step="0.01" placeholder="auto kira" />
+          <input id="buyTotal" type="number" min="0" step="0.01" />
           <div class="hint" id="buyBalanceHint"></div>
         </div>
         <div>
           <label>Note</label>
-          <input id="buyNote" placeholder="contoh: batch A / supplier ..." />
+          <input id="buyNote" />
         </div>
       </div>
     </div>
@@ -846,17 +846,17 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Price Quantity</label>
-          <input id="sellPriceKg" type="number" min="0" step="0.01" placeholder="contoh 12.50" />
+          <input id="sellPriceKg" type="number" min="0" step="0.01" />
         </div>
         <div>
           <label>Total Kg</label>
-          <input id="sellKg" type="number" min="0" step="0.01" placeholder="contoh 350" />
+          <input id="sellKg" type="number" min="0" step="0.01" />
         </div>
       </div>
 <div class="row">
   <div>
     <label>Total Quantity</label>
-    <input id="sellEkor" type="number" min="0" step="1" placeholder="contoh 20" />
+    <input id="sellEkor" type="number" min="0" step="1" />
     <div class="hint" id="sellEkorHint"></div>
   </div>
 
@@ -867,11 +867,11 @@ input[type="number"]{
 
   <div>
     <label>Total Amount</label>
-    <input id="sellTotal" type="number" min="0" step="0.01" placeholder="auto kira" />
+    <input id="sellTotal" type="number" min="0" step="0.01" />
   </div>
 </div>
       <label>Note</label>
-      <input id="sellNote" placeholder="contoh: buyer / invoice ..." />
+      <input id="sellNote" />
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mSell">Cancel</button>
@@ -893,22 +893,22 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Quantity Death</label>
-          <input id="missQty" type="number" min="0" step="1" placeholder="contoh 2" />
+          <input id="missQty" type="number" min="0" step="1" />
         </div>
         <div>
           <label>Price Quantity</label>
-          <input id="missPrice" type="number" min="0" step="0.01" placeholder="contoh 25000" />
+          <input id="missPrice" type="number" min="0" step="0.01" />
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Total Amount</label>
-          <input id="missTotal" type="number" disabled placeholder="auto kira" />
+          <input id="missTotal" type="number" disabled placeholder="auto" />
         </div>
         <div>
           <label>Note</label>
-          <input id="missNote" placeholder="contoh: missing sebab sakit / hilang" />
+          <input id="missNote" />
         </div>
       </div>
 
@@ -1950,7 +1950,7 @@ if(act==="sell"){
   ctxAvailablePig = Math.max(0, babyQty - missQty);
 
   $("sellMissing").value = String(ctxMissingPig);
-  $("sellEkorHint").textContent = `Tersedia untuk jual: ${ctxAvailablePig} ekor`;
+  $("sellEkorHint").textContent = `Available Quantity: ${ctxAvailablePig}`;
 
   $("sellPriceKg").value=""; $("sellKg").value="";
   $("sellEkor").value=""; $("sellTotal").value="";
