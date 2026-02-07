@@ -1444,6 +1444,23 @@ function vaultCardHTML(vaultId, v, bucket){
         </div>
 
         <div class="hr"></div>
+        <div class="rangeBar" data-rangebar="${vaultId}">
+  <div class="rangeLeft">
+    <div class="rangeInput">
+      <input class="dateRangeInput" data-range="${vaultId}" type="text" readonly>
+      <span class="calIcon">📅</span>
+    </div>
+  </div>
+
+  <div class="rangeRight" data-presets="${vaultId}">
+    <button class="pbtn" data-preset="today"     data-vid="${vaultId}">Today</button>
+    <button class="pbtn" data-preset="yesterday" data-vid="${vaultId}">Yesterday</button>
+    <button class="pbtn" data-preset="thisWeek"  data-vid="${vaultId}">This Week</button>
+    <button class="pbtn" data-preset="lastWeek"  data-vid="${vaultId}">Last Week</button>
+    <button class="pbtn" data-preset="thisMonth" data-vid="${vaultId}">This Month</button>
+    <button class="pbtn" data-preset="lastMonth" data-vid="${vaultId}">Last Month</button>
+  </div>
+</div>
 
         <div class="tblWrap">
           <table>
