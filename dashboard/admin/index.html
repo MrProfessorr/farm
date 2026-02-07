@@ -565,9 +565,9 @@ input[type="number"]{
 }
 
 .rangeRight{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.pbtn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:#e9ecff;padding:7px 10px;border-radius:10px;font-weight:800;cursor:pointer;transition:transform .12s ease,background .12s ease,border-color .12s ease;white-space:nowrap;font-size:13px}
-.pbtn:hover{transform:translateY(-1px);background:rgba(255,255,255,.08)}
-.pbtn.active{background:#1668dc;border-color:#1668dc;color:#fff;box-shadow:0 10px 22px rgba(22,104,220,.25)}
+.pbtn{background:transparent;color:rgba(255, 255, 255, 0.85);padding:0px 15px;border:none;cursor:pointer;white-space:nowrap;font-size:14px;transition: all 0.2s;}
+.pbtn:hover{color:#3c89e8}.pbtn:active{color:#1554ad}
+.pbtn.active{color:#1668dc;}
 @media (max-width:520px){.rangeRight{justify-content:flex-start}.pbtn{font-size:12px;padding:7px 9px}}
   @media (max-width: 520px){
   .flatpickr-calendar{
