@@ -2357,10 +2357,7 @@ function calcSell(){
 }
 ["sellPriceKg","sellKg"].forEach(id=> $(id).addEventListener("input", calcSell));
 
-
-// =====================
 // SELL SAVE (CREATE + EDIT)
-// =====================
 $("sellSave").addEventListener("click", async ()=>{
   const priceKg = Number($("sellPriceKg").value||0);
   const kg = Number($("sellKg").value||0);
@@ -2384,9 +2381,7 @@ $("sellSave").addEventListener("click", async ()=>{
 
       const oldEff = txBalanceEffect(old);
       const newEff = txBalanceEffect(newTx);
-      const diff = newEff - oldEff; // sell positif
-
-      // kalau edit mengurangkan revenue (diff negatif), pastikan balance cukup untuk tolak balik
+      const diff = newEff - oldEff;
       if(diff < 0 && Math.abs(diff) > currentBalance){
         toast("Balance tak cukup untuk edit sell (kena tolak balik).");
         return;
@@ -2441,7 +2436,7 @@ function validateSellEkor(){
   $("sellEkor").style.borderColor = ok ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.85)";
   $("sellEkorHint").textContent = ok
     ? `Available Quantity: ${ctxAvailablePig}`
-    : `Maximal Available: ${ctxAvailablePig} Not Available ${ekor})`;
+    : `Maximal Available: ${ctxAvailablePig} Not Available ${ekor}`;
 
   return ok;
 }
