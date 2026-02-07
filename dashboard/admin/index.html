@@ -1663,7 +1663,6 @@ function openViewNote(noteText){
           return;
         }
         vaultTxCache[id] = { bucket, rows };
-        initVaultDateRangeUI(id);
         rerenderVaultTbody(id);
       });
     }
@@ -1695,42 +1694,63 @@ function initVaultDateRangeUI(vaultId){
   const input = document.querySelector(`.dateRangeInput[data-range="${vaultId}"]`);
   if(!input) return;
 
-  if(vaultPickers[vaultId]){
-    try{ vaultPickers[vaultId].destroy(); }catch(_){}
-    delete vaultPickers[vaultId];
-  }
+  // jangan destroy setiap kali (ini boleh buat UI jadi pelik),
+  // tapi kalau memang nak rebuild, pastikan sekali je.
+  if(vaultPickers[vaultId]) return;
 
   const def = vaultFilters[vaultId] || presetRangeMs("today");
   vaultFilters[vaultId] = def;
 
-  vaultPickers[vaultId] = flatpickr(input, {
-    mode:"range",
-    dateFormat:"Y-m-d",
-    showMonths:2,
-    closeOnSelect:false,
-    defaultDate:[new Date(def.startMs), new Date(def.endMs)],
+  // ✅ force sentiasa tunjuk 2 tarikh dari awal
+  input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
 
-    onReady: ()=>{
+  vaultPickers[vaultId] = flatpickr(input, {
+    mode: "range",
+    dateFormat: "Y-m-d",
+    showMonths: 2,
+    closeOnSelect: false,
+    defaultDate: [new Date(def.startMs), new Date(def.endMs)],
+
+    onReady: (dates, str, inst)=>{
+      // ✅ pastikan text sentiasa 2 tarikh (walaupun flatpickr nak override)
       input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
       setTimeout(()=>{ input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`; }, 0);
     },
 
-    onChange:(dates)=>{
-      if(dates.length===2){
+    onOpen: ()=>{
+      // ✅ kalau input kosong sebab bug/close tadi, restore balik
+      const f = vaultFilters[vaultId] || def;
+      if(!input.value.trim()){
+        input.value = `${ymd(f.startMs)} → ${ymd(f.endMs)}`;
+      }
+    },
+
+    onChange: (dates)=>{
+      if(dates.length === 2){
         const startMs = startOfDayMs(dates[0]);
         const endMs   = endOfDayMs(dates[1]);
         vaultFilters[vaultId] = { startMs, endMs };
+
         input.value = `${ymd(startMs)} → ${ymd(endMs)}`;
         clearActivePreset(vaultId);
         rerenderVaultTbody(vaultId);
       }
     },
 
-    onClose:(dates)=>{
-      if(dates.length===1){
+    onClose: (dates)=>{
+      // ✅ user tutup tanpa pilih → jangan kosong
+      if(dates.length === 0){
+        const f = vaultFilters[vaultId] || def;
+        input.value = `${ymd(f.startMs)} → ${ymd(f.endMs)}`;
+        return;
+      }
+
+      // ✅ user pilih 1 tarikh → auto jadi range 1 hari (2 tarikh sama)
+      if(dates.length === 1){
         const startMs = startOfDayMs(dates[0]);
         const endMs   = endOfDayMs(dates[0]);
         vaultFilters[vaultId] = { startMs, endMs };
+
         input.value = `${ymd(startMs)} → ${ymd(endMs)}`;
         clearActivePreset(vaultId);
         rerenderVaultTbody(vaultId);
@@ -1738,9 +1758,7 @@ function initVaultDateRangeUI(vaultId){
     }
   });
 
-  // ✅ FORCE sekali lagi lepas init
-  setTimeout(()=>{ input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`; }, 0);
-
+  // ✅ set active preset sekali
   setActivePreset(vaultId, "today");
 }
   function wireVaultListeners(){
