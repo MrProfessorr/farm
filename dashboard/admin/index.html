@@ -597,18 +597,24 @@ input[type="number"]{
   .rangeRight{ justify-content:flex-start; }
 }
 .pbtn.active{
-  border-color: rgba(59,130,246,.85);
-  box-shadow: 0 0 0 2px rgba(59,130,246,.25) inset;
-  background: rgba(59,130,246,.18);
+  background: rgba(0,140,255,.22) !important;
+  border-color: rgba(0,140,255,.85) !important;
+  box-shadow: 0 0 0 2px rgba(0,140,255,.25) inset !important;
 }
-  .flatpickr-calendar{
-  max-width: calc(100vw - 16px) !important;
+/* 🔥 penting: elak calendar kena clip oleh parent overflow */
+.flatpickr-calendar{
+  position: fixed !important;
+  z-index: 999999 !important;
 }
+
+/* mobile: bagi dia penuh sikit */
 @media (max-width: 640px){
   .flatpickr-calendar{
     left: 8px !important;
     right: 8px !important;
+    top: auto !important;
     width: auto !important;
+    max-width: calc(100vw - 16px) !important;
   }
 }
   </style>
@@ -1683,8 +1689,8 @@ function ensureRangePicker(vaultId){
     mode: "range",
     dateFormat: "Y-m-d",
     showMonths: getShowMonths(),
-    appendTo: bar || document.body,
-    position: "auto left",
+    appendTo: document.body,
+    position: "auto center",
     disableMobile: true,
     onChange: (dates)=>{
       const [s,e] = dates;
