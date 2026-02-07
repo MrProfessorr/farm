@@ -1130,6 +1130,11 @@ function clearActivePreset(vaultId){
   if(!g) return;
   g.querySelectorAll(".pbtn").forEach(b=> b.classList.remove("active"));
 }
+function ymd(ms){
+  const d = new Date(ms);
+  const pad = (n)=> String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
   let me = { uid:null, username:null, isAdmin:false };
   let currentBalance = 0;
 
@@ -1686,34 +1691,49 @@ function openViewNote(noteText){
 function initVaultDateRangeUI(vaultId){
   const input = document.querySelector(`.dateRangeInput[data-range="${vaultId}"]`);
   if(!input) return;
-  if(vaultPickers[vaultId]) return; // avoid double init
+  if(vaultPickers[vaultId]) return;
 
+  // default: today -> today
   const def = presetRangeMs("today");
   vaultFilters[vaultId] = def;
 
+  // ✅ FORCE input text jadi 2 tarikh terus
+  input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
+
   vaultPickers[vaultId] = flatpickr(input, {
     mode: "range",
-    showMonths: 2,
     dateFormat: "Y-m-d",
+    showMonths: 2,
+
+    // ✅ kita biar flatpickr pegang value dalaman,
+    // tapi display input kita control sendiri
     defaultDate: [new Date(def.startMs), new Date(def.endMs)],
-onChange: (dates, str, inst)=>{
-  // Kalau user pilih 1 tarikh saja → paksa jadi 2 (start = end)
-  if(dates.length === 1){
-    inst.setDate([dates[0], dates[0]], false);
-    dates = [dates[0], dates[0]];
-  }
 
-  const s = dates[0];
-  const e = dates[1] || dates[0];
+    onReady: (selectedDates, dateStr, instance)=>{
+      // bila ready pun, paksa sekali lagi
+      input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
+    },
 
-  vaultFilters[vaultId] = { 
-    startMs: startOfDayMs(s), 
-    endMs: endOfDayMs(e) 
-  };
+    onChange: (dates, str, inst)=>{
+      // kalau user pilih 1 tarikh, paksa end = start
+      if(dates.length === 1){
+        inst.setDate([dates[0], dates[0]], false);
+        dates = [dates[0], dates[0]];
+      }
 
-  clearActivePreset(vaultId);
-  rerenderVaultTbody(vaultId);
-  rerenderVaultTbody(vaultId);
+      const s = dates[0];
+      const e = dates[1] || dates[0];
+
+      const startMs = startOfDayMs(s);
+      const endMs   = endOfDayMs(e);
+
+      vaultFilters[vaultId] = { startMs, endMs };
+
+      // ✅ FORCE display 2 tarikh setiap kali berubah
+      input.value = `${ymd(startMs)} → ${ymd(endMs)}`;
+
+      clearActivePreset(vaultId);
+      rerenderVaultTbody(vaultId);
     }
   });
 
