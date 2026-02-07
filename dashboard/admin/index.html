@@ -1697,43 +1697,47 @@ function initVaultDateRangeUI(vaultId){
   const def = presetRangeMs("today");
   vaultFilters[vaultId] = def;
 
-  // ✅ FORCE input text jadi 2 tarikh terus
+  // paksa display awal 2 tarikh
   input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
 
   vaultPickers[vaultId] = flatpickr(input, {
     mode: "range",
     dateFormat: "Y-m-d",
     showMonths: 2,
+    closeOnSelect: false, // ✅ penting: bagi boleh pilih 1 -> 4
 
-    // ✅ kita biar flatpickr pegang value dalaman,
-    // tapi display input kita control sendiri
     defaultDate: [new Date(def.startMs), new Date(def.endMs)],
 
-    onReady: (selectedDates, dateStr, instance)=>{
-      // bila ready pun, paksa sekali lagi
+    onReady: ()=>{
       input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
     },
 
     onChange: (dates, str, inst)=>{
-      // kalau user pilih 1 tarikh, paksa end = start
-      if(dates.length === 1){
-        inst.setDate([dates[0], dates[0]], false);
-        dates = [dates[0], dates[0]];
+      // ✅ JANGAN paksa end=start di sini
+      // kalau baru pilih start sahaja, kita biar user pilih end (contoh 1 -> 4)
+      if(dates.length === 2){
+        const startMs = startOfDayMs(dates[0]);
+        const endMs   = endOfDayMs(dates[1]);
+
+        vaultFilters[vaultId] = { startMs, endMs };
+        input.value = `${ymd(startMs)} → ${ymd(endMs)}`;
+
+        clearActivePreset(vaultId);
+        rerenderVaultTbody(vaultId);
       }
+    },
 
-      const s = dates[0];
-      const e = dates[1] || dates[0];
+    onClose: (dates, str, inst)=>{
+      // ✅ kalau user pilih 1 tarikh sahaja & tutup, baru kita set end=start
+      if(dates.length === 1){
+        const startMs = startOfDayMs(dates[0]);
+        const endMs   = endOfDayMs(dates[0]);
+        vaultFilters[vaultId] = { startMs, endMs };
+        input.value = `${ymd(startMs)} → ${ymd(endMs)}`;
 
-      const startMs = startOfDayMs(s);
-      const endMs   = endOfDayMs(e);
-
-      vaultFilters[vaultId] = { startMs, endMs };
-
-      // ✅ FORCE display 2 tarikh setiap kali berubah
-      input.value = `${ymd(startMs)} → ${ymd(endMs)}`;
-
-      clearActivePreset(vaultId);
-      rerenderVaultTbody(vaultId);
+        clearActivePreset(vaultId);
+        rerenderVaultTbody(vaultId);
+      }
     }
   });
 
