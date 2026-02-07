@@ -586,16 +586,15 @@ input[type="number"]{
   cursor:pointer;
   transition: all 0.2s;
 }
-.iconBtn:hover{
-  color:#3c89e8;
-}
-.iconBtn:active{
-}
+
 .icoRefresh{
   fill:#e9ecff;
   opacity:.9;
+  transition: fill .2s ease, transform .2s ease;
 }
-
+.iconBtn:hover .icoRefresh{
+  fill:#3c89e8;
+}
 .iconBtn.spinning .icoRefresh{
   animation: spin360 .7s linear infinite;
 }
