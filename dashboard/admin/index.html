@@ -2034,7 +2034,7 @@ if(act==="sell"){
     ctxAvailablePig = Math.max(0, babyQty - missQty);
 
     $("sellMissing").value = String(ctxMissingPig);
-    $("sellEkorHint").textContent = `Tersedia untuk jual: ${ctxAvailablePig} ekor`;
+    $("sellEkorHint").textContent = `Available Quantity: ${ctxAvailablePig}`;
 
     $("sellPriceKg").value = String(t.priceKg ?? "");
     $("sellKg").value = String(t.kg ?? "");
@@ -2440,8 +2440,8 @@ function validateSellEkor(){
 
   $("sellEkor").style.borderColor = ok ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.85)";
   $("sellEkorHint").textContent = ok
-    ? `Tersedia untuk jual: ${ctxAvailablePig} ekor`
-    : `Maksimum boleh jual: ${ctxAvailablePig} ekor (kau isi ${ekor})`;
+    ? `Available Quantity: ${ctxAvailablePig}`
+    : `Maximal Available: ${ctxAvailablePig} Not Available ${ekor})`;
 
   return ok;
 }
