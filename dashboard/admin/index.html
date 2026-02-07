@@ -4,6 +4,8 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Farm Admin</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
   <style>
     :root{
       --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
@@ -548,6 +550,52 @@ input[type="number"]{
 
 .userMenuItem .miIcon{ display:grid; place-items:center; opacity:.95; }
 .userMenuItem .miText{ text-align:center;}
+.rangeBar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  margin:10px 0 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  background: rgba(255,255,255,.04);
+}
+.rangeLeft{ flex: 0 0 auto; }
+.rangeInput{
+  width: 260px;
+  max-width: 100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background:#0b0b0b;
+  color:#fff;
+  outline:none;
+}
+
+.rangeRight{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.pbtn{
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color:#fff;
+  cursor:pointer;
+}
+.pbtn:hover{ border-color: rgba(255,255,255,.28); }
+.pbtn.ghost{ opacity:.8; }
+
+@media (max-width: 640px){
+  .rangeBar{ flex-direction:column; align-items:stretch; }
+  .rangeInput{ width:100%; }
+  .rangeRight{ justify-content:flex-start; }
+}
   </style>
 </head>
 
@@ -886,6 +934,7 @@ input[type="number"]{
     </div>
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
   import {
@@ -1376,9 +1425,23 @@ function vaultCardHTML(vaultId, v, bucket){
           </div>
 
         </div>
-
         <div class="hr"></div>
+        
+        <div class="rangeBar" data-rangebar="${vaultId}">
+  <div class="rangeLeft">
+    <input class="rangeInput" data-rangeinput="${vaultId}" placeholder="YYYY-MM-DD -> YYYY-MM-DD" readonly>
+  </div>
 
+  <div class="rangeRight" data-rangepresets="${vaultId}">
+    <button type="button" class="pbtn" data-preset="today" data-v="${vaultId}">Today</button>
+    <button type="button" class="pbtn" data-preset="yesterday" data-v="${vaultId}">Yesterday</button>
+    <button type="button" class="pbtn" data-preset="thisWeek" data-v="${vaultId}">This Week</button>
+    <button type="button" class="pbtn" data-preset="lastWeek" data-v="${vaultId}">Last Week</button>
+    <button type="button" class="pbtn" data-preset="thisMonth" data-v="${vaultId}">This Month</button>
+    <button type="button" class="pbtn" data-preset="lastMonth" data-v="${vaultId}">Last Month</button>
+    <button type="button" class="pbtn ghost" data-preset="clear" data-v="${vaultId}">Clear</button>
+  </div>
+</div>
         <div class="tblWrap">
           <table>
             <thead>
@@ -1460,7 +1523,7 @@ function txRowHTML(vaultId, txId, t, bucket){
   const hasNote = String(t.note||"").trim().length > 0;
 
   return `
-    <tr data-txid="${txId}">
+    <tr data-txid="${txId}" data-ts="${Number(t.atMs||0)}">
       <td>${typeTag}</td>
       <td>${escapeHtml(desc)}</td>
 
@@ -1543,6 +1606,127 @@ function openViewNote(noteText){
   $("viewNoteText").textContent = txt ? txt : "No note.";
   openModal("mViewNote");
 }
+// ====== DATE RANGE per vault ======
+const rangePickers = new Map(); // vaultId -> flatpickr instance
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function fmtYMD(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function startOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0); }
+function endOfDay(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23,59,59,999); }
+
+// week start Monday
+function startOfWeek(d){
+  const x = startOfDay(d);
+  const day = x.getDay(); // 0 Sun
+  const diff = (day === 0 ? -6 : 1 - day);
+  x.setDate(x.getDate() + diff);
+  return x;
+}
+function endOfWeek(d){
+  const s = startOfWeek(d);
+  const e = new Date(s); e.setDate(e.getDate()+6);
+  return endOfDay(e);
+}
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1, 0,0,0,0); }
+function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0, 23,59,59,999); }
+
+function getShowMonths(){
+  return window.matchMedia("(max-width: 640px)").matches ? 1 : 2;
+}
+
+function filterVaultTableByRange(vaultId, s, e){
+  const tbody = document.querySelector(`[data-tbody="${vaultId}"]`);
+  if(!tbody) return;
+
+  const startTS = s ? startOfDay(s).getTime() : null;
+  const endTS   = e ? endOfDay(e).getTime() : null;
+
+  tbody.querySelectorAll("tr").forEach(tr=>{
+    const ts = Number(tr.dataset.ts || 0);
+    // kalau row "No transaction yet" etc (tiada ts) biar nampak
+    if(!ts){ tr.style.display = ""; return; }
+
+    let ok = true;
+    if(startTS !== null) ok = ok && (ts >= startTS);
+    if(endTS !== null) ok = ok && (ts <= endTS);
+    tr.style.display = ok ? "" : "none";
+  });
+}
+
+function ensureRangePicker(vaultId){
+  if(rangePickers.has(vaultId)) return;
+
+  const input = document.querySelector(`[data-rangeinput="${vaultId}"]`);
+  const presetWrap = document.querySelector(`[data-rangepresets="${vaultId}"]`);
+  if(!input || !presetWrap || typeof flatpickr === "undefined") return;
+
+  const fp = flatpickr(input, {
+    mode: "range",
+    dateFormat: "Y-m-d",
+    showMonths: getShowMonths(),
+    onChange: (dates)=>{
+      const [s,e] = dates;
+      if(s && e){
+        input.value = `${fmtYMD(s)} -> ${fmtYMD(e)}`;
+        filterVaultTableByRange(vaultId, s, e);
+      }
+    }
+  });
+
+  // default: today
+  const today = new Date();
+  fp.setDate([today, today], true);
+  input.value = `${fmtYMD(today)} -> ${fmtYMD(today)}`;
+
+  // preset buttons
+  presetWrap.addEventListener("click", (ev)=>{
+    const b = ev.target.closest("button[data-preset]");
+    if(!b) return;
+
+    const p = b.dataset.preset;
+    const now = new Date();
+    let s=null, e=null;
+
+    if(p==="today"){ s=startOfDay(now); e=endOfDay(now); }
+    else if(p==="yesterday"){
+      const y=new Date(now); y.setDate(y.getDate()-1);
+      s=startOfDay(y); e=endOfDay(y);
+    }
+    else if(p==="thisWeek"){ s=startOfWeek(now); e=endOfWeek(now); }
+    else if(p==="lastWeek"){
+      const lw=new Date(now); lw.setDate(lw.getDate()-7);
+      s=startOfWeek(lw); e=endOfWeek(lw);
+    }
+    else if(p==="thisMonth"){ s=startOfMonth(now); e=endOfMonth(now); }
+    else if(p==="lastMonth"){
+      const lm=new Date(now.getFullYear(), now.getMonth()-1, 15);
+      s=startOfMonth(lm); e=endOfMonth(lm);
+    }
+    else if(p==="clear"){
+      input.value = "";
+      fp.clear();
+      filterVaultTableByRange(vaultId, null, null);
+      return;
+    }
+
+    fp.setDate([s,e], true);
+    input.value = `${fmtYMD(s)} -> ${fmtYMD(e)}`;
+    filterVaultTableByRange(vaultId, s, e);
+  });
+
+  rangePickers.set(vaultId, fp);
+}
+
+// resize: update months untuk semua picker
+window.addEventListener("resize", ()=>{
+  const m = getShowMonths();
+  rangePickers.forEach(fp=>{
+    if(fp && fp.config.showMonths !== m){
+      fp.set("showMonths", m);
+      fp.redraw();
+    }
+  });
+});
   function renderVaultList(targetId, data, bucket){
     const el = $(targetId);
     const entries = Object.entries(data||{});
@@ -1572,6 +1756,15 @@ function openViewNote(noteText){
           return;
         }
         tbody.innerHTML = rows.map(([txId,t]) => txRowHTML(id,txId,t,bucket)).join("");
+        // init daterange UI untuk vault ini
+ensureRangePicker(id);
+
+// apply filter ikut range yang sedang dipilih (kalau user dah pilih)
+const input = document.querySelector(`[data-rangeinput="${id}"]`);
+if(input && input._flatpickr){
+  const ds = input._flatpickr.selectedDates || [];
+  if(ds.length===2) filterVaultTableByRange(id, ds[0], ds[1]);
+}
       });
     }
   }
