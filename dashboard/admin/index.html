@@ -1696,14 +1696,24 @@ function initVaultDateRangeUI(vaultId){
     showMonths: 2,
     dateFormat: "Y-m-d",
     defaultDate: [new Date(def.startMs), new Date(def.endMs)],
-    onChange: (dates)=>{
-      if(!dates || dates.length===0) return;
-      const s = dates[0];
-      const e = dates[1] || dates[0];
+onChange: (dates, str, inst)=>{
+  // Kalau user pilih 1 tarikh saja → paksa jadi 2 (start = end)
+  if(dates.length === 1){
+    inst.setDate([dates[0], dates[0]], false);
+    dates = [dates[0], dates[0]];
+  }
 
-      vaultFilters[vaultId] = { startMs:startOfDayMs(s), endMs:endOfDayMs(e) };
-      clearActivePreset(vaultId);
-      rerenderVaultTbody(vaultId);
+  const s = dates[0];
+  const e = dates[1] || dates[0];
+
+  vaultFilters[vaultId] = { 
+    startMs: startOfDayMs(s), 
+    endMs: endOfDayMs(e) 
+  };
+
+  clearActivePreset(vaultId);
+  rerenderVaultTbody(vaultId);
+}rerenderVaultTbody(vaultId);
     }
   });
 
