@@ -1644,6 +1644,9 @@ function openViewNote(noteText){
     }
 
     el.innerHTML = entries.map(([id,v]) => vaultCardHTML(id,v,bucket)).join("");
+    for(const [id] of entries){
+    initVaultDateRangeUI(id);
+    }
 
     // now bind tx listeners per vault
     for(const [id] of entries){
@@ -1691,50 +1694,42 @@ function openViewNote(noteText){
 function initVaultDateRangeUI(vaultId){
   const input = document.querySelector(`.dateRangeInput[data-range="${vaultId}"]`);
   if(!input) return;
-  if(vaultPickers[vaultId]) return;
 
-  // default: today -> today
-  const def = presetRangeMs("today");
+  // ✅ jika vault ini pernah ada picker, destroy dulu sebab DOM dah tukar
+  if(vaultPickers[vaultId]){
+    try{ vaultPickers[vaultId].destroy(); }catch(_){}
+    delete vaultPickers[vaultId];
+  }
+
+  // jika filter dah ada sebelum ni, guna balik. kalau tak, default today
+  const def = vaultFilters[vaultId] || presetRangeMs("today");
   vaultFilters[vaultId] = def;
 
-  // paksa display awal 2 tarikh
+  // paksa display awal
   input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
 
   vaultPickers[vaultId] = flatpickr(input, {
     mode: "range",
     dateFormat: "Y-m-d",
     showMonths: 2,
-    closeOnSelect: false, // ✅ penting: bagi boleh pilih 1 -> 4
-
+    closeOnSelect: false,
     defaultDate: [new Date(def.startMs), new Date(def.endMs)],
-
-    onReady: ()=>{
-      input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
-    },
-
-    onChange: (dates, str, inst)=>{
-      // ✅ JANGAN paksa end=start di sini
-      // kalau baru pilih start sahaja, kita biar user pilih end (contoh 1 -> 4)
+    onChange: (dates)=>{
       if(dates.length === 2){
         const startMs = startOfDayMs(dates[0]);
         const endMs   = endOfDayMs(dates[1]);
-
         vaultFilters[vaultId] = { startMs, endMs };
         input.value = `${ymd(startMs)} → ${ymd(endMs)}`;
-
         clearActivePreset(vaultId);
         rerenderVaultTbody(vaultId);
       }
     },
-
-    onClose: (dates, str, inst)=>{
-      // ✅ kalau user pilih 1 tarikh sahaja & tutup, baru kita set end=start
+    onClose: (dates)=>{
       if(dates.length === 1){
         const startMs = startOfDayMs(dates[0]);
         const endMs   = endOfDayMs(dates[0]);
         vaultFilters[vaultId] = { startMs, endMs };
         input.value = `${ymd(startMs)} → ${ymd(endMs)}`;
-
         clearActivePreset(vaultId);
         rerenderVaultTbody(vaultId);
       }
