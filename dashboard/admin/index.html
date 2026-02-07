@@ -1713,7 +1713,7 @@ function initVaultDateRangeUI(vaultId){
   // tapi kalau memang nak rebuild, pastikan sekali je.
   if(vaultPickers[vaultId]) return;
 
-  const def = vaultFilters[vaultId] || presetRangeMs("today");
+  const def = vaultFilters[vaultId] || presetRangeMs("thisMonth");
   vaultFilters[vaultId] = def;
 
   // ✅ force sentiasa tunjuk 2 tarikh dari awal
@@ -1774,7 +1774,7 @@ function initVaultDateRangeUI(vaultId){
   });
 
   // ✅ set active preset sekali
-  setActivePreset(vaultId, "today");
+  setActivePreset(vaultId, "thisMonth");
 }
   function wireVaultListeners(){
     // Open vaults
