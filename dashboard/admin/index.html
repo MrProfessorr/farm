@@ -596,6 +596,21 @@ input[type="number"]{
   .rangeInput{ width:100%; }
   .rangeRight{ justify-content:flex-start; }
 }
+.pbtn.active{
+  border-color: rgba(59,130,246,.85);
+  box-shadow: 0 0 0 2px rgba(59,130,246,.25) inset;
+  background: rgba(59,130,246,.18);
+}
+  .flatpickr-calendar{
+  max-width: calc(100vw - 16px) !important;
+}
+@media (max-width: 640px){
+  .flatpickr-calendar{
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+  }
+}
   </style>
 </head>
 
@@ -1642,8 +1657,11 @@ function filterVaultTableByRange(vaultId, s, e){
   const endTS   = e ? endOfDay(e).getTime() : null;
 
   tbody.querySelectorAll("tr").forEach(tr=>{
+    if(tr.dataset.empty === "1"){
+    tr.style.display = "";
+    return;
+    }
     const ts = Number(tr.dataset.ts || 0);
-    // kalau row "No transaction yet" etc (tiada ts) biar nampak
     if(!ts){ tr.style.display = ""; return; }
 
     let ok = true;
@@ -1664,10 +1682,14 @@ function ensureRangePicker(vaultId){
     mode: "range",
     dateFormat: "Y-m-d",
     showMonths: getShowMonths(),
+    appendTo: bar || document.body,
+    position: "auto left",
+    disableMobile: true,
     onChange: (dates)=>{
       const [s,e] = dates;
+      presetWrap.querySelectorAll(".pbtn").forEach(x=>x.classList.remove("active"));
       if(s && e){
-        input.value = `${fmtYMD(s)} -> ${fmtYMD(e)}`;
+        input.value = `${fmtYMD(s)} → ${fmtYMD(e)}`;
         filterVaultTableByRange(vaultId, s, e);
       }
     }
@@ -1684,6 +1706,8 @@ function ensureRangePicker(vaultId){
     if(!b) return;
 
     const p = b.dataset.preset;
+    presetWrap.querySelectorAll(".pbtn").forEach(x=>x.classList.remove("active"));
+    if(p !== "clear") b.classList.add("active");
     const now = new Date();
     let s=null, e=null;
 
@@ -1752,19 +1776,17 @@ window.addEventListener("resize", ()=>{
         const rows = Object.entries(txs);
         rows.sort((a,b)=> Number(b[1]?.atMs||0) - Number(a[1]?.atMs||0));
         if(rows.length===0){
-          tbody.innerHTML = `<tr><td colspan="7" class="hint">No transaction yet.</td></tr>`;
-          return;
+        tbody.innerHTML = `<tr data-empty="1"><td colspan="7" class="hint">No transaction yet.</td></tr>`;
+        ensureRangePicker(id);
+        return;
         }
         tbody.innerHTML = rows.map(([txId,t]) => txRowHTML(id,txId,t,bucket)).join("");
-        // init daterange UI untuk vault ini
-ensureRangePicker(id);
-
-// apply filter ikut range yang sedang dipilih (kalau user dah pilih)
-const input = document.querySelector(`[data-rangeinput="${id}"]`);
-if(input && input._flatpickr){
-  const ds = input._flatpickr.selectedDates || [];
-  if(ds.length===2) filterVaultTableByRange(id, ds[0], ds[1]);
-}
+        ensureRangePicker(id);
+        const input = document.querySelector(`[data-rangeinput="${id}"]`);
+        if(input && input._flatpickr){
+        const ds = input._flatpickr.selectedDates || [];
+        if(ds.length===2) filterVaultTableByRange(id, ds[0], ds[1]);
+        }
       });
     }
   }
