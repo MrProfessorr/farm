@@ -599,26 +599,7 @@ input[type="number"]{
 @keyframes spin360{
   to{ transform:rotate(360deg); }
 }
-/* ===== DateTime row + Admin toggle ===== */
-.dtRow{
-  display:flex; align-items:center; justify-content:space-between;
-  gap:10px; flex-wrap:wrap; margin-top:10px;
-}
-.dtRow .dtCol{flex:1 1 240px; min-width:220px;}
-.dtRow .dtSwitch{
-  display:inline-flex; align-items:center; gap:10px;
-  padding:8px 10px; border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.06); border-radius:10px; height:42px;
-}
-.dtRow .dtSwitch input{width:18px;height:18px}
-.dtRow .dtSwitch span{font-size:12px;color:rgba(234,241,255,.75);font-weight:700}
-.dtInput{
-  width:100%; padding:11px 12px; border-radius:8px;
-  border:1px solid rgba(255,255,255,.12); background:rgba(0,0,0,.20);
-  color:var(--txt); outline:none;
-}
-.dtInput:focus{border-color: rgba(22,104,220,.7); box-shadow: 0 0 0 4px rgba(22,104,220,.18)}
-.dtInput:disabled{opacity:.55; cursor:not-allowed;}
+
   </style>
 </head>
 
@@ -768,19 +749,6 @@ input[type="number"]{
       <input id="nvTitle" placeholder="contoh: FEB 2026" />
       <label>Note (optional)</label>
       <textarea id="nvNote" placeholder="catatan vault..."></textarea>
-      
-      <div class="dtRow">
-  <div class="dtCol">
-    <label>Date & Time</label>
-    <input id="nvAt" class="dtInput" type="datetime-local">
-  </div>
-
-  <label class="dtSwitch" id="nvAllowWrap" style="display:none">
-    <input id="nvAllowUserTime" type="checkbox">
-    <span>Allow user edit time</span>
-  </label>
-</div>
-      
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mNewVault">Cancel</button>
@@ -814,17 +782,6 @@ input[type="number"]{
           <label>Note</label>
           <input id="cashNote" placeholder="contoh: cash keluar/masuk" />
         </div>
-        <div class="dtRow">
-  <div class="dtCol">
-    <label>Date & Time</label>
-    <input id="cashAt" class="dtInput" type="datetime-local">
-  </div>
-
-  <label class="dtSwitch" id="cashAllowWrap" style="display:none">
-    <input id="cashAllowUserTime" type="checkbox">
-    <span>Allow user edit time</span>
-  </label>
-</div>
       </div>
     </div>
     <div class="modalFoot">
@@ -872,17 +829,6 @@ input[type="number"]{
           <label>Note</label>
           <input id="buyNote" placeholder="contoh: batch A / supplier ..." />
         </div>
-        <div class="dtRow">
-  <div class="dtCol">
-    <label>Date & Time</label>
-    <input id="buyAt" class="dtInput" type="datetime-local">
-  </div>
-
-  <label class="dtSwitch" id="buyAllowWrap" style="display:none">
-    <input id="buyAllowUserTime" type="checkbox">
-    <span>Allow user edit time</span>
-  </label>
-</div>
       </div>
     </div>
     <div class="modalFoot">
@@ -931,20 +877,7 @@ input[type="number"]{
 </div>
       <label>Note</label>
       <input id="sellNote" placeholder="contoh: buyer / invoice ..." />
-          <div class="dtRow">
-  <div class="dtCol">
-    <label>Date & Time</label>
-    <input id="sellAt" class="dtInput" type="datetime-local">
-  </div>
-
-  <label class="dtSwitch" id="sellAllowWrap" style="display:none">
-    <input id="sellAllowUserTime" type="checkbox">
-    <span>Allow user edit time</span>
-  </label>
-</div>
     </div>
-  
-    
     <div class="modalFoot">
       <button class="btn ghost" data-close="mSell">Cancel</button>
       <button class="btn" id="sellSave">Save</button>
@@ -982,17 +915,6 @@ input[type="number"]{
           <label>Note</label>
           <input id="missNote" placeholder="contoh: missing sebab sakit / hilang" />
         </div>
-        <div class="dtRow">
-  <div class="dtCol">
-    <label>Date & Time</label>
-    <input id="missAt" class="dtInput" type="datetime-local">
-  </div>
-
-  <label class="dtSwitch" id="missAllowWrap" style="display:none">
-    <input id="missAllowUserTime" type="checkbox">
-    <span>Allow user edit time</span>
-  </label>
-</div>
       </div>
 
       <div class="hint">Ini catatan sahaja. Tak tambah/tolak modal dan tak masuk Total Buy.</div>
@@ -1259,15 +1181,6 @@ function ymd(ms){
   const pad = (n)=> String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
-function toLocalInputValue(ms){
-  const d = new Date(ms);
-  const pad = (n)=> String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-function fromLocalInputValue(v){
-  const ms = Date.parse(v);
-  return Number.isFinite(ms) ? ms : null;
-}
   let me = { uid:null, username:null, isAdmin:false };
   let currentBalance = 0;
 
@@ -1277,45 +1190,6 @@ function fromLocalInputValue(v){
   let ctxAvailablePig = 0;
   let ctxMissingPig = 0;
   let ctxEdit = null; 
-  let allowUserManualTime = false;
-
-function applyTimePermissionUI(){
-  const map = [
-    { at:"nvAt",   wrap:"nvAllowWrap",   chk:"nvAllowUserTime" },
-    { at:"cashAt", wrap:"cashAllowWrap", chk:"cashAllowUserTime" },
-    { at:"buyAt",  wrap:"buyAllowWrap",  chk:"buyAllowUserTime" },
-    { at:"missAt", wrap:"missAllowWrap", chk:"missAllowUserTime" },
-    { at:"sellAt", wrap:"sellAllowWrap", chk:"sellAllowUserTime" },
-  ];
-
-  map.forEach(x=>{
-    const input = $(x.at);
-    const wrap  = $(x.wrap);
-    const chk   = $(x.chk);
-
-    if(wrap) wrap.style.display = me.isAdmin ? "inline-flex" : "none";
-    if(chk) chk.checked = !!allowUserManualTime;
-
-    if(input){
-      input.disabled = (!me.isAdmin && !allowUserManualTime);
-    }
-  });
-}
-
-function wireAllowUserTimeToggle(chkId){
-  const chk = $(chkId);
-  if(!chk) return;
-  chk.addEventListener("change", async ()=>{
-    if(!me.isAdmin) return;
-    try{
-      await set(ref(db, "settings/allowUserManualTime"), !!chk.checked);
-      toast(chk.checked ? "Allow user edit time: ON" : "Allow user edit time: OFF");
-    }catch(e){
-      console.error(e);
-      toast("Failed update setting.");
-    }
-  });
-}
 const vaultFilters = {};   // { [vaultId]: { startMs, endMs } }
 const vaultPickers = {};   // { [vaultId]: flatpickrInstance }
 const vaultTxCache = {}; 
@@ -1402,24 +1276,13 @@ const vaultTxCache = {};
       summary: { totalCost:0, totalKg:0, totalEkor:0, totalRevenue:0, profit:0 }
     });
   }
-  
-async function addTx(vaultId, tx){
-  const atMs = Number(tx?.atMs) || Date.now();
-  const txRef = push(ref(db, `vaults/${activeView==="open" ? "open":"history"}/${vaultId}/transactions`));
 
-  const clean = { ...tx };
-  delete clean.atMs;
-
-  await set(txRef, { 
-    ...clean,
-    at: serverTimestamp(),
-    atMs,
-    byUid: me.uid,
-    byUser: me.username
-  });
-
-  await recomputeVaultSummary(vaultId, activeView==="open" ? "open":"history");
-}
+  async function addTx(vaultId, tx){
+    const now = Date.now();
+    const txRef = push(ref(db, `vaults/${activeView==="open" ? "open":"history"}/${vaultId}/transactions`));
+    await set(txRef, { ...tx, at: serverTimestamp(), atMs: now, byUid: me.uid, byUser: me.username });
+    await recomputeVaultSummary(vaultId, activeView==="open" ? "open":"history");
+  }
 
 async function recomputeVaultSummary(vaultId, bucket){
   const snap = await get(ref(db, `vaults/${bucket}/${vaultId}/transactions`));
@@ -2004,8 +1867,6 @@ $("btnLogout").addEventListener("click", async ()=>{
 
   $("btnNewVault").addEventListener("click", ()=>{
     $("nvTitle").value=""; $("nvNote").value="";
-    if($("nvAt")) $("nvAt").value = toLocalInputValue(Date.now());
-    applyTimePermissionUI();
     openModal("mNewVault");
   });
 
@@ -2056,8 +1917,6 @@ $("btnLogout").addEventListener("click", async ()=>{
       const vSnap = await get(ref(db, `vaults/open/${vid}`));
       $("cashVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
       $("cashType").value="cash_in"; $("cashAmount").value=""; $("cashNote").value="";
-      if($("cashAt")) $("cashAt").value = toLocalInputValue(Date.now());
-      applyTimePermissionUI();
       openModal("mCash");
     }
 
@@ -2069,8 +1928,6 @@ $("btnLogout").addEventListener("click", async ()=>{
       $("buyQty").value=""; $("buyPrice").value=""; $("buyTotal").value="";
       $("buyNote").value="";
       $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
-      if($("cashAt")) $("cashAt").value = toLocalInputValue(Date.now());
-      applyTimePermissionUI();
       openModal("mBuy");
     }
     if(act==="missing"){
@@ -2082,8 +1939,6 @@ $("btnLogout").addEventListener("click", async ()=>{
   $("missPrice").value="";
   $("missTotal").value="";
   $("missNote").value="";
-  if($("cashAt")) $("cashAt").value = toLocalInputValue(Date.now());
-  applyTimePermissionUI();
   openModal("mMissing");
 }
 
@@ -2108,8 +1963,7 @@ if(act==="sell"){
 
   // reset border
   $("sellEkor").style.borderColor = "rgba(255,255,255,.12)";
-  if($("cashAt")) $("cashAt").value = toLocalInputValue(Date.now());
-  applyTimePermissionUI();
+
   openModal("mSell");
 }
 
@@ -2289,14 +2143,12 @@ $("cashSave").addEventListener("click", async ()=>{
   const type = $("cashType").value;
   const amount = Number($("cashAmount").value||0);
   const note = $("cashNote").value.trim();
-  const atInput = $("cashAt")?.value || "";
-  const atMs = atInput ? fromLocalInputValue(atInput) : null;
   if(amount<=0){ toast("Amount mesti > 0"); return; }
 
   const direction = (type==="cash_in") ? "in" : "out";
   const delta = (direction==="in") ? amount : -amount;
 
-  const newTx = { kind:"cash", direction, amount, total: amount, note, atMs: atMs || Date.now() };
+  const newTx = { kind:"cash", direction, amount, total: amount, note };
 
   try{
     // ===== EDIT MODE =====
@@ -2377,15 +2229,14 @@ $("buySave").addEventListener("click", async ()=>{
   const price = Number($("buyPrice").value||0);
   const total = Number($("buyTotal").value||0) || (qty*price);
   const note = $("buyNote").value.trim();
-  const atInput = $("buyAt")?.value || "";
-  const atMs = atInput ? fromLocalInputValue(atInput) : null;
+
   if(total<=0){ toast("Total mesti > 0"); return; }
 
   // kalau EDIT, jangan check balance pakai currentBalance bulat-bulat,
   // sebab diff boleh kecil. Tapi kita masih boleh guard simple:
   // jika tambah cost (diff negatif), pastikan cukup.
   try{
-    const newTx = { kind:"buy", category, qty, price, total, note, atMs: atMs || Date.now() };
+    const newTx = { kind:"buy", category, qty, price, total, note };
 
     // ===== EDIT MODE =====
     if(ctxEdit && ctxEdit.txId){
@@ -2465,13 +2316,11 @@ $("missSave").addEventListener("click", async ()=>{
   const price = Number($("missPrice").value||0);
   const total = qty * price;
   const note = $("missNote").value.trim();
-  const atInput = $("missAt")?.value || "";
-  const atMs = atInput ? fromLocalInputValue(atInput) : null;
 
   if(qty<=0 || price<=0){ toast("Missing & harga mesti > 0"); return; }
 
   try{
-   const newTx = { kind:"missing", qty, price, total, note, atMs: atMs || Date.now() };
+    const newTx = { kind:"missing", qty, price, total, note };
 
     // ===== EDIT MODE =====
     if(ctxEdit && ctxEdit.txId){
@@ -2523,8 +2372,6 @@ $("sellSave").addEventListener("click", async ()=>{
   const ekor = Number($("sellEkor").value||0);
   const total = Number($("sellTotal").value||0) || (priceKg*kg);
   const note = $("sellNote").value.trim();
-  const atInput = $("sellAt")?.value || "";
-  const atMs = atInput ? fromLocalInputValue(atInput) : null;
 
   if(total<=0 || kg<=0){ toast("Price/Kg dan Kg mesti isi."); return; }
   if(ekor > ctxAvailablePig){
@@ -2534,7 +2381,7 @@ $("sellSave").addEventListener("click", async ()=>{
   }
 
   try{
-    const newTx = { kind:"sell", priceKg, kg, ekor, total, note, atMs: atMs || Date.now() };
+    const newTx = { kind:"sell", priceKg, kg, ekor, total, note };
 
     // ===== EDIT MODE =====
     if(ctxEdit && ctxEdit.txId){
@@ -2637,16 +2484,6 @@ onAuthStateChanged(auth, async (user)=>{
   $("usernameText").textContent = me.username;
 
   await loadRole(me.uid);
-  onValue(ref(db, "settings/allowUserManualTime"), (snap)=>{
-  allowUserManualTime = snap.exists() ? !!snap.val() : false;
-  applyTimePermissionUI();
-});
-
-wireAllowUserTimeToggle("nvAllowUserTime");
-wireAllowUserTimeToggle("cashAllowUserTime");
-wireAllowUserTimeToggle("buyAllowUserTime");
-wireAllowUserTimeToggle("missAllowUserTime");
-wireAllowUserTimeToggle("sellAllowUserTime");
 
   wireBalanceListener();
   wireVaultListeners();
