@@ -253,6 +253,7 @@
       transition: all 0.2s;
     }
     input:focus,select:focus,textarea:focus{border-color:#1668dc;}
+    input:hover,select:hover,textarea:hover{border-color:#3c89e8;}
     textarea{min-height:84px; resize:vertical}
     .modalFoot{
       display:flex; justify-content:flex-end; gap:10px;
@@ -362,7 +363,6 @@ select.native-select {
   width: 100%;
   user-select: none;
 }
-
 .cs__btn{
   width: 100%;
   display:flex;
@@ -376,12 +376,9 @@ select.native-select {
   border: 1px solid #303030;
   color:#1668dc;
   outline:none;
+  transition: all 0.2s;
 }
-
-.cs__btn:focus{
-  border-color: rgba(77,163,255,.75);
-  box-shadow: 0 0 0 3px rgba(77,163,255,.15);
-}
+.cs__btn:hover{border-color:#3c89e8;}.cs__btn:focus{border-color:#1668dc;}
 
 .cs__value{
   font-weight: 700;
@@ -404,9 +401,8 @@ select.native-select {
   z-index: 99999;
   border-radius: 12px;
   overflow: hidden;
-
-  background: rgba(8, 14, 22, .98);
-  border: 1px solid rgba(77,163,255,.28);
+  background: #141414;
+  border: 1px solid #303030;
   box-shadow: 0 16px 40px rgba(0,0,0,.45);
   display:none;
 }
@@ -416,7 +412,7 @@ select.native-select {
 .cs__opt{
   padding: 10px 12px;
   cursor:pointer;
-  color:#fff;
+  color:rgba(255, 255, 255, 0.85);
   display:flex;
   align-items:center;
   justify-content: space-between;
