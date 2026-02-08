@@ -1630,12 +1630,10 @@ function vaultCardHTML(vaultId, v, bucket){
           ${
             (!isHistory)
               ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
-              : (me.isAdmin
-                  ? `
-                    <button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>
-                    <button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>
-                  `
-                  : ``)
+               : `
+               <button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>
+               ${me.isAdmin ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>` : ``}
+               `
           }
         </div>
 
