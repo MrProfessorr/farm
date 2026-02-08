@@ -1040,30 +1040,56 @@ import {
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
-  // ===== GLOBAL CONFIRM BOX =====
+// ===== GLOBAL CONFIRM BOX =====
 let confirmCallback = null;
 
 function showConfirm(title, text, onYes){
-  $("#confirmTitle").textContent = title;
-  $("#confirmText").textContent = text;
-  $("#mConfirm").style.display = "flex";
+  const m = $("#mConfirm");
+  const t = $("#confirmTitle");
+  const x = $("#confirmText");
+
+  // fallback kalau element tak wujud
+  if(!m || !t || !x){
+    const ok = confirm(`${title}\n\n${text}`);
+    if(ok && typeof onYes === "function") onYes();
+    return;
+  }
+
+  t.textContent = title || "Confirm Action";
+  x.textContent = text || "Are you sure?";
+  m.style.display = "flex";      // ✅ sebab kau guna modalBack
   confirmCallback = onYes;
 }
 
 function closeConfirm(){
-  $("#mConfirm").style.display = "none";
+  const m = $("#mConfirm");
+  if(m) m.style.display = "none";
   confirmCallback = null;
 }
 
-$("#confirmClose").onclick = closeConfirm;
-$("#confirmNo").onclick = closeConfirm;
+function initConfirmBox(){
+  const closeBtn = $("#confirmClose");
+  const noBtn    = $("#confirmNo");
+  const yesBtn   = $("#confirmYes");
+  const back     = $("#mConfirm");
 
-$("#confirmYes").onclick = ()=>{
-  if(typeof confirmCallback === "function"){
-    confirmCallback();
+  if(closeBtn) closeBtn.onclick = closeConfirm;
+  if(noBtn)    noBtn.onclick    = closeConfirm;
+
+  if(yesBtn){
+    yesBtn.onclick = ()=>{
+      if(typeof confirmCallback === "function") confirmCallback();
+      closeConfirm();
+    };
   }
-  closeConfirm();
-};
+
+  // optional: click luar modal untuk tutup
+  if(back){
+    back.addEventListener("click", (e)=>{
+      if(e.target === back) closeConfirm(); // klik background sahaja
+    });
+  }
+}
 
   function vaultRefOpen(){
   return ref(db, "vaults/open");
@@ -2769,6 +2795,7 @@ onAuthStateChanged(auth, async (user)=>{
       setTimeout(()=> location.reload(), 250);
     });
   }
+  initConfirmBox();
   toast("Ready.");
 });
 </script>
