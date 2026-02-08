@@ -596,6 +596,18 @@ input[type="number"]{
 @keyframes spin360{
   to{ transform:rotate(360deg); }
 }
+.txTimeRow{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.txTimeRow input{ flex:1; min-width:0; }
+.txTimeRow .btn{ white-space:nowrap; }
+
+@media (max-width:520px){
+  .txTimeRow{ flex-direction:column; align-items:stretch; }
+  .txTimeRow .btn{ width:100%; }
+}
 
   </style>
 </head>
@@ -742,8 +754,17 @@ input[type="number"]{
     <div class="modalBody">
       <label>Title</label>
       <input id="nvTitle" />
+
       <label>Note (optional)</label>
       <textarea id="nvNote"></textarea>
+
+      <!-- ✅ NEW: Transaction Time -->
+      <label>* Transaction Time</label>
+      <div class="txTimeRow">
+        <input id="txTime_newVault" type="datetime-local" />
+        <button id="txTimeToggle_newVault" type="button" class="btn ghost">Unlock</button>
+      </div>
+      <div class="hint">Jika Lock, masa akan ikut masa sekarang.</div>
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mNewVault">Cancel</button>
@@ -778,6 +799,14 @@ input[type="number"]{
           <input id="cashNote" />
         </div>
       </div>
+
+      <!-- ✅ NEW: Transaction Time -->
+      <label>* Transaction Time</label>
+      <div class="txTimeRow">
+        <input id="txTime_cash" type="datetime-local" />
+        <button id="txTimeToggle_cash" type="button" class="btn ghost">Unlock</button>
+      </div>
+      <div class="hint">Jika Lock, masa akan ikut masa sekarang.</div>
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mCash">Cancel</button>
@@ -825,6 +854,14 @@ input[type="number"]{
           <input id="buyNote" />
         </div>
       </div>
+
+      <!-- ✅ NEW: Transaction Time -->
+      <label>* Transaction Time</label>
+      <div class="txTimeRow">
+        <input id="txTime_buy" type="datetime-local" />
+        <button id="txTimeToggle_buy" type="button" class="btn ghost">Unlock</button>
+      </div>
+      <div class="hint">Jika Lock, masa akan ikut masa sekarang.</div>
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mBuy">Cancel</button>
@@ -853,25 +890,35 @@ input[type="number"]{
           <input id="sellKg" type="number" min="0" step="0.01" />
         </div>
       </div>
-<div class="row">
-  <div>
-    <label>Total Quantity</label>
-    <input id="sellEkor" type="number" min="0" step="1" />
-    <div class="hint" id="sellEkorHint"></div>
-  </div>
 
-  <div>
-    <label>Death Pets</label>
-    <input id="sellMissing" type="number" disabled placeholder="auto" />
-  </div>
+      <div class="row">
+        <div>
+          <label>Total Quantity</label>
+          <input id="sellEkor" type="number" min="0" step="1" />
+          <div class="hint" id="sellEkorHint"></div>
+        </div>
 
-  <div>
-    <label>Total Amount</label>
-    <input id="sellTotal" type="number" min="0" step="0.01" />
-  </div>
-</div>
+        <div>
+          <label>Death Pets</label>
+          <input id="sellMissing" type="number" disabled placeholder="auto" />
+        </div>
+
+        <div>
+          <label>Total Amount</label>
+          <input id="sellTotal" type="number" min="0" step="0.01" />
+        </div>
+      </div>
+
       <label>Note</label>
       <input id="sellNote" />
+
+      <!-- ✅ NEW: Transaction Time -->
+      <label>* Transaction Time</label>
+      <div class="txTimeRow">
+        <input id="txTime_sell" type="datetime-local" />
+        <button id="txTimeToggle_sell" type="button" class="btn ghost">Unlock</button>
+      </div>
+      <div class="hint">Jika Lock, masa akan ikut masa sekarang.</div>
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mSell">Cancel</button>
@@ -879,6 +926,7 @@ input[type="number"]{
     </div>
   </div>
 </div>
+  
 <div class="modalBack" id="mMissing">
   <div class="modal">
     <div class="modalHead">
@@ -911,6 +959,14 @@ input[type="number"]{
           <input id="missNote" />
         </div>
       </div>
+
+      <!-- ✅ NEW: Transaction Time -->
+      <label>* Transaction Time</label>
+      <div class="txTimeRow">
+        <input id="txTime_missing" type="datetime-local" />
+        <button id="txTimeToggle_missing" type="button" class="btn ghost">Unlock</button>
+      </div>
+      <div class="hint">Jika Lock, masa akan ikut masa sekarang.</div>
 
       <div class="hint">Make sure then Submit.</div>
     </div>
@@ -945,10 +1001,10 @@ input[type="number"]{
   import {
     getAuth, onAuthStateChanged, signOut
   } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-  import {
-    getDatabase, ref, get, set, push, update, remove, onValue,
-    serverTimestamp, query, orderByChild, limitToLast
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import {
+  getDatabase, ref, get, set, push, update, remove, onValue,
+  serverTimestamp, query, orderByChild, limitToLast, runTransaction
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
   // === CONFIG KAU ===
   const firebaseConfig = {
@@ -973,18 +1029,13 @@ function initCustomSelects(root=document){
 }
 
 function makeCustomSelect(selectEl){
-  if(selectEl.dataset.csBuilt === "1") return; // avoid double build
+  if(selectEl.dataset.csBuilt === "1") return;
   selectEl.dataset.csBuilt = "1";
-
-  // hide native select but keep it for value/logic
   selectEl.classList.add("native-select");
 
-  // wrapper
   const wrap = document.createElement("div");
   wrap.className = "cs";
   wrap.tabIndex = 0;
-
-  // button
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "cs__btn";
@@ -999,7 +1050,6 @@ function makeCustomSelect(selectEl){
   btn.appendChild(value);
   btn.appendChild(arrow);
 
-  // menu
   const menu = document.createElement("div");
   menu.className = "cs__menu";
 
@@ -1017,20 +1067,15 @@ function makeCustomSelect(selectEl){
       item.dataset.value = o.value;
       item.dataset.index = String(idx);
       item.textContent = o.textContent;
-
-      // selected state
       item.setAttribute("aria-selected", o.selected ? "true":"false");
-
       item.addEventListener("click", ()=>{
-        // set native select value
+        
         selectEl.selectedIndex = idx;
         renderValue();
-
-        // update aria-selected
+        
         menu.querySelectorAll(".cs__opt").forEach(x=>x.setAttribute("aria-selected","false"));
         item.setAttribute("aria-selected","true");
-
-        // trigger events so your existing code works
+    
         selectEl.dispatchEvent(new Event("change",{bubbles:true}));
         selectEl.dispatchEvent(new Event("input",{bubbles:true}));
 
@@ -1056,8 +1101,6 @@ function makeCustomSelect(selectEl){
     e.preventDefault();
     toggle();
   });
-
-  // keyboard support basic
   wrap.addEventListener("keydown", (e)=>{
     if(e.key === "Escape") close();
     if(e.key === "Enter" || e.key === " "){
@@ -1065,27 +1108,19 @@ function makeCustomSelect(selectEl){
       toggle();
     }
   });
-
-  // build DOM: insert wrapper before select, move select inside wrapper
   selectEl.parentNode.insertBefore(wrap, selectEl);
   wrap.appendChild(btn);
   wrap.appendChild(selectEl);
   wrap.appendChild(menu);
-
-  // initial render
   rebuildOptions();
   renderValue();
-
-  // if native select changes by code, update UI
   selectEl.addEventListener("change", ()=>{
-    // refresh aria-selected
     menu.querySelectorAll(".cs__opt").forEach(x=>{
       x.setAttribute("aria-selected", x.dataset.value === selectEl.value ? "true":"false");
     });
     renderValue();
   });
 
-  // if options are changed dynamically later (rare), you can call rebuildOptions()
   wrap._csRebuild = rebuildOptions;
 }
 
@@ -1093,7 +1128,6 @@ function closeAllCustomSelects(){
   document.querySelectorAll(".cs.open").forEach(x=>x.classList.remove("open"));
 }
 
-// click outside to close
 document.addEventListener("click", (e)=>{
   if(!e.target.closest(".cs")) closeAllCustomSelects();
 });
@@ -1119,6 +1153,65 @@ document.addEventListener("click", (e)=>{
    const sec   = pad(d.getSeconds());
   return `${day}/${month}/${year} ${hour}:${min}:${sec}`;
  };
+// TX TIME (admin lock/unlock)
+function toLocalInputValue(ms = Date.now()){
+  const d = new Date(ms);
+  const pad = (n)=> String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function parseDatetimeLocalToMs(v){
+  const s = String(v||"").trim();
+  if(!s) return NaN;
+  const ms = Date.parse(s);
+  return Number.isFinite(ms) ? ms : NaN;
+}
+
+function txSettingRef(kind){
+  return ref(db, `settings/txTime/allowManual/${kind}`);
+}
+
+function initTxTimeControl({ kind, inputId, toggleId }){
+  const input = $(inputId);
+  const btn = $(toggleId);
+  if(!input) return;
+
+  input.value = toLocalInputValue(Date.now());
+
+  if(btn && !me.isAdmin) btn.style.display = "none";
+
+  onValue(txSettingRef(kind), (snap)=>{
+    const allow = snap.exists() ? !!snap.val() : false;
+    input.disabled = !allow;
+
+    if(btn && me.isAdmin){
+      btn.textContent = allow ? "Lock" : "Unlock";
+      btn.dataset.allow = String(allow);
+    }
+  });
+
+  if(btn && me.isAdmin){
+    btn.addEventListener("click", async ()=>{
+      await runTransaction(txSettingRef(kind), (cur)=> !cur);
+    });
+  }
+}
+
+async function getAtMsFromControl(kind, inputId){
+  const allowSnap = await get(txSettingRef(kind));
+  const allow = allowSnap.exists() ? !!allowSnap.val() : false;
+
+  if(!allow) return Date.now();
+
+  const ms = parseDatetimeLocalToMs($(inputId)?.value);
+  return Number.isFinite(ms) ? ms : Date.now();
+}
+
+function resetTxTimeInput(inputId){
+  const input = $(inputId);
+  if(input) input.value = toLocalInputValue(Date.now());
+}
+
 const startOfDayMs = (d)=> new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0,0).getTime();
 const endOfDayMs   = (d)=> new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23,59,59,999).getTime();
 
@@ -1185,17 +1278,22 @@ function ymd(ms){
   let ctxAvailablePig = 0;
   let ctxMissingPig = 0;
   let ctxEdit = null; 
-const vaultFilters = {};   // { [vaultId]: { startMs, endMs } }
-const vaultPickers = {};   // { [vaultId]: flatpickrInstance }
-const vaultTxCache = {}; 
+  const vaultFilters = {};   // { [vaultId]: { startMs, endMs } }
+  const vaultPickers = {};   // { [vaultId]: flatpickrInstance }
+  const vaultTxCache = {}; 
+  const vaultTxUnsubs = {}; // ✅ ADD INI
   // ===== MODAL helper =====
   function openModal(id){ $(id).style.display="flex"; }
-  function closeModal(id){
+function closeModal(id){
   $(id).style.display="none";
-
   if(id==="mCash" || id==="mBuy" || id==="mMissing" || id==="mSell"){
     ctxEdit = null;
   }
+  if(id==="mNewVault") resetTxTimeInput("txTime_newVault");
+  if(id==="mCash")    resetTxTimeInput("txTime_cash");
+  if(id==="mBuy")     resetTxTimeInput("txTime_buy");
+  if(id==="mMissing") resetTxTimeInput("txTime_missing");
+  if(id==="mSell")    resetTxTimeInput("txTime_sell");
 }
   document.addEventListener("click",(e)=>{
     const t = e.target;
@@ -1227,57 +1325,53 @@ const vaultTxCache = {};
     });
   }
 
-  async function changeBalance(delta, meta){
-    // only admin should call (rules enforce)
-    const now = Date.now();
-    const ledRef = push(ref(db,"finance/ledger"));
-    const newAmount = currentBalance + delta;
+async function changeBalance(delta, meta, atMsOverride){
+  // only admin should call (rules enforce)
+  const now = Number(atMsOverride || Date.now());
+  const ledRef = push(ref(db,"finance/ledger"));
+  const newAmount = currentBalance + delta;
 
-    const updates = {};
-    updates["finance/balance"] = {
-      amount: newAmount,
-      updatedAt: serverTimestamp(),
-      updatedAtMs: now,
-      byUid: me.uid,
-      byUser: me.username
-    };
-    updates[`finance/ledger/${ledRef.key}`] = {
-      ...meta,
-      delta,
-      balanceAfter: newAmount,
-      at: serverTimestamp(),
-      atMs: now,
-      byUid: me.uid,
-      byUser: me.username
-    };
-    await update(ref(db), updates);
-  }
+  const updates = {};
+  updates["finance/balance"] = {
+    amount: newAmount,
+    updatedAt: serverTimestamp(),
+    updatedAtMs: now,
+    byUid: me.uid,
+    byUser: me.username
+  };
+  updates[`finance/ledger/${ledRef.key}`] = {
+    ...meta,
+    delta,
+    balanceAfter: newAmount,
+    at: serverTimestamp(),
+    atMs: now,
+    byUid: me.uid,
+    byUser: me.username
+  };
+  await update(ref(db), updates);
+}
 
   // ===== VAULTS =====
-  function vaultRefOpen(){ return ref(db, "vaults/open"); }
-  function vaultRefHist(){ return ref(db, "vaults/history"); }
-
-  async function createVault(title, note){
-    const now = Date.now();
-    const vRef = push(vaultRefOpen());
-    await set(vRef, {
-      title: String(title||"").trim(),
-      note: String(note||"").trim(),
-      status: "open",
-      createdAt: serverTimestamp(),
-      createdAtMs: now,
-      createdByUid: me.uid,
-      createdBy: me.username,
-      summary: { totalCost:0, totalKg:0, totalEkor:0, totalRevenue:0, profit:0 }
-    });
-  }
-
-  async function addTx(vaultId, tx){
-    const now = Date.now();
-    const txRef = push(ref(db, `vaults/${activeView==="open" ? "open":"history"}/${vaultId}/transactions`));
-    await set(txRef, { ...tx, at: serverTimestamp(), atMs: now, byUid: me.uid, byUser: me.username });
-    await recomputeVaultSummary(vaultId, activeView==="open" ? "open":"history");
-  }
+async function createVault(title, note, createdAtMs){
+  const now = Number(createdAtMs || Date.now());
+  const vRef = push(vaultRefOpen());
+  await set(vRef, {
+    title: String(title||"").trim(),
+    note: String(note||"").trim(),
+    status: "open",
+    createdAt: serverTimestamp(),
+    createdAtMs: now,
+    createdByUid: me.uid,
+    createdBy: me.username,
+    summary: { totalCost:0, totalKg:0, totalEkor:0, totalRevenue:0, profit:0 }
+  });
+}
+async function addTx(vaultId, tx, atMsOverride){
+  const now = Number(atMsOverride || Date.now());
+  const txRef = push(ref(db, `vaults/${activeView==="open" ? "open":"history"}/${vaultId}/transactions`));
+  await set(txRef, { ...tx, at: serverTimestamp(), atMs: now, byUid: me.uid, byUser: me.username });
+  await recomputeVaultSummary(vaultId, activeView==="open" ? "open":"history");
+}
 
 async function recomputeVaultSummary(vaultId, bucket){
   const snap = await get(ref(db, `vaults/${bucket}/${vaultId}/transactions`));
@@ -1669,42 +1763,54 @@ function openViewNote(noteText){
   $("viewNoteText").textContent = txt ? txt : "No note.";
   openModal("mViewNote");
 }
-  function renderVaultList(targetId, data, bucket){
-    const el = $(targetId);
-    const entries = Object.entries(data||{});
+function renderVaultList(targetId, data, bucket){
+  const el = $(targetId);
+  const entries = Object.entries(data||{});
 
-    // sort: latest createdAtMs desc
-    entries.sort((a,b)=> (Number(b[1]?.createdAtMs||0) - Number(a[1]?.createdAtMs||0)));
+  // sort: latest createdAtMs desc
+  entries.sort((a,b)=> (Number(b[1]?.createdAtMs||0) - Number(a[1]?.createdAtMs||0)));
 
-    if(entries.length===0){
-      el.innerHTML = `<div class="card"><div class="cardBody"><div class="hint">No vault yet.</div></div></div>`;
-      return;
-    }
-
-    el.innerHTML = entries.map(([id,v]) => vaultCardHTML(id,v,bucket)).join("");
-    for(const [id] of entries){
-    initVaultDateRangeUI(id);
-    }
-
-    // now bind tx listeners per vault
-    for(const [id] of entries){
-      const txPath = `vaults/${bucket}/${id}/transactions`;
-      onValue(ref(db, txPath), (snap)=>{
-        const txs = snap.exists()? snap.val() : {};
-        const tbody = document.querySelector(`[data-tbody="${id}"]`);
-        if(!tbody) return;
-
-        const rows = Object.entries(txs);
-        rows.sort((a,b)=> Number(b[1]?.atMs||0) - Number(a[1]?.atMs||0));
-        if(rows.length===0){
-          tbody.innerHTML = `<tr><td colspan="7" class="hint">No transaction yet.</td></tr>`;
-          return;
-        }
-        vaultTxCache[id] = { bucket, rows };
-        rerenderVaultTbody(id);
-      });
-    }
+  if(entries.length===0){
+    el.innerHTML = `<div class="card"><div class="cardBody"><div class="hint">No vault yet.</div></div></div>`;
+    return;
   }
+
+  el.innerHTML = entries.map(([id,v]) => vaultCardHTML(id,v,bucket)).join("");
+
+  // init daterange UI once per vault card rendered
+  for(const [id] of entries){
+    initVaultDateRangeUI(id);
+  }
+
+  // ✅ bind tx listeners per vault (NO DOUBLE LISTENER)
+  for(const [id] of entries){
+    const txPath = `vaults/${bucket}/${id}/transactions`;
+
+    // ✅ remove old listener for same vaultId (if exist)
+    if(vaultTxUnsubs[id]){
+      vaultTxUnsubs[id]();
+      delete vaultTxUnsubs[id];
+    }
+
+    // ✅ attach new listener + store unsubscribe
+    vaultTxUnsubs[id] = onValue(ref(db, txPath), (snap)=>{
+      const txs = snap.exists()? snap.val() : {};
+      const tbody = document.querySelector(`[data-tbody="${id}"]`);
+      if(!tbody) return;
+
+      const rows = Object.entries(txs);
+      rows.sort((a,b)=> Number(b[1]?.atMs||0) - Number(a[1]?.atMs||0));
+
+      if(rows.length===0){
+        tbody.innerHTML = `<tr><td colspan="7" class="hint">No transaction yet.</td></tr>`;
+        return;
+      }
+
+      vaultTxCache[id] = { bucket, rows };
+      rerenderVaultTbody(id);
+    });
+  }
+}
  function rerenderVaultTbody(vaultId){
   const cache = vaultTxCache[vaultId];
   const tbody = document.querySelector(`[data-tbody="${vaultId}"]`);
@@ -1862,6 +1968,7 @@ $("btnLogout").addEventListener("click", async ()=>{
 
   $("btnNewVault").addEventListener("click", ()=>{
     $("nvTitle").value=""; $("nvNote").value="";
+    resetTxTimeInput("txTime_newVault");
     openModal("mNewVault");
   });
 
@@ -1884,20 +1991,22 @@ $("btnLogout").addEventListener("click", async ()=>{
     }
   });
 
-  $("nvCreate").addEventListener("click", async ()=>{
-    const title = $("nvTitle").value.trim();
-    const note  = $("nvNote").value.trim();
-    if(!title){ toast("Title wajib isi."); return; }
-    try{
-      await createVault(title, note);
-      closeModal("mNewVault");
-      toast("Vault created.");
-      setView("open");
-    }catch(e){
-      console.error(e);
-      toast(e?.message || "Failed");
-    }
-  });
+$("nvCreate").addEventListener("click", async ()=>{
+  const title = $("nvTitle").value.trim();
+  const note  = $("nvNote").value.trim();
+  if(!title){ toast("Title wajib isi."); return; }
+  try{
+    const createdAtMs = await getAtMsFromControl("newVault", "txTime_newVault");
+    await createVault(title, note, createdAtMs);
+
+    closeModal("mNewVault");
+    toast("Vault created.");
+    setView("open");
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed");
+  }
+});
 
   // table button actions (event delegation)
   document.addEventListener("click", async (e)=>{
@@ -1912,6 +2021,7 @@ $("btnLogout").addEventListener("click", async ()=>{
       const vSnap = await get(ref(db, `vaults/open/${vid}`));
       $("cashVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
       $("cashType").value="cash_in"; $("cashAmount").value=""; $("cashNote").value="";
+      resetTxTimeInput("txTime_cash");
       openModal("mCash");
     }
 
@@ -2059,8 +2169,6 @@ if(act==="sell"){
       const vaultId = btn.dataset.v;
       const bucket  = btn.dataset.b;
       const txId    = btn.dataset.t;
-
-      // history delete only admin (UI already hides, but double guard)
       if(bucket==="history" && !me.isAdmin){
         toast("Limited user: tiada akses delete history.");
         return;
@@ -2092,8 +2200,6 @@ if(act==="sell"){
     }
 if(act==="vaultDel"){
   const bucket = btn.dataset.b || "open";
-
-  // kalau history, admin sahaja boleh
   if(bucket==="history" && !me.isAdmin){
     toast("Admin sahaja boleh delete vault history.");
     return;
@@ -2131,9 +2237,7 @@ if(act==="vaultUnclose"){
 }
   });
 
- // =====================
 // CASH SAVE (CREATE + EDIT)
-// =====================
 $("cashSave").addEventListener("click", async ()=>{
   const type = $("cashType").value;
   const amount = Number($("cashAmount").value||0);
@@ -2146,6 +2250,8 @@ $("cashSave").addEventListener("click", async ()=>{
   const newTx = { kind:"cash", direction, amount, total: amount, note };
 
   try{
+    const atMs = await getAtMsFromControl("cash", "txTime_cash");
+
     // ===== EDIT MODE =====
     if(ctxEdit && ctxEdit.txId){
       const old = ctxEdit.oldTx;
@@ -2154,7 +2260,6 @@ $("cashSave").addEventListener("click", async ()=>{
       const newEff = txBalanceEffect(newTx);
       const diff = newEff - oldEff;
 
-      // adjust balance hanya beza
       if(diff !== 0){
         await changeBalance(diff, {
           kind:"tx_edit_adjust",
@@ -2162,29 +2267,26 @@ $("cashSave").addEventListener("click", async ()=>{
           vaultId: ctxEdit.vaultId,
           txId: ctxEdit.txId,
           note:"Edit cash"
-        });
+        }, atMs);
       }
 
-      // update tx data
-      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txEditId || ctxEdit.txId}`), {
         ...newTx,
+        atMs,
         editedAt: serverTimestamp(),
         editedAtMs: Date.now(),
         editedByUid: me.uid,
         editedBy: me.username
       });
-
       await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
-
       ctxEdit = null;
       closeModal("mCash");
       toast("Cash updated.");
       return;
     }
-
     // ===== CREATE MODE =====
-    await changeBalance(delta, { kind:"cash_transfer", direction, amount, note, vaultId: ctxVaultId });
-    await addTx(ctxVaultId, newTx);
+    await changeBalance(delta, { kind:"cash_transfer", direction, amount, note, vaultId: ctxVaultId }, atMs);
+    await addTx(ctxVaultId, newTx, atMs);
 
     closeModal("mCash");
     toast("Cash transfer saved.");
@@ -2193,11 +2295,7 @@ $("cashSave").addEventListener("click", async ()=>{
     toast(e?.message || "Failed (maybe limited user no access).");
   }
 });
-
-
-// =====================
 // BUY AUTO CALC
-// =====================
 function calcBuy(){
   const qty = Number($("buyQty").value||0);
   const price = Number($("buyPrice").value||0);
@@ -2214,10 +2312,7 @@ function calcBuy(){
 }
 ["buyQty","buyPrice","buyTotal"].forEach(id=> $(id).addEventListener("input", calcBuy));
 
-
-// =====================
 // BUY SAVE (CREATE + EDIT)
-// =====================
 $("buySave").addEventListener("click", async ()=>{
   const category = $("buyCat").value;
   const qty = Number($("buyQty").value||0);
@@ -2227,10 +2322,8 @@ $("buySave").addEventListener("click", async ()=>{
 
   if(total<=0){ toast("Total mesti > 0"); return; }
 
-  // kalau EDIT, jangan check balance pakai currentBalance bulat-bulat,
-  // sebab diff boleh kecil. Tapi kita masih boleh guard simple:
-  // jika tambah cost (diff negatif), pastikan cukup.
   try{
+    const atMs = await getAtMsFromControl("buy", "txTime_buy"); // ✅ MANUAL TIME
     const newTx = { kind:"buy", category, qty, price, total, note };
 
     // ===== EDIT MODE =====
@@ -2241,12 +2334,13 @@ $("buySave").addEventListener("click", async ()=>{
       const newEff = txBalanceEffect(newTx);
       const diff = newEff - oldEff; // buy negatif
 
-      // kalau diff negatif (lebih banyak cost), pastikan cukup balance
+      // kalau tambah cost (diff negatif) pastikan balance cukup
       if(diff < 0 && Math.abs(diff) > currentBalance){
         toast("Balance tak cukup untuk edit buy (tambahan cost).");
         return;
       }
 
+      // adjust balance ikut beza
       if(diff !== 0){
         await changeBalance(diff, {
           kind:"tx_edit_adjust",
@@ -2254,11 +2348,13 @@ $("buySave").addEventListener("click", async ()=>{
           vaultId: ctxEdit.vaultId,
           txId: ctxEdit.txId,
           note:"Edit buy"
-        });
+        }, atMs);
       }
 
+      // update tx (atMs ikut manual)
       await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
         ...newTx,
+        atMs, // ✅ ikut manual time
         editedAt: serverTimestamp(),
         editedAtMs: Date.now(),
         editedByUid: me.uid,
@@ -2279,8 +2375,8 @@ $("buySave").addEventListener("click", async ()=>{
       return;
     }
 
-    await changeBalance(-total, { kind:"buy", category, qty, price, total, note, vaultId: ctxVaultId });
-    await addTx(ctxVaultId, newTx);
+    await changeBalance(-total, { kind:"buy", category, qty, price, total, note, vaultId: ctxVaultId }, atMs);
+    await addTx(ctxVaultId, newTx, atMs);
 
     closeModal("mBuy");
     toast("Buy saved.");
@@ -2290,10 +2386,7 @@ $("buySave").addEventListener("click", async ()=>{
   }
 });
 
-
-// =====================
 // MISSING AUTO CALC
-// =====================
 function calcMissing(){
   const q = Number($("missQty").value||0);
   const p = Number($("missPrice").value||0);
@@ -2302,10 +2395,7 @@ function calcMissing(){
 }
 ["missQty","missPrice"].forEach(id=> $(id).addEventListener("input", calcMissing));
 
-
-// =====================
 // MISSING SAVE (CREATE + EDIT)
-// =====================
 $("missSave").addEventListener("click", async ()=>{
   const qty = Number($("missQty").value||0);
   const price = Number($("missPrice").value||0);
@@ -2315,12 +2405,14 @@ $("missSave").addEventListener("click", async ()=>{
   if(qty<=0 || price<=0){ toast("Missing & harga mesti > 0"); return; }
 
   try{
+    const atMs = await getAtMsFromControl("missing", "txTime_missing"); // ✅ MANUAL TIME
     const newTx = { kind:"missing", qty, price, total, note };
 
     // ===== EDIT MODE =====
     if(ctxEdit && ctxEdit.txId){
       await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
         ...newTx,
+        atMs, // ✅ ikut manual time
         editedAt: serverTimestamp(),
         editedAtMs: Date.now(),
         editedByUid: me.uid,
@@ -2336,7 +2428,7 @@ $("missSave").addEventListener("click", async ()=>{
     }
 
     // ===== CREATE MODE =====
-    await addTx(ctxVaultId, newTx);
+    await addTx(ctxVaultId, newTx, atMs);
     closeModal("mMissing");
     toast("Missing saved.");
   }catch(e){
@@ -2345,10 +2437,7 @@ $("missSave").addEventListener("click", async ()=>{
   }
 });
 
-
-// =====================
 // SELL AUTO CALC
-// =====================
 function calcSell(){
   const priceKg = Number($("sellPriceKg").value||0);
   const kg = Number($("sellKg").value||0);
@@ -2373,6 +2462,7 @@ $("sellSave").addEventListener("click", async ()=>{
   }
 
   try{
+    const atMs = await getAtMsFromControl("sell", "txTime_sell"); // ✅ MANUAL TIME
     const newTx = { kind:"sell", priceKg, kg, ekor, total, note };
 
     // ===== EDIT MODE =====
@@ -2382,6 +2472,8 @@ $("sellSave").addEventListener("click", async ()=>{
       const oldEff = txBalanceEffect(old);
       const newEff = txBalanceEffect(newTx);
       const diff = newEff - oldEff;
+
+      // kalau diff negatif (kena tolak balik), check balance cukup
       if(diff < 0 && Math.abs(diff) > currentBalance){
         toast("Balance tak cukup untuk edit sell (kena tolak balik).");
         return;
@@ -2394,11 +2486,12 @@ $("sellSave").addEventListener("click", async ()=>{
           vaultId: ctxEdit.vaultId,
           txId: ctxEdit.txId,
           note:"Edit sell"
-        });
+        }, atMs);
       }
 
       await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
         ...newTx,
+        atMs, // ✅ ikut manual time
         editedAt: serverTimestamp(),
         editedAtMs: Date.now(),
         editedByUid: me.uid,
@@ -2414,8 +2507,8 @@ $("sellSave").addEventListener("click", async ()=>{
     }
 
     // ===== CREATE MODE =====
-    await changeBalance(+total, { kind:"sell", priceKg, kg, ekor, total, note, vaultId: ctxVaultId });
-    await addTx(ctxVaultId, newTx);
+    await changeBalance(+total, { kind:"sell", priceKg, kg, ekor, total, note, vaultId: ctxVaultId }, atMs);
+    await addTx(ctxVaultId, newTx, atMs);
 
     closeModal("mSell");
     toast("Sell saved.");
@@ -2424,11 +2517,7 @@ $("sellSave").addEventListener("click", async ()=>{
     toast(e?.message || "Failed (maybe limited user no access).");
   }
 });
-
-
-// =====================
 // VALIDATE EKOR INPUT
-// =====================
 function validateSellEkor(){
   const ekor = Number($("sellEkor").value||0);
   const ok = ekor <= ctxAvailablePig;
@@ -2474,6 +2563,11 @@ onAuthStateChanged(auth, async (user)=>{
   $("usernameText").textContent = me.username;
 
   await loadRole(me.uid);
+  initTxTimeControl({ kind:"newVault", inputId:"txTime_newVault", toggleId:"txTimeToggle_newVault" });
+  initTxTimeControl({ kind:"cash",    inputId:"txTime_cash",    toggleId:"txTimeToggle_cash" });
+  initTxTimeControl({ kind:"buy",     inputId:"txTime_buy",     toggleId:"txTimeToggle_buy" });
+  initTxTimeControl({ kind:"missing", inputId:"txTime_missing", toggleId:"txTimeToggle_missing" });
+  initTxTimeControl({ kind:"sell",    inputId:"txTime_sell",    toggleId:"txTimeToggle_sell" });
 
   wireBalanceListener();
   wireVaultListeners();
