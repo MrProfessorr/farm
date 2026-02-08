@@ -1565,6 +1565,7 @@ function vaultCardHTML(vaultId, v, bucket){
           <div class="kpiTableCard">
             <div class="kpiTableHead">Total Buyed</div>
             <table class="kpiTable">
+              <tr><td>Total Cash Out</td><td class="kpiGood" data-kpi="cashOut">0.00</td></tr>
               <tr><td>Total Expenses</td><td class="kpiGood" data-kpi="buyCost">${fmt(s.totalCost)}</td></tr>
               <tr><td>Total Pets</td><td data-kpi="buyQty">${Number((s.babyPig?.qty||0)).toLocaleString()}</td></tr>
               <tr><td>Total Price Quantity</td><td class="kpiGood" data-kpi="buyAvg">${fmt((s.babyPig?.avgPrice||0))}</td></tr>
@@ -1578,6 +1579,7 @@ function vaultCardHTML(vaultId, v, bucket){
           <div class="kpiTableCard">
             <div class="kpiTableHead">Total Sell</div>
             <table class="kpiTable">
+              <tr><td>Total Cash In</td><td class="kpiGood" data-kpi="cashIn">0.00</td></tr>
               <tr><td>Total Seller</td><td class="kpiGood" data-kpi="sellRevenue">${fmt(s.totalRevenue)}</td></tr>
               <tr><td>Total Quantity KG</td><td class="kpiGood" data-kpi="sellAvgKg">${fmt((s.sell?.avgPriceKg||0))}</td></tr>
               <tr><td>Total KG</td><td class="kpiGood" data-kpi="sellKg">${fmt(s.totalKg)}</td></tr>
@@ -1946,7 +1948,7 @@ function initVaultDateRangeUI(vaultId){
     }
   });
 }
-  function updateVaultKpiFromFiltered(vaultId){
+function updateVaultKpiFromFiltered(vaultId){
   const cache = vaultTxCache[vaultId];
   if(!cache) return;
 
@@ -1973,8 +1975,19 @@ function initVaultDateRangeUI(vaultId){
 
   let missingQty = 0;
 
+  // ✅ NEW: cash in/out totals
+  let cashIn = 0;
+  let cashOut = 0;
+
   for(const [txId, t] of use){
     if(!t || !t.kind) continue;
+
+    // ✅ cash summary
+    if(t.kind === "cash"){
+      const amt = Number(t.amount || t.total || 0);
+      if(t.direction === "in") cashIn += amt;
+      else cashOut += amt;
+    }
 
     if(t.kind === "buy"){
       const total = Number(t.total||0);
@@ -2027,6 +2040,23 @@ function initVaultDateRangeUI(vaultId){
     const el = card.querySelector(`[data-kpi="${key}"]`);
     if(el) el.textContent = text;
   };
+
+  // ✅ update CASH IN/OUT
+  setKpi("cashIn", fmt(cashIn));
+
+  const cashOutEl = card.querySelector(`[data-kpi="cashOut"]`);
+  if(cashOutEl){
+    cashOutEl.textContent = fmt(cashOut);
+
+    // rule: cashout 0 => hijau, cashout > 0 => merah
+    if(cashOut > 0){
+      cashOutEl.classList.remove("kpiGood");
+      cashOutEl.classList.add("kpiBad");
+    }else{
+      cashOutEl.classList.remove("kpiBad");
+      cashOutEl.classList.add("kpiGood");
+    }
+  }
 
   // update BUY
   setKpi("buyCost", fmt(buyCost));
