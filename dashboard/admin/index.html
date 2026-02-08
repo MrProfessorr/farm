@@ -995,6 +995,24 @@ input[type="number"]{
     </div>
   </div>
 </div>
+<!-- GLOBAL CONFIRM MODAL -->
+<div class="modalBack" id="mConfirm" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modalHead">
+      <div class="title" id="confirmTitle">Confirm Action</div>
+      <button class="x" id="confirmClose">✕</button>
+    </div>
+
+    <div class="modalBody">
+      <div id="confirmText" class="hint" style="font-size:15px;"></div>
+    </div>
+
+    <div class="modalFoot" style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-edit" id="confirmNo">No</button>
+      <button class="btn-delete" id="confirmYes">Yes</button>
+    </div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -1022,6 +1040,31 @@ import {
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
+  // ===== GLOBAL CONFIRM BOX =====
+let confirmCallback = null;
+
+function showConfirm(title, text, onYes){
+  $("#confirmTitle").textContent = title;
+  $("#confirmText").textContent = text;
+  $("#mConfirm").style.display = "flex";
+  confirmCallback = onYes;
+}
+
+function closeConfirm(){
+  $("#mConfirm").style.display = "none";
+  confirmCallback = null;
+}
+
+$("#confirmClose").onclick = closeConfirm;
+$("#confirmNo").onclick = closeConfirm;
+
+$("#confirmYes").onclick = ()=>{
+  if(typeof confirmCallback === "function"){
+    confirmCallback();
+  }
+  closeConfirm();
+};
+
   function vaultRefOpen(){
   return ref(db, "vaults/open");
 }
@@ -2193,8 +2236,11 @@ if(act==="sell"){
   openModal("mSell");
 }
 
-    if(act==="close"){
-      if(!confirm("Closing vault? Vault akan dipindah ke History.")) return;
+if(act==="close"){
+  showConfirm(
+    "Close Vault",
+    "Vault will be moved to history and cannot be edited. Continue?",
+    async ()=>{
       try{
         await closeVault(vid);
         toast("Vault closed → History.");
@@ -2203,6 +2249,9 @@ if(act==="sell"){
         toast(e?.message || "Failed");
       }
     }
+  );
+  return;
+}
     if(act==="txEdit"){
   const vaultId = btn.dataset.v;
   const bucket  = btn.dataset.b;
@@ -2286,17 +2335,20 @@ if(act==="sell"){
   openViewNote(note);
   return;
 }
-    if(act==="txDel"){
-      const vaultId = btn.dataset.v;
-      const bucket  = btn.dataset.b;
-      const txId    = btn.dataset.t;
-      if(bucket==="history" && !me.isAdmin){
-        toast("Limited user: tiada akses delete history.");
-        return;
-      }
+if(act==="txDel"){
+  const vaultId = btn.dataset.v;
+  const bucket  = btn.dataset.b;
+  const txId    = btn.dataset.t;
 
-      if(!confirm("Delete transaction?")) return;
+  if(bucket==="history" && !me.isAdmin){
+    toast("Limited user: tiada akses delete history.");
+    return;
+  }
 
+  showConfirm(
+    "Delete Transaction",
+    "Are you sure you want to delete this transaction? (No undo)",
+    async ()=>{
       try{
         await remove(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
         await recomputeVaultSummary(vaultId, bucket);
@@ -2306,6 +2358,9 @@ if(act==="sell"){
         toast(e?.message || "Failed");
       }
     }
+  );
+  return;
+}
 
     if(act==="histEdit"){
       if(!me.isAdmin){ toast("No access."); return; }
@@ -2321,6 +2376,7 @@ if(act==="sell"){
     }
 if(act==="vaultDel"){
   const bucket = btn.dataset.b || "open";
+
   if(bucket==="history" && !me.isAdmin){
     toast("Admin sahaja boleh delete vault history.");
     return;
@@ -2330,31 +2386,42 @@ if(act==="vaultDel"){
     ? "Delete vault HISTORY ini? Semua data akan hilang (tak boleh undo)."
     : "Delete vault ini? Semua transaksi dalam vault akan hilang.";
 
-  if(!confirm(msg)) return;
-
-  try{
-    await remove(ref(db, `vaults/${bucket}/${vid}`));
-    toast("Vault deleted.");
-  }catch(e){
-    console.error(e);
-    toast("Failed delete vault.");
-  }
+  showConfirm(
+    "Delete Vault",
+    msg,
+    async ()=>{
+      try{
+        await remove(ref(db, `vaults/${bucket}/${vid}`));
+        toast("Vault deleted.");
+      }catch(e){
+        console.error(e);
+        toast("Failed delete vault.");
+      }
+    }
+  );
+  return;
 }
 if(act==="vaultUnclose"){
   if(!me.isAdmin){
     toast("Admin sahaja boleh Unclosing.");
     return;
   }
-  if(!confirm("Unclosing vault ini? Vault akan balik ke Open Vault.")) return;
 
-  try{
-    await uncloseVault(vid);
-    toast("Vault moved back to Open Vault.");
-    setView("open"); // optional: auto pindah tab open
-  }catch(e){
-    console.error(e);
-    toast(e?.message || "Failed unclosing.");
-  }
+  showConfirm(
+    "Unclosing Vault",
+    "Unclosing vault ini? Vault akan balik ke Open Vault.",
+    async ()=>{
+      try{
+        await uncloseVault(vid);
+        toast("Vault moved back to Open Vault.");
+        setView("open");
+      }catch(e){
+        console.error(e);
+        toast(e?.message || "Failed unclosing.");
+      }
+    }
+  );
+  return;
 }
   });
 
