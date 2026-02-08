@@ -1848,15 +1848,18 @@ function rerenderVaultTbody(vaultId){
 function initVaultDateRangeUI(vaultId){
   const input = document.querySelector(`.dateRangeInput[data-range="${vaultId}"]`);
   if(!input) return;
-
-  // jangan destroy setiap kali (ini boleh buat UI jadi pelik),
-  // tapi kalau memang nak rebuild, pastikan sekali je.
-  if(vaultPickers[vaultId]) return;
-
   const def = vaultFilters[vaultId] || presetRangeMs("thisMonth");
   vaultFilters[vaultId] = def;
-
-  // ✅ force sentiasa tunjuk 2 tarikh dari awal
+  const existing = vaultPickers[vaultId];
+  if(existing){
+    if(existing.input !== input){
+      try{ existing.destroy(); }catch(_){}
+      delete vaultPickers[vaultId];
+    }else{
+      input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
+      return;
+    }
+  }
   input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
 
   vaultPickers[vaultId] = flatpickr(input, {
@@ -1866,15 +1869,13 @@ function initVaultDateRangeUI(vaultId){
     closeOnSelect: false,
     defaultDate: [new Date(def.startMs), new Date(def.endMs)],
 
-    onReady: (dates, str, inst)=>{
-      // ✅ pastikan text sentiasa 2 tarikh (walaupun flatpickr nak override)
+    onReady: ()=> {
       input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
       clearActivePreset(vaultId);
       setTimeout(()=>{ input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`; }, 0);
     },
 
-    onOpen: ()=>{
-      // ✅ kalau input kosong sebab bug/close tadi, restore balik
+    onOpen: ()=> {
       const f = vaultFilters[vaultId] || def;
       if(!input.value.trim()){
         input.value = `${ymd(f.startMs)} → ${ymd(f.endMs)}`;
@@ -1894,14 +1895,11 @@ function initVaultDateRangeUI(vaultId){
     },
 
     onClose: (dates)=>{
-      // ✅ user tutup tanpa pilih → jangan kosong
       if(dates.length === 0){
         const f = vaultFilters[vaultId] || def;
         input.value = `${ymd(f.startMs)} → ${ymd(f.endMs)}`;
         return;
       }
-
-      // ✅ user pilih 1 tarikh → auto jadi range 1 hari (2 tarikh sama)
       if(dates.length === 1){
         const startMs = startOfDayMs(dates[0]);
         const endMs   = endOfDayMs(dates[0]);
@@ -1913,7 +1911,6 @@ function initVaultDateRangeUI(vaultId){
       }
     }
   });
-  //setActivePreset(vaultId, "thisMonth");
 }
   function updateVaultKpiFromFiltered(vaultId){
   const cache = vaultTxCache[vaultId];
