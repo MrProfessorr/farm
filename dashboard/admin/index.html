@@ -285,7 +285,7 @@
     .kpi .v{margin-top:6px; font-weight:500; font-size:14px}
     .hide{display:none !important}
     .amtNeg{ color:red; }
-    .good{ color:#00ff6b;}
+    .good{ color:#008000;}
     .bad{ color:red;}
     /* ===== TABLE WRAP: boleh scroll kiri/kanan + atas/bawah ===== */
 .tblWrap{
@@ -1336,14 +1336,14 @@ function wireBalanceListener(){
 
     elSmall.textContent = txt;
     elBig.textContent   = txt;
-    elSmall.classList.remove("kpiGood","kpiBad");
-    elBig.classList.remove("kpiGood","kpiBad");
+    elSmall.classList.remove("good","bad");
+    elBig.classList.remove("good","bad");
     if(isNeg){
-      elSmall.classList.add("kpiBad");
-      elBig.classList.add("kpiBad");
+      elSmall.classList.add("bad");
+      elBig.classList.add("bad");
     }else{
-      elSmall.classList.add("kpiGood");
-      elBig.classList.add("kpiGood");
+      elSmall.classList.add("good");
+      elBig.classList.add("good");
     }
     $("balanceUpdated").textContent = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
   });
