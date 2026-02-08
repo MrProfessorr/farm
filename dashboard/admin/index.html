@@ -2334,7 +2334,9 @@ if(act==="txDel"){
       return;
     }
     const t = txSnap.val();
+    if(bucket === "open"){
     await adjustBalanceForTxDelete({ bucket, vaultId, txId, txObj: t });
+    }
     await remove(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
     await recomputeVaultSummary(vaultId, bucket);
 
@@ -2383,14 +2385,14 @@ if(act==="vaultDel"){
     }
 
     // 3) reverse sekali jalan (lebih kemas)
-    if(sumEff !== 0){
-      await changeBalance(-sumEff, {
-        kind:"vault_delete_adjust",
-        bucket,
-        vaultId: vid,
-        note:"Delete vault rollback all tx"
-      }, Date.now());
-    }
+   if(bucket === "open" && sumEff !== 0){
+    await changeBalance(-sumEff, {
+      kind:"vault_delete_adjust",
+      bucket,
+      vaultId: vid,
+      note:"Delete vault rollback all tx"
+    }, Date.now());
+  }}
 
     // 4) delete vault node
     await remove(ref(db, `vaults/${bucket}/${vid}`));
