@@ -1277,6 +1277,7 @@ function ymd(ms){
 }
   let me = { uid:null, username:null, isAdmin:false };
   let currentBalance = 0;
+  const WALLET_ID = "main";
 
   // UI state
   let activeView = "open"; // open | history
@@ -1322,7 +1323,7 @@ function closeModal(id){
 
   // ===== BALANCE =====
 function wireBalanceListener(){
-  const balPath = `finance/balance/${me.uid}`;
+  const balPath = `finance/balance/${WALLET_ID}`; // ✅ global wallet
   onValue(ref(db, balPath), (snap)=>{
     const v = snap.val() || {};
     currentBalance = Number(v.amount||0);
@@ -1335,8 +1336,9 @@ function wireBalanceListener(){
 async function changeBalance(delta, meta, atMsOverride){
   const now = Number(atMsOverride || Date.now());
 
-  const balPath = `finance/balance/${me.uid}`;               // ✅ ikut user
-  const ledRef  = push(ref(db, `finance/ledger/${me.uid}`)); // ✅ ledger ikut user
+  const balPath = `finance/balance/${WALLET_ID}`;               // ✅ global
+  const ledRef  = push(ref(db, `finance/ledger/${WALLET_ID}`)); // ✅ global ledger
+
   const newAmount = currentBalance + delta;
 
   const updates = {};
@@ -1349,7 +1351,7 @@ async function changeBalance(delta, meta, atMsOverride){
     byUser: me.username
   };
 
-  updates[`finance/ledger/${me.uid}/${ledRef.key}`] = {
+  updates[`finance/ledger/${WALLET_ID}/${ledRef.key}`] = {
     ...(meta||{}),
     delta,
     balanceAfter: newAmount,
@@ -2545,7 +2547,7 @@ $("cashSave").addEventListener("click", async ()=>{
         }, atMs);
       }
 
-      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txEditId || ctxEdit.txId}`), {
+      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
         ...newTx,
         atMs,
         editedAt: serverTimestamp(),
