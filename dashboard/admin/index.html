@@ -1565,12 +1565,12 @@ function vaultCardHTML(vaultId, v, bucket){
           <div class="kpiTableCard">
             <div class="kpiTableHead">Total Buyed</div>
             <table class="kpiTable">
-              <tr><td>Total Expenses</td><td class="kpiGood">${fmt(s.totalCost)}</td></tr>
-              <tr><td>Total Pets</td><td>${Number(bp.qty||0).toLocaleString()}</td></tr>
-              <tr><td>Total Price Quantity</td><td class="kpiGood">${fmt(bp.avgPrice||0)}</td></tr>
-              <tr><td>Total Price</td><td class="kpiGood">${fmt(bp.total||0)}</td></tr>
-              <tr><td>Total Profit</td><td class="${profitClass}">${fmt(profitVal)}</td></tr>
-              <tr><td>Total Sales</td><td class="${salesClass}">${fmt(salesValue)}</td></tr>
+              <tr><td>Total Expenses</td><td class="kpiGood" data-kpi="buyCost">${fmt(s.totalCost)}</td></tr>
+              <tr><td>Total Pets</td><td data-kpi="buyQty">${Number((s.babyPig?.qty||0)).toLocaleString()}</td></tr>
+              <tr><td>Total Price Quantity</td><td class="kpiGood" data-kpi="buyAvg">${fmt((s.babyPig?.avgPrice||0))}</td></tr>
+              <tr><td>Total Price</td><td class="kpiGood" data-kpi="buyTotal">${fmt((s.babyPig?.total||0))}</td></tr>
+              <tr><td>Total Profit</td><td class="${profitClass}" data-kpi="profit">${fmt(profitVal)}</td></tr>
+              <tr><td>Total Sales</td><td class="${salesClass}" data-kpi="sales">${fmt(salesValue)}</td></tr>
             </table>
           </div>
 
@@ -1578,12 +1578,12 @@ function vaultCardHTML(vaultId, v, bucket){
           <div class="kpiTableCard">
             <div class="kpiTableHead">Total Sell</div>
             <table class="kpiTable">
-              <tr><td>Total Seller</td><td class="kpiGood">${fmt(s.totalRevenue)}</td></tr>
-              <tr><td>Total Quantity KG</td><td class="kpiGood">${fmt(avgPriceKg)}</td></tr>
-              <tr><td>Total KG</td><td class="kpiGood">${fmt(s.totalKg)}</td></tr>
-              <tr><td>Total Quantity</td><td class="kpiGood">${Number(s.totalEkor||0).toLocaleString()}</td></tr>
-              <tr><td>Total Death</td><td class="kpiBad">${missingQty.toLocaleString()}</td></tr>
-              <tr><td>Total Available</td><td class="kpiGood">${availablePig.toLocaleString()}</td></tr>
+              <tr><td>Total Seller</td><td class="kpiGood" data-kpi="sellRevenue">${fmt(s.totalRevenue)}</td></tr>
+              <tr><td>Total Quantity KG</td><td class="kpiGood" data-kpi="sellAvgKg">${fmt((s.sell?.avgPriceKg||0))}</td></tr>
+              <tr><td>Total KG</td><td class="kpiGood" data-kpi="sellKg">${fmt(s.totalKg)}</td></tr>
+              <tr><td>Total Quantity</td><td class="kpiGood" data-kpi="sellEkor">${Number(s.totalEkor||0).toLocaleString()}</td></tr>
+              <tr><td>Total Death</td><td class="kpiBad" data-kpi="missingQty">${Number(s.missing?.qty||0).toLocaleString()}</td></tr>
+              <tr><td>Total Available</td><td class="kpiGood" data-kpi="availablePig">${availablePig.toLocaleString()}</td></tr>
             </table>
           </div>
 
@@ -1838,6 +1838,7 @@ function renderVaultList(targetId, data, bucket){
     return;
   }
   tbody.innerHTML = use.map(([txId,t]) => txRowHTML(vaultId, txId, t, bucket)).join("");
+  updateVaultKpiFromFiltered(vaultId);
 }
 
 function initVaultDateRangeUI(vaultId){
@@ -1909,6 +1910,119 @@ function initVaultDateRangeUI(vaultId){
     }
   });
   //setActivePreset(vaultId, "thisMonth");
+}
+  function updateVaultKpiFromFiltered(vaultId){
+  const cache = vaultTxCache[vaultId];
+  if(!cache) return;
+
+  const { rows } = cache; // rows = [[txId, txObj], ...]
+  const f = vaultFilters[vaultId];
+
+  // apply filter
+  let use = rows;
+  if(f){
+    use = rows.filter(([_,t])=>{
+      const ms = Number(t?.atMs||0);
+      return ms >= f.startMs && ms <= f.endMs;
+    });
+  }
+
+  // compute KPI from filtered tx
+  let buyCost = 0;
+  let babyQty = 0, babyTotal = 0, babyPriceSum = 0;
+
+  let sellRevenue = 0;
+  let sellKg = 0;
+  let sellEkor = 0;
+  let sellKgSum = 0, sellPriceKgWeighted = 0;
+
+  let missingQty = 0;
+
+  for(const [txId, t] of use){
+    if(!t || !t.kind) continue;
+
+    if(t.kind === "buy"){
+      const total = Number(t.total||0);
+      buyCost += total;
+
+      if(t.category === "baby_pig"){
+        const q = Number(t.qty||0);
+        const p = Number(t.price||0);
+        babyQty += q;
+        babyTotal += total;
+        babyPriceSum += (q * p);
+      }
+    }
+
+    if(t.kind === "sell"){
+      const total = Number(t.total||0);
+      const kg = Number(t.kg||0);
+      const ekor = Number(t.ekor||0);
+      const pk = Number(t.priceKg||0);
+
+      sellRevenue += total;
+      sellKg += kg;
+      sellEkor += ekor;
+
+      if(kg > 0 && pk > 0){
+        sellKgSum += kg;
+        sellPriceKgWeighted += (pk * kg);
+      }
+    }
+
+    if(t.kind === "missing"){
+      missingQty += Number(t.qty||0);
+    }
+  }
+
+  const profit = sellRevenue - buyCost;
+  const SALES_RATE = 0.40;
+  const sales = profit * SALES_RATE;
+
+  const buyAvg = babyQty > 0 ? (babyPriceSum / babyQty) : 0;
+  const sellAvgKg = sellKgSum > 0 ? (sellPriceKgWeighted / sellKgSum) : 0;
+
+  const availablePig = Math.max(0, babyQty - missingQty - sellEkor);
+
+  // helper: update text in this vault card only
+  const card = document.querySelector(`.card[data-vid="${vaultId}"]`);
+  if(!card) return;
+
+  const setKpi = (key, text)=>{
+    const el = card.querySelector(`[data-kpi="${key}"]`);
+    if(el) el.textContent = text;
+  };
+
+  // update BUY
+  setKpi("buyCost", fmt(buyCost));
+  setKpi("buyQty", babyQty.toLocaleString());
+  setKpi("buyAvg", fmt(buyAvg));
+  setKpi("buyTotal", fmt(babyTotal));
+
+  // update PROFIT & SALES + color
+  const profitEl = card.querySelector(`[data-kpi="profit"]`);
+  if(profitEl){
+    profitEl.textContent = fmt(profit);
+    profitEl.classList.toggle("kpiGood", profit >= 0);
+    profitEl.classList.toggle("kpiBad", profit < 0);
+  }
+
+  const salesEl = card.querySelector(`[data-kpi="sales"]`);
+  if(salesEl){
+    salesEl.textContent = fmt(sales);
+    salesEl.classList.toggle("kpiGood", sales >= 0);
+    salesEl.classList.toggle("kpiBad", sales < 0);
+  }
+
+  // update SELL
+  setKpi("sellRevenue", fmt(sellRevenue));
+  setKpi("sellAvgKg", fmt(sellAvgKg));
+  setKpi("sellKg", fmt(sellKg));
+  setKpi("sellEkor", sellEkor.toLocaleString());
+
+  // missing & available
+  setKpi("missingQty", missingQty.toLocaleString());
+  setKpi("availablePig", availablePig.toLocaleString());
 }
   function wireVaultListeners(){
     // Open vaults
