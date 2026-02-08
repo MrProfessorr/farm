@@ -1640,25 +1640,31 @@ ${!isHistory ? `
 
         ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
 
-        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px">
-          ${
-            (!isHistory)
-              ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
-               : `
-   ${(() => {
-      const isOwnerUnclose =
-        me.isAdmin ||
-        (v?.createdByUid && v.createdByUid === me.uid) ||
-        (v?.closedByUid && v.closedByUid === me.uid);
+<div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px">
+  ${
+    (!isHistory)
+      ? `
+        ${
+          (me.isAdmin || isOwner)
+            ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
+            : ``
+        }
+      `
+      : `
+        ${(() => {
+          const isOwnerUnclose =
+            me.isAdmin ||
+            (v?.createdByUid && v.createdByUid === me.uid) ||
+            (v?.closedByUid && v.closedByUid === me.uid);
 
-      return isOwnerUnclose
-        ? `<button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>`
-        : ``;
-    })()}
-   ${me.isAdmin ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>` : ``}
- `
-          }
-        </div>
+          return isOwnerUnclose
+            ? `<button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>`
+            : ``;
+        })()}
+        ${me.isAdmin ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>` : ``}
+      `
+  }
+</div>
 
       </div>
     </div>
