@@ -1771,6 +1771,33 @@ function buildTxDesc(t){
   // missing memang tak sentuh balance
   return 0;
 }
+async function adjustBalanceForTxDelete({ bucket, vaultId, txId, txObj }) {
+  // txObj boleh pass terus (kalau dah ada), kalau tak kita get dari DB
+  let t = txObj;
+
+  if(!t){
+    const snap = await get(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
+    if(!snap.exists()) return;
+    t = snap.val();
+  }
+
+  const eff = txBalanceEffect(t); // cash/buy/sell effect
+  if(eff === 0) return; // missing tak sentuh balance
+
+  // reverse effect bila delete
+  const delta = -eff;
+
+  // guna masa tx asal kalau ada (lebih cun dalam ledger)
+  const atMs = Number(t.atMs || Date.now());
+
+  await changeBalance(delta, {
+    kind: "tx_delete_adjust",
+    txKind: t.kind,
+    vaultId,
+    txId,
+    note: "Delete tx rollback"
+  }, atMs);
+}
 function openViewNote(noteText){
   const txt = String(noteText || "").trim();
   $("viewNoteText").textContent = txt ? txt : "No note.";
@@ -2287,26 +2314,36 @@ if(act==="sell"){
   openViewNote(note);
   return;
 }
-    if(act==="txDel"){
-      const vaultId = btn.dataset.v;
-      const bucket  = btn.dataset.b;
-      const txId    = btn.dataset.t;
-      if(bucket==="history" && !me.isAdmin){
-        toast("Limited user: tiada akses delete history.");
-        return;
-      }
+if(act==="txDel"){
+  const vaultId = btn.dataset.v;
+  const bucket  = btn.dataset.b;
+  const txId    = btn.dataset.t;
 
-      if(!confirm("Delete transaction?")) return;
+  if(bucket==="history" && !me.isAdmin){
+    toast("Limited user: tiada akses delete history.");
+    return;
+  }
 
-      try{
-        await remove(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
-        await recomputeVaultSummary(vaultId, bucket);
-        toast("Deleted.");
-      }catch(e){
-        console.error(e);
-        toast(e?.message || "Failed");
-      }
+  if(!confirm("Delete transaction?")) return;
+
+  try{
+    // 1) ambil tx dulu (sebab lepas remove dah hilang)
+    const txSnap = await get(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
+    if(!txSnap.exists()){
+      toast("TX not found.");
+      return;
     }
+    const t = txSnap.val();
+    await adjustBalanceForTxDelete({ bucket, vaultId, txId, txObj: t });
+    await remove(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
+    await recomputeVaultSummary(vaultId, bucket);
+
+    toast("Deleted.");
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed");
+  }
+}
 
     if(act==="histEdit"){
       if(!me.isAdmin){ toast("No access."); return; }
