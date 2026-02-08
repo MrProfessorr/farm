@@ -1631,9 +1631,18 @@ function vaultCardHTML(vaultId, v, bucket){
             (!isHistory)
               ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
                : `
-               <button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>
-               ${me.isAdmin ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>` : ``}
-               `
+   ${(() => {
+      const isOwnerUnclose =
+        me.isAdmin ||
+        (v?.createdByUid && v.createdByUid === me.uid) ||
+        (v?.closedByUid && v.closedByUid === me.uid);
+
+      return isOwnerUnclose
+        ? `<button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>`
+        : ``;
+    })()}
+   ${me.isAdmin ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>` : ``}
+ `
           }
         </div>
 
@@ -2333,16 +2342,30 @@ if(act==="vaultDel"){
   }
 }
 if(act==="vaultUnclose"){
-  if(!me.isAdmin){
-    toast("Admin sahaja boleh Unclosing.");
+  // ambil data history untuk check owner
+  const hs = await get(ref(db, `vaults/history/${vid}`));
+  if(!hs.exists()){
+    toast("Vault history not found.");
     return;
   }
+  const v = hs.val() || {};
+
+  const isOwnerUnclose =
+    me.isAdmin ||
+    (v.createdByUid && v.createdByUid === me.uid) ||
+    (v.closedByUid && v.closedByUid === me.uid);
+
+  if(!isOwnerUnclose){
+    toast("You only can unclose vault you created/closed.");
+    return;
+  }
+
   if(!confirm("Unclosing vault ini? Vault akan balik ke Open Vault.")) return;
 
   try{
     await uncloseVault(vid);
     toast("Vault moved back to Open Vault.");
-    setView("open"); // optional: auto pindah tab open
+    setView("open");
   }catch(e){
     console.error(e);
     toast(e?.message || "Failed unclosing.");
