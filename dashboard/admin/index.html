@@ -1022,6 +1022,12 @@ import {
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
+  function vaultRefOpen(){
+  return ref(db, "vaults/open");
+}
+function vaultRefHist(){
+  return ref(db, "vaults/history");
+}
   // ===== CUSTOM SELECT BUILDER =====
 function initCustomSelects(root=document){
   const selects = Array.from(root.querySelectorAll("select.js-custom-select"));
