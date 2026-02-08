@@ -2213,12 +2213,6 @@ if(act==="sell"){
 
   const t = txSnap.val();
 
-  // Safety: edit BUY/SELL/CASH perlu admin sebab akan adjust balance
-  if(!me.isAdmin && (t.kind==="buy" || t.kind==="sell" || t.kind==="cash")){
-    toast("Edit BUY/SELL/CASH hanya admin boleh.");
-    return;
-  }
-
   ctxVaultId = vaultId;
   ctxEdit = { vaultId, bucket, txId, oldTx: t };
 
