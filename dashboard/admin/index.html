@@ -1321,32 +1321,36 @@ function closeModal(id){
   }
 
   // ===== BALANCE =====
-  function wireBalanceListener(){
-    onValue(ref(db,"finance/balance"), (snap)=>{
-      const v = snap.val() || {};
-      currentBalance = Number(v.amount||0);
-      $("balanceText").textContent = fmt(currentBalance);
-      $("balanceBig").textContent  = fmt(currentBalance);
-      $("balanceUpdated").textContent = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
-    });
-  }
+function wireBalanceListener(){
+  const balPath = `finance/balance/${me.uid}`;
+  onValue(ref(db, balPath), (snap)=>{
+    const v = snap.val() || {};
+    currentBalance = Number(v.amount||0);
+    $("balanceText").textContent = fmt(currentBalance);
+    $("balanceBig").textContent  = fmt(currentBalance);
+    $("balanceUpdated").textContent = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
+  });
+}
 
 async function changeBalance(delta, meta, atMsOverride){
-  // only admin should call (rules enforce)
   const now = Number(atMsOverride || Date.now());
-  const ledRef = push(ref(db,"finance/ledger"));
+
+  const balPath = `finance/balance/${me.uid}`;               // ✅ ikut user
+  const ledRef  = push(ref(db, `finance/ledger/${me.uid}`)); // ✅ ledger ikut user
   const newAmount = currentBalance + delta;
 
   const updates = {};
-  updates["finance/balance"] = {
+
+  updates[balPath] = {
     amount: newAmount,
     updatedAt: serverTimestamp(),
     updatedAtMs: now,
     byUid: me.uid,
     byUser: me.username
   };
-  updates[`finance/ledger/${ledRef.key}`] = {
-    ...meta,
+
+  updates[`finance/ledger/${me.uid}/${ledRef.key}`] = {
+    ...(meta||{}),
     delta,
     balanceAfter: newAmount,
     at: serverTimestamp(),
@@ -1354,6 +1358,7 @@ async function changeBalance(delta, meta, atMsOverride){
     byUid: me.uid,
     byUser: me.username
   };
+
   await update(ref(db), updates);
 }
 
@@ -1530,6 +1535,9 @@ function vaultCardHTML(vaultId, v, bucket){
 
   const canEdit = me.isAdmin;
   const isHistory = bucket === "history";
+  const ownerUid = v?.createdByUid || null;
+  const isOwner = ownerUid && ownerUid === me.uid;
+  const canOperateOpen = !isHistory && (me.isAdmin || isOwner);
 
   return `
     <div class="card" data-vid="${vaultId}" data-bucket="${bucket}">
@@ -1544,15 +1552,17 @@ function vaultCardHTML(vaultId, v, bucket){
         </div>
 
         <div class="vaultBtns">
-          ${!isHistory ? `
-            <button class="btn ghost" data-act="cash" data-id="${vaultId}">Cash Transfer</button>
-            <button class="btn ghost" data-act="buy" data-id="${vaultId}">Buy</button>
-            <button class="btn ghost" data-act="missing" data-id="${vaultId}">Missing</button>
-            <button class="btn ghost" data-act="sell" data-id="${vaultId}">Sell</button>
-            <button class="btn danger" data-act="close" data-id="${vaultId}">Closing</button>
-          ` : `
-            ${canEdit ? `<button class="btn ghost" data-act="histEdit" data-id="${vaultId}">Edit Title</button>` : ``}
-          `}
+${!isHistory ? `
+  ${canOperateOpen ? `
+    <button class="btn ghost" data-act="cash" data-id="${vaultId}">Cash Transfer</button>
+    <button class="btn ghost" data-act="buy" data-id="${vaultId}">Buy</button>
+    <button class="btn ghost" data-act="missing" data-id="${vaultId}">Missing</button>
+    <button class="btn ghost" data-act="sell" data-id="${vaultId}">Sell</button>
+    <button class="btn danger" data-act="close" data-id="${vaultId}">Closing</button>
+  ` : `<div class="hint">No access (not your vault).</div>`}
+` : `
+  ${canEdit ? `<button class="btn ghost" data-act="histEdit" data-id="${vaultId}">Edit Title</button>` : ``}
+`}
         </div>
       </div>
 
@@ -1689,8 +1699,11 @@ function txRowHTML(vaultId, txId, t, bucket){
   // Description (dah tak ada "qty @ ...")
   const desc = buildTxDesc(t);
 
-  // actions: open semua boleh, history admin sahaja
-  const showActions = bucket==="open" ? true : me.isAdmin;
+const vaultOwnerUid = window.__vaultOwner?.[vaultId]; // kita isi nanti masa render
+const isOwner = (vaultOwnerUid && vaultOwnerUid === me.uid);
+const showActions = (bucket === "open")
+  ? (me.isAdmin || isOwner)
+  : me.isAdmin;
 
   const hasNote = String(t.note||"").trim().length > 0;
 
@@ -1808,6 +1821,10 @@ function openViewNote(noteText){
 function renderVaultList(targetId, data, bucket){
   const el = $(targetId);
   const entries = Object.entries(data||{});
+    window.__vaultOwner = window.__vaultOwner || {};
+  for(const [id,v] of entries){
+    window.__vaultOwner[id] = v?.createdByUid || null;
+  }
 
   // sort: latest createdAtMs desc
   entries.sort((a,b)=> (Number(b[1]?.createdAtMs||0) - Number(a[1]?.createdAtMs||0)));
@@ -2102,7 +2119,12 @@ function updateVaultKpiFromFiltered(vaultId){
       renderVaultList("viewHistory", data, "history");
     });
   }
-
+ async function assertCanOperateOpenVault(vaultId){
+  if(me.isAdmin) return true;
+  const s = await get(ref(db, `vaults/open/${vaultId}/createdByUid`));
+  const owner = s.exists() ? s.val() : null;
+  return owner === me.uid;
+}
   // ===== EVENTS =====
   $("btnBalance").addEventListener("click", ()=> openModal("mBalance"));
 // ===== USER DROPDOWN TOGGLE =====
@@ -2207,6 +2229,10 @@ $("nvCreate").addEventListener("click", async ()=>{
       $("cashVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
       $("cashType").value="cash_in"; $("cashAmount").value=""; $("cashNote").value="";
       resetTxTimeInput("txTime_cash");
+      if(!(await assertCanOperateOpenVault(vid))){
+      toast("No access: this vault is not yours.");
+      return;
+      }
       openModal("mCash");
     }
 
@@ -2218,6 +2244,10 @@ $("nvCreate").addEventListener("click", async ()=>{
       $("buyQty").value=""; $("buyPrice").value=""; $("buyTotal").value="";
       $("buyNote").value="";
       $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
+      if(!(await assertCanOperateOpenVault(vid))){
+      toast("No access: this vault is not yours.");
+      return;
+      }
       openModal("mBuy");
     }
     if(act==="missing"){
@@ -2229,6 +2259,10 @@ $("nvCreate").addEventListener("click", async ()=>{
   $("missPrice").value="";
   $("missTotal").value="";
   $("missNote").value="";
+  if(!(await assertCanOperateOpenVault(vid))){
+  toast("No access: this vault is not yours.");
+  return;
+  }
   openModal("mMissing");
 }
 
@@ -2253,20 +2287,29 @@ if(act==="sell"){
 
   // reset border
   $("sellEkor").style.borderColor = "rgba(255,255,255,.12)";
-
+  if(!(await assertCanOperateOpenVault(vid))){
+  toast("No access: this vault is not yours.");
+  return;
+  }
   openModal("mSell");
 }
 
-    if(act==="close"){
-      if(!confirm("Closing vault? Vault akan dipindah ke History.")) return;
-      try{
-        await closeVault(vid);
-        toast("Vault closed → History.");
-      }catch(e){
-        console.error(e);
-        toast(e?.message || "Failed");
-      }
-    }
+if(act==="close"){
+  if(!(await assertCanOperateOpenVault(vid))){
+    toast("No access: this vault is not yours.");
+    return;
+  }
+
+  if(!confirm("Closing vault? Vault akan dipindah ke History.")) return;
+
+  try{
+    await closeVault(vid);
+    toast("Vault closed → History.");
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed");
+  }
+}
     if(act==="txEdit"){
   const vaultId = btn.dataset.v;
   const bucket  = btn.dataset.b;
@@ -2353,22 +2396,26 @@ if(act==="txDel"){
     toast("Limited user: tiada akses delete history.");
     return;
   }
-
   if(!confirm("Delete transaction?")) return;
 
   try{
-    // 1) ambil tx dulu (sebab lepas remove dah hilang)
-    const txSnap = await get(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
-    if(!txSnap.exists()){
-      toast("TX not found.");
-      return;
-    }
+    const txPath = `vaults/${bucket}/${vaultId}/transactions/${txId}`;
+
+    // 1) ambil tx dulu utk rollback kira delta (sbb lepas remove dah hilang)
+    const txSnap = await get(ref(db, txPath));
+    if(!txSnap.exists()){ toast("TX not found."); return; }
     const t = txSnap.val();
-    if(bucket === "open"){
-    await adjustBalanceForTxDelete({ bucket, vaultId, txId, txObj: t });
-    }
-    await remove(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
+
+    // 2) REMOVE dulu — kalau permission denied dia akan throw kat sini
+    await remove(ref(db, txPath));
+
+    // 3) recompute dulu
     await recomputeVaultSummary(vaultId, bucket);
+
+    // 4) BARU adjust wallet (open sahaja)
+    if(bucket === "open"){
+      await adjustBalanceForTxDelete({ bucket, vaultId, txId, txObj: t });
+    }
 
     toast("Deleted.");
   }catch(e){
