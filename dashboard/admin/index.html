@@ -1323,12 +1323,28 @@ function closeModal(id){
 
   // ===== BALANCE =====
 function wireBalanceListener(){
-  const balPath = `finance/balance/${WALLET_ID}`; // ✅ global wallet
+  const balPath = `finance/balance/${WALLET_ID}`;
   onValue(ref(db, balPath), (snap)=>{
     const v = snap.val() || {};
     currentBalance = Number(v.amount||0);
-    $("balanceText").textContent = fmt(currentBalance);
-    $("balanceBig").textContent  = fmt(currentBalance);
+
+    const txt = fmt(currentBalance);
+    const isNeg = currentBalance < 0;
+
+    const elSmall = $("balanceText");
+    const elBig   = $("balanceBig");
+
+    elSmall.textContent = txt;
+    elBig.textContent   = txt;
+    elSmall.classList.remove("kpiGood","kpiBad");
+    elBig.classList.remove("kpiGood","kpiBad");
+    if(isNeg){
+      elSmall.classList.add("kpiBad");
+      elBig.classList.add("kpiBad");
+    }else{
+      elSmall.classList.add("kpiGood");
+      elBig.classList.add("kpiGood");
+    }
     $("balanceUpdated").textContent = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
   });
 }
