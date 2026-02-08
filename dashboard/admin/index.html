@@ -2359,6 +2359,7 @@ if(act==="txDel"){
     }
 if(act==="vaultDel"){
   const bucket = btn.dataset.b || "open";
+
   if(bucket==="history" && !me.isAdmin){
     toast("Admin sahaja boleh delete vault history.");
     return;
@@ -2371,7 +2372,29 @@ if(act==="vaultDel"){
   if(!confirm(msg)) return;
 
   try{
+    // 1) ambil semua tx dalam vault
+    const txSnap = await get(ref(db, `vaults/${bucket}/${vid}/transactions`));
+    const txs = txSnap.exists() ? txSnap.val() : {};
+
+    // 2) kira total effect (cash/buy/sell)
+    let sumEff = 0;
+    for(const k of Object.keys(txs)){
+      sumEff += txBalanceEffect(txs[k]);
+    }
+
+    // 3) reverse sekali jalan (lebih kemas)
+    if(sumEff !== 0){
+      await changeBalance(-sumEff, {
+        kind:"vault_delete_adjust",
+        bucket,
+        vaultId: vid,
+        note:"Delete vault rollback all tx"
+      }, Date.now());
+    }
+
+    // 4) delete vault node
     await remove(ref(db, `vaults/${bucket}/${vid}`));
+
     toast("Vault deleted.");
   }catch(e){
     console.error(e);
