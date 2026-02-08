@@ -608,33 +608,7 @@ input[type="number"]{
   .txTimeRow{ flex-direction:column; align-items:stretch; }
   .txTimeRow .btn{ width:100%; }
 }
-/* confirm as popover near button */
-.modalBack{
-  /* jangan centerkan confirm modal bila jadi popover */
-  align-items: flex-start;
-  justify-content: flex-start;
-}
 
-.popConfirm{
-  position: fixed;
-  z-index: 99999999;
-  width: min(340px, calc(100vw - 24px));
-  max-width: 340px;
-  border-radius: 12px;
-  overflow: visible; /* supaya arrow nampak */
-}
-
-.popArrow{
-  position:absolute;
-  width: 12px;
-  height: 12px;
-  background: rgba(14,18,28,.98);
-  border-left: 1px solid rgba(255,255,255,.14);
-  border-top: 1px solid rgba(255,255,255,.14);
-  transform: rotate(45deg);
-  top: -6px;
-  right: 22px;
-}
   </style>
 </head>
 
@@ -1021,26 +995,6 @@ input[type="number"]{
     </div>
   </div>
 </div>
-<!-- GLOBAL CONFIRM MODAL (POP CONFIRM) -->
-<div class="modalBack" id="mConfirm" style="display:none;">
-  <div class="modal popConfirm" id="confirmBox">
-    <div class="popArrow" id="confirmArrow"></div>
-
-    <div class="modalHead">
-      <div class="title" id="confirmTitle">Confirm Action</div>
-      <button class="x" id="confirmClose">✕</button>
-    </div>
-
-    <div class="modalBody">
-      <div id="confirmText" class="hint" style="font-size:15px;"></div>
-    </div>
-
-    <div class="modalFoot" style="display:flex;justify-content:flex-end;gap:10px;">
-      <button class="btn-edit" id="confirmNo">No</button>
-      <button class="btn-delete" id="confirmYes">Yes</button>
-    </div>
-  </div>
-</div>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -1068,116 +1022,6 @@ import {
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
-// ===== GLOBAL CONFIRM BOX (POPOVER NEAR BUTTON) =====
-let confirmCallback = null;
-let confirmAnchorEl = null;
-
-function positionConfirmBox(){
-  const box = $("#confirmBox");
-  const back = $("#mConfirm");
-  const arrow = $("#confirmArrow");
-
-  if(!box || !back || !confirmAnchorEl) return;
-
-  const r = confirmAnchorEl.getBoundingClientRect();
-  const margin = 10;
-
-  // show dulu supaya offsetWidth/Height betul
-  box.style.left = "0px";
-  box.style.top = "0px";
-
-  const bw = box.offsetWidth;
-  const bh = box.offsetHeight;
-
-  let top  = r.bottom + 10;          // default bawah button
-  let left = r.right - bw;           // align kanan button
-
-  // clamp viewport
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-
-  left = Math.max(margin, Math.min(left, vw - bw - margin));
-
-  // kalau bawah tak muat, letak atas
-  let showAbove = false;
-  if(top + bh + margin > vh){
-    top = r.top - bh - 10;
-    showAbove = true;
-  }
-  top = Math.max(margin, Math.min(top, vh - bh - margin));
-
-  box.style.left = `${left}px`;
-  box.style.top  = `${top}px`;
-
-  // arrow position (kanan dekat button)
-  if(arrow){
-    arrow.style.right = "22px";
-    arrow.style.top = showAbove ? "auto" : "-6px";
-    arrow.style.bottom = showAbove ? "-6px" : "auto";
-    arrow.style.transform = showAbove ? "rotate(225deg)" : "rotate(45deg)";
-  }
-}
-
-function showConfirm(anchorEl, title, text, onYes){
-  const m = $("#mConfirm");
-  const t = $("#confirmTitle");
-  const x = $("#confirmText");
-
-  // fallback kalau confirm ui tak ada
-  if(!m || !t || !x){
-    const ok = confirm(`${title}\n\n${text}`);
-    if(ok && typeof onYes === "function") onYes();
-    return;
-  }
-
-  confirmAnchorEl = anchorEl || null;
-  t.textContent = title || "Confirm Action";
-  x.textContent = text || "Are you sure?";
-  confirmCallback = onYes;
-
-  m.style.display = "block"; // popover mode tak perlu flex center
-
-  // position lepas render
-  requestAnimationFrame(positionConfirmBox);
-}
-
-function closeConfirm(){
-  const m = $("#mConfirm");
-  if(m) m.style.display = "none";
-  confirmCallback = null;
-  confirmAnchorEl = null;
-}
-
-function initConfirmBox(){
-  const closeBtn = $("#confirmClose");
-  const noBtn    = $("#confirmNo");
-  const yesBtn   = $("#confirmYes");
-  const back     = $("#mConfirm");
-
-  if(closeBtn) closeBtn.onclick = closeConfirm;
-  if(noBtn)    noBtn.onclick    = closeConfirm;
-
-  if(yesBtn){
-    yesBtn.onclick = async ()=>{
-      const fn = confirmCallback;
-      closeConfirm();
-      try{ if(typeof fn === "function") await fn(); }catch(e){ console.error(e); }
-    };
-  }
-
-  // click luar box tutup
-  if(back){
-    back.addEventListener("click", (e)=>{
-      // kalau klik background (bukan box)
-      if(e.target === back) closeConfirm();
-    });
-  }
-
-  // reposition bila scroll/resize
-  window.addEventListener("resize", ()=>{ if(confirmAnchorEl) positionConfirmBox(); }, {passive:true});
-  window.addEventListener("scroll",  ()=>{ if(confirmAnchorEl) positionConfirmBox(); }, {passive:true});
-}
-
   function vaultRefOpen(){
   return ref(db, "vaults/open");
 }
@@ -2349,18 +2193,16 @@ if(act==="sell"){
   openModal("mSell");
 }
 
-if(act==="close"){
-  showConfirm(
-    btn,
-    "Close Vault",
-    "Vault will be moved to history and cannot be edited. Continue?",
-    async ()=>{
-      await closeVault(vid);
-      toast("Vault closed → History.");
+    if(act==="close"){
+      if(!confirm("Closing vault? Vault akan dipindah ke History.")) return;
+      try{
+        await closeVault(vid);
+        toast("Vault closed → History.");
+      }catch(e){
+        console.error(e);
+        toast(e?.message || "Failed");
+      }
     }
-  );
-  return;
-}
     if(act==="txEdit"){
   const vaultId = btn.dataset.v;
   const bucket  = btn.dataset.b;
@@ -2444,28 +2286,26 @@ if(act==="close"){
   openViewNote(note);
   return;
 }
-if(act==="txDel"){
-  const vaultId = btn.dataset.v;
-  const bucket  = btn.dataset.b;
-  const txId    = btn.dataset.t;
+    if(act==="txDel"){
+      const vaultId = btn.dataset.v;
+      const bucket  = btn.dataset.b;
+      const txId    = btn.dataset.t;
+      if(bucket==="history" && !me.isAdmin){
+        toast("Limited user: tiada akses delete history.");
+        return;
+      }
 
-  if(bucket==="history" && !me.isAdmin){
-    toast("Limited user: tiada akses delete history.");
-    return;
-  }
+      if(!confirm("Delete transaction?")) return;
 
-showConfirm(
-  btn,
-  "Delete Transaction",
-  "Are you sure you want to delete this transaction? (No undo)",
-  async ()=>{
-    await remove(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
-    await recomputeVaultSummary(vaultId, bucket);
-    toast("Deleted.");
-  }
-);
-return;
-}
+      try{
+        await remove(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}`));
+        await recomputeVaultSummary(vaultId, bucket);
+        toast("Deleted.");
+      }catch(e){
+        console.error(e);
+        toast(e?.message || "Failed");
+      }
+    }
 
     if(act==="histEdit"){
       if(!me.isAdmin){ toast("No access."); return; }
@@ -2481,7 +2321,6 @@ return;
     }
 if(act==="vaultDel"){
   const bucket = btn.dataset.b || "open";
-
   if(bucket==="history" && !me.isAdmin){
     toast("Admin sahaja boleh delete vault history.");
     return;
@@ -2491,34 +2330,31 @@ if(act==="vaultDel"){
     ? "Delete vault HISTORY ini? Semua data akan hilang (tak boleh undo)."
     : "Delete vault ini? Semua transaksi dalam vault akan hilang.";
 
-showConfirm(
-  btn,
-  "Delete Vault",
-  msg,
-  async ()=>{
+  if(!confirm(msg)) return;
+
+  try{
     await remove(ref(db, `vaults/${bucket}/${vid}`));
     toast("Vault deleted.");
+  }catch(e){
+    console.error(e);
+    toast("Failed delete vault.");
   }
-);
-return;
 }
 if(act==="vaultUnclose"){
   if(!me.isAdmin){
     toast("Admin sahaja boleh Unclosing.");
     return;
   }
+  if(!confirm("Unclosing vault ini? Vault akan balik ke Open Vault.")) return;
 
-showConfirm(
-  btn,
-  "Unclosing Vault",
-  "Unclosing vault ini? Vault akan balik ke Open Vault.",
-  async ()=>{
+  try{
     await uncloseVault(vid);
     toast("Vault moved back to Open Vault.");
-    setView("open");
+    setView("open"); // optional: auto pindah tab open
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed unclosing.");
   }
-);
-return;
 }
   });
 
@@ -2866,7 +2702,6 @@ onAuthStateChanged(auth, async (user)=>{
       setTimeout(()=> location.reload(), 250);
     });
   }
-  initConfirmBox();
   toast("Ready.");
 });
 </script>
