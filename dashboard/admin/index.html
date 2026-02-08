@@ -2392,7 +2392,7 @@ if(act==="vaultDel"){
       vaultId: vid,
       note:"Delete vault rollback all tx"
     }, Date.now());
-  }}
+  }
 
     // 4) delete vault node
     await remove(ref(db, `vaults/${bucket}/${vid}`));
