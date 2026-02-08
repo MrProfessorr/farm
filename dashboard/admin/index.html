@@ -1808,8 +1808,9 @@ function renderVaultList(targetId, data, bucket){
       rows.sort((a,b)=> Number(b[1]?.atMs||0) - Number(a[1]?.atMs||0));
 
       if(rows.length===0){
-        tbody.innerHTML = `<tr><td colspan="7" class="hint">No transaction yet.</td></tr>`;
-        return;
+      vaultTxCache[id] = { bucket, rows: [] };
+      rerenderVaultTbody(id);                
+      return;
       }
 
       vaultTxCache[id] = { bucket, rows };
@@ -1817,7 +1818,7 @@ function renderVaultList(targetId, data, bucket){
     });
   }
 }
- function rerenderVaultTbody(vaultId){
+function rerenderVaultTbody(vaultId){
   const cache = vaultTxCache[vaultId];
   const tbody = document.querySelector(`[data-tbody="${vaultId}"]`);
   if(!tbody || !cache) return;
@@ -1833,12 +1834,15 @@ function renderVaultList(targetId, data, bucket){
     });
   }
 
+  // ✅ IMPORTANT: KPI kena update walaupun table kosong
+  updateVaultKpiFromFiltered(vaultId);
+
   if(use.length===0){
     tbody.innerHTML = `<tr><td colspan="7" class="hint">No transaction in this date range.</td></tr>`;
     return;
   }
+
   tbody.innerHTML = use.map(([txId,t]) => txRowHTML(vaultId, txId, t, bucket)).join("");
-  updateVaultKpiFromFiltered(vaultId);
 }
 
 function initVaultDateRangeUI(vaultId){
