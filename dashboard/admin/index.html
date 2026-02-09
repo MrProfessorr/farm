@@ -641,16 +641,17 @@ input[type="number"]{
   }
 }
 .vaultSearchWrap{
-  flex:1;
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:flex-start;
+  margin-left:16px; 
+  margin-right:auto;   
+  min-width: 220px;
 }
 
 .vaultSearchBox{
   position:relative;
-  width:100%;
-  max-width:420px;
+  width:min(420px, 100%);
 }
 
 #vaultSearch{
@@ -677,6 +678,22 @@ input[type="number"]{
   transform:translateY(-50%);
   opacity:.7;
   pointer-events:none;
+}
+@media (max-width:600px){
+  .vaultSearchBox{
+    max-width:100%;
+  }
+}
+@media (max-width:700px){
+  header{ gap:10px; }
+  .vaultSearchWrap{
+    flex: 1 1 100%;
+    margin-left:0;
+    margin-right:0;
+    order: 3;                   /* jatuh bawah untuk phone */
+  }
+  .right{ order: 2; margin-left:auto; }
+  .pill{ order: 1; }
 }
   </style>
 </head>
