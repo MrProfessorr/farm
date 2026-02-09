@@ -1278,17 +1278,18 @@ function ymd(ms){
   let me = { uid:null, username:null, isAdmin:false };
   let currentBalance = 0;
   const WALLET_ID = "main";
+  let buyTotalManual = false;
 
   // UI state
-  let activeView = "open"; // open | history
-  let ctxVaultId = null;   // modal context
+  let activeView = "open";
+  let ctxVaultId = null; 
   let ctxAvailablePig = 0;
   let ctxMissingPig = 0;
   let ctxEdit = null; 
   const vaultFilters = {};   // { [vaultId]: { startMs, endMs } }
   const vaultPickers = {};   // { [vaultId]: flatpickrInstance }
   const vaultTxCache = {}; 
-  const vaultTxUnsubs = {}; // ✅ ADD INI
+  const vaultTxUnsubs = {};
   // ===== MODAL helper =====
   function openModal(id){ $(id).style.display="flex"; }
 function closeModal(id){
@@ -2299,6 +2300,8 @@ $("nvCreate").addEventListener("click", async ()=>{
       toast("No access: this vault is not yours.");
       return;
       }
+      buyTotalManual = false;
+      calcBuy();
       openModal("mBuy");
     }
     if(act==="missing"){
@@ -2391,6 +2394,8 @@ if(act==="close"){
     $("buyTotal").value = String(t.total ?? "");
     $("buyNote").value = String(t.note||"");
     $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
+    buyTotalManual = false;
+    calcBuy();
     openModal("mBuy");
     calcBuy();
   }
@@ -2623,20 +2628,29 @@ $("cashSave").addEventListener("click", async ()=>{
 });
 // BUY AUTO CALC
 function calcBuy(){
-  const qty = Number($("buyQty").value||0);
+  const qty   = Number($("buyQty").value||0);
   const price = Number($("buyPrice").value||0);
-  const totalManual = Number($("buyTotal").value||0);
+  const autoTotal = (qty > 0 && price > 0) ? (qty * price) : 0;
+  if(!buyTotalManual){
+    $("buyTotal").value = autoTotal ? autoTotal.toFixed(2) : "";
+  }
 
-  const auto = qty>0 && price>0 ? qty*price : 0;
-  const total = ($("buyTotal").value.trim()==="") ? auto : totalManual;
-
+  const total = Number($("buyTotal").value||0);
   const enough = total <= currentBalance;
   $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
   $("buyBalanceHint").textContent = enough
     ? `Balance OK. After buy: ${fmt(currentBalance - total)}`
     : `Balance tak cukup. Need: ${fmt(total)} (Balance: ${fmt(currentBalance)})`;
 }
-["buyQty","buyPrice","buyTotal"].forEach(id=> $(id).addEventListener("input", calcBuy));
+["buyQty","buyPrice"].forEach(id=> $(id).addEventListener("input", ()=>{
+  buyTotalManual = false;   // bila qty/price berubah -> auto balik
+  calcBuy();
+}));
+
+$("buyTotal").addEventListener("input", ()=>{
+  buyTotalManual = true;    // bila user sentuh total -> jadi manual
+  calcBuy();
+});
 
 // BUY SAVE (CREATE + EDIT)
 $("buySave").addEventListener("click", async ()=>{
