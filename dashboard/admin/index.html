@@ -867,6 +867,34 @@ input[type="number"]{
   border-color: rgba(239,68,68,.55);
   color: rgba(239,68,68,.95);
 }
+  /* ✅ Drawer row jadi macam desktop: icon kiri, text center */
+.drawerRow.drawerBtnLike{
+  display: grid;
+  grid-template-columns: 24px 1fr 24px; /* icon kiri, text center, spacer kanan */
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #303030;
+  border-radius: 6px;
+  background: #000;
+  color: rgba(255,255,255,.85);
+}
+
+.drawerRow.drawerBtnLike .drawerIcon{
+  display: grid;
+  place-items: center;
+  color: rgba(255,255,255,.85);
+}
+
+.drawerRow.drawerBtnLike .drawerText{
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+
+.drawerRow.drawerBtnLike .drawerSpacer{
+  display:block;
+}
   </style>
 </head>
 
@@ -946,12 +974,26 @@ input[type="number"]{
 
 <aside id="rightDrawer" class="rightDrawer" aria-hidden="true">
   <div class="rightDrawerBody">
-<div class="drawerRow drawerOnlyValue">
-  <div id="drawerWallet" class="drawerValue">0.00</div>
+<!-- Wallet (ikut style desktop: icon kiri, text tengah) -->
+<div class="drawerRow drawerBtnLike" id="drawerWalletRow">
+  <span class="drawerIcon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+      <path d="M5 19V5zm0 2q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v2.5h-2V5H5v14h14v-2.5h2V19q0 .825-.587 1.413T19 21zm8-4q-.825 0-1.412-.587T11 15V99q0-.825.588-1.412T13 7h7q.825 0 1.413.588T22 9v6q0 .825-.587 1.413T20 17zm7-2V9h-7v6zm-4-1.5q.625 0 1.063-.437T17.5 12t-.437-1.062T16 10.5t-1.062.438T14.5 12t.438 1.063T16 13.5"/>
+    </svg>
+  </span>
+  <span class="drawerText num" id="drawerWallet">0.00</span>
+  <span class="drawerSpacer" aria-hidden="true"></span>
 </div>
 
-<div class="drawerRow drawerOnlyValue">
-  <div id="drawerUsername" class="drawerValue">user</div>
+<!-- Username -->
+<div class="drawerRow drawerBtnLike" id="drawerUserRow">
+  <span class="drawerIcon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+      <path d="M12 12a4 4 0 1 0-4-4a4 4 0 0 0 4 4zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/>
+    </svg>
+  </span>
+  <span class="drawerText" id="drawerUsername">user</span>
+  <span class="drawerSpacer" aria-hidden="true"></span>
 </div>
 
 <button id="drawerLogoutBtn" class="userMenuItem drawerLogoutBtn" type="button">
