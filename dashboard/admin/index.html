@@ -1640,6 +1640,119 @@ function ymd(ms){
   let vaultSearchTerm = "";
   let openVaultDataCache = {};
   let histVaultDataCache = {};
+  // ===== RIGHT DRAWER GLOBAL (ONE-TIME) =====
+let btnDrawer = null;
+let drawer = null;
+let overlay = null;
+
+let drawerWallet = null;
+let drawerUsername = null;
+let drawerLogoutBtn = null;
+
+let drawerBound = false;
+
+function syncDrawer(){
+  const balEl = document.getElementById("balanceText");
+  if(drawerWallet && balEl) drawerWallet.textContent = balEl.textContent.trim();
+
+  const uEl = document.getElementById("usernameText");
+  if(drawerUsername && uEl) drawerUsername.textContent = uEl.textContent.trim();
+}
+
+function lockScroll(){
+  const sb = window.innerWidth - document.documentElement.clientWidth;
+  document.documentElement.style.overflow = "hidden";
+  document.documentElement.style.paddingRight = sb ? (sb + "px") : "";
+}
+function unlockScroll(){
+  document.documentElement.style.overflow = "";
+  document.documentElement.style.paddingRight = "";
+}
+
+function openDrawer(){
+  syncDrawer();
+  if(overlay) overlay.classList.add("open");
+  if(drawer){
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden","false");
+  }
+  lockScroll();
+}
+
+function closeDrawer(){
+  if(drawer){
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden","true");
+  }
+  if(overlay) overlay.classList.remove("open");
+  unlockScroll();
+}
+
+function toggleDrawer(){
+  if(drawer && drawer.classList.contains("open")) closeDrawer();
+  else openDrawer();
+}
+
+function onOutsideDrawerClick(e){
+  if(!drawer || !drawer.classList.contains("open")) return;
+
+  const insideDrawer = drawer.contains(e.target);
+  const onBtn = btnDrawer && btnDrawer.contains(e.target);
+
+  // klik luar drawer (dan bukan button) => close
+  if(!insideDrawer && !onBtn){
+    closeDrawer();
+  }
+}
+
+function initRightDrawerOnce(){
+  if(drawerBound) return;
+  drawerBound = true;
+
+  btnDrawer = document.getElementById("btnRightDrawer");
+  drawer = document.getElementById("rightDrawer");
+  overlay = document.getElementById("rightDrawerOverlay");
+
+  drawerWallet = document.getElementById("drawerWallet");
+  drawerUsername = document.getElementById("drawerUsername");
+  drawerLogoutBtn = document.getElementById("drawerLogoutBtn");
+
+  if(btnDrawer){
+    btnDrawer.addEventListener("click", (e)=>{
+      e.preventDefault();
+      e.stopPropagation(); // penting: elak click luar trigger
+      toggleDrawer();
+    });
+  }
+
+  if(drawer){
+    drawer.addEventListener("click", (e)=> e.stopPropagation());
+  }
+
+  if(overlay){
+    overlay.addEventListener("click", closeDrawer);
+  }
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") closeDrawer();
+  });
+
+  // capture = paling power (walaupun ada stopPropagation tempat lain)
+  document.addEventListener("click", onOutsideDrawerClick, true);
+
+  // logout button dalam drawer
+  if(drawerLogoutBtn){
+    drawerLogoutBtn.addEventListener("click", async ()=>{
+      try{
+        await signOut(auth);
+        location.replace("../login/");
+      }catch(e){
+        console.error(e);
+        toast(e?.message || "Logout failed");
+      }
+    });
+  }
+}
   // ===== MODAL helper =====
   function openModal(id){ $(id).style.display="flex"; }
 function closeModal(id){
@@ -3312,87 +3425,8 @@ onAuthStateChanged(auth, async (user)=>{
       setTimeout(()=> location.reload(), 250);
     });
   }
-// ✅ RIGHT DRAWER (MOBILE MENU) - UPDATED
-const btnDrawer = document.getElementById("btnRightDrawer");
-const drawer = document.getElementById("rightDrawer");
-const overlay = document.getElementById("rightDrawerOverlay");
-
-const drawerWallet = document.getElementById("drawerWallet");
-const drawerUsername = document.getElementById("drawerUsername");
-const drawerLogoutBtn = document.getElementById("drawerLogoutBtn");
-
-function syncDrawer(){
-  const balEl = document.getElementById("balanceText");
-  if(drawerWallet && balEl) drawerWallet.textContent = balEl.textContent.trim();
-
-  const uEl = document.getElementById("usernameText");
-  if(drawerUsername && uEl) drawerUsername.textContent = uEl.textContent.trim();
-}
-
-// optional: elak “layout lonjak” bila lock scroll
-function lockScroll(){
-  const sb = window.innerWidth - document.documentElement.clientWidth;
-  document.documentElement.style.overflow = "hidden";
-  document.documentElement.style.paddingRight = sb ? (sb + "px") : "";
-}
-function unlockScroll(){
-  document.documentElement.style.overflow = "";
-  document.documentElement.style.paddingRight = "";
-}
-
-function openDrawer(){
-  syncDrawer();
-  if(overlay) overlay.classList.add("open");
-  if(drawer){
-    drawer.classList.add("open");
-    drawer.setAttribute("aria-hidden","false");
-  }
-  lockScroll();
-}
-
-function closeDrawer(){
-  if(drawer){
-    drawer.classList.remove("open");
-    drawer.setAttribute("aria-hidden","true");
-  }
-  if(overlay) overlay.classList.remove("open");
-  unlockScroll();
-}
-
-function toggleDrawer(){
-  if(drawer && drawer.classList.contains("open")) closeDrawer();
-  else openDrawer();
-}
-
-if(btnDrawer) btnDrawer.addEventListener("click", toggleDrawer);
-if(drawer){
-  drawer.addEventListener("click", (e)=> e.stopPropagation());
-}
-
-document.addEventListener("keydown", (e)=>{
-  if(e.key === "Escape") closeDrawer();
-});
-
-if(drawerLogoutBtn){
-  drawerLogoutBtn.addEventListener("click", async ()=>{
-    try{
-      await signOut(auth);
-      location.replace("../login/");
-    }catch(e){
-      console.error(e);
-      toast(e?.message || "Logout failed");
-    }
-  });
-}
-
-// ✅ bila balance berubah, update drawer kalau tengah open
-const balTextEl = document.getElementById("balanceText");
-if(balTextEl){
-  const obs = new MutationObserver(()=>{
-    if(drawer && drawer.classList.contains("open")) syncDrawer();
-  });
-  obs.observe(balTextEl, { childList:true, characterData:true, subtree:true });
-}
+initRightDrawerOnce();
+syncDrawer();
   toast("Ready.");
 });
 // ===== SEARCH INPUT UI =====
@@ -3421,19 +3455,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   toggleSearchUI();
 });
-// close bila klik luar drawer (fallback paling power)
-document.addEventListener("click", (e)=>{
-  if(!drawer || !drawer.classList.contains("open")) return;
 
-  const insideDrawer = drawer.contains(e.target);
-  const onBtn = btnDrawer && btnDrawer.contains(e.target);
-  const onOverlay = overlay && overlay.contains(e.target);
-
-  // kalau klik overlay atau mana2 luar drawer, tutup
-  if(onOverlay || (!insideDrawer && !onBtn)){
-    closeDrawer();
-  }
-}, true);
 </script>
 </body>
 </html>
