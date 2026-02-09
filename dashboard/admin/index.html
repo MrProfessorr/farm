@@ -2639,8 +2639,8 @@ function calcBuy(){
   const enough = total <= currentBalance;
   $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
   $("buyBalanceHint").textContent = enough
-    ? `Balance OK. After buy: ${fmt(currentBalance - total)}`
-    : `Balance tak cukup. Need: ${fmt(total)} (Balance: ${fmt(currentBalance)})`;
+    ? `Balance: ${fmt(currentBalance - total)}`
+    : `Insufficient balance: ${fmt(total)} (Balance: ${fmt(currentBalance)})`;
 }
 ["buyQty","buyPrice"].forEach(id=> $(id).addEventListener("input", ()=>{
   buyTotalManual = false;   // bila qty/price berubah -> auto balik
