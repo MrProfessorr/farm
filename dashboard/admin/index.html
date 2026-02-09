@@ -21,12 +21,15 @@
       background:#000;
       min-height:100vh;
     }
+    .drawerOverlay{
+  top: var(--headerH);
+}
     header{
       height:64px; display:flex; align-items:center; justify-content:space-between;
       padding:0 16px;
       position:sticky; top:0; z-index:50;
       background:#001529;
-      backdrop-filter: blur(10px);width: 100%;
+      backdrop-filter: blur(10px);
       border-bottom:1px solid var(--stroke);
     }
     .right{display:flex; align-items:center; gap:5px}
@@ -3331,21 +3334,12 @@ function syncDrawer(){
 // optional: elak “layout lonjak” bila lock scroll
 function lockScroll(){
   const sb = window.innerWidth - document.documentElement.clientWidth;
-
   document.documentElement.style.overflow = "hidden";
   document.documentElement.style.paddingRight = sb ? (sb + "px") : "";
-
-  // safety: kalau ada style lain kat body
-  document.body.style.overflow = "hidden";
-  document.body.style.paddingRight = "";
 }
-
 function unlockScroll(){
   document.documentElement.style.overflow = "";
   document.documentElement.style.paddingRight = "";
-
-  document.body.style.overflow = "";
-  document.body.style.paddingRight = "";
 }
 
 function openDrawer(){
