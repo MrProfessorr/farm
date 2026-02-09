@@ -2091,15 +2091,9 @@ if(t.kind === "missing"){
 const cashOutEl = card.querySelector(`[data-kpi="cashOut"]`);
 if(cashOutEl){
   cashOutEl.textContent = fmt(cashOut);
-  if(cashOut > 0){
-    cashOutEl.classList.remove("kpiGood");
-    cashOutEl.classList.add("kpiBad");
-  }else{
-    cashOutEl.classList.remove("kpiBad");
-    cashOutEl.classList.add("kpiGood");
-  }
+  cashOutEl.classList.remove("kpiBad");
+  cashOutEl.classList.add("kpiGood");
 }
-
   // update BUY
   setKpi("buyCost", fmt(buyCost));
   setKpi("buyQty", babyQty.toLocaleString());
