@@ -21,9 +21,7 @@
       background:#000;
       min-height:100vh;
     }
-    .drawerOverlay{
-  top: var(--headerH);
-}
+
     header{
       height:64px; display:flex; align-items:center; justify-content:space-between;
       padding:0 16px;
@@ -750,26 +748,24 @@ input[type="number"]{
 /* Button drawer (guna iconBtn style kau) */
 .rightDrawerBtn{ display:none; }
 
-/* Overlay */
+/* ✅ Overlay full screen */
 .drawerOverlay{
   position: fixed;
-  left:0; right:0;
-  top: var(--headerH);
-  bottom:0;
+  inset: 0;                 /* top/right/bottom/left = 0 */
   background: rgba(0,0,0,.55);
-  z-index: 9998;
+  z-index: 9000;
 }
 
-/* Drawer panel */
+/* ✅ Drawer full height dari atas */
 .rightDrawer{
   position: fixed;
-  top: var(--headerH);
+  top: 0;
   right: 0;
-  height: calc(100vh - var(--headerH));
+  height: 100vh;
   width: min(320px, 88vw);
   background: #001529;
   border-left: 1px solid rgba(255,255,255,.12);
-  z-index: 9999;
+  z-index: 9001;
   transform: translateX(105%);
   transition: transform .22s ease;
   box-shadow: -18px 0 40px rgba(0,0,0,.45);
@@ -878,7 +874,7 @@ input[type="number"]{
   display:block;
 }
 /* ===== PATCH FIX ===== */
-header{ height: var(--headerH); z-index: 10000 !important; }
+header{ z-index: 50 !important; }      /* biar biasa */
 .drawerOverlay{ z-index: 9000 !important; }
 .rightDrawer{ z-index: 9001 !important; }
 
@@ -3344,7 +3340,7 @@ function unlockScroll(){
 
 function openDrawer(){
   syncDrawer();
-  if(overlay) overlay.hidden = false;
+  if(overlay) overlay.classList.add("open");
   if(drawer){
     drawer.classList.add("open");
     drawer.setAttribute("aria-hidden","false");
@@ -3357,7 +3353,7 @@ function closeDrawer(){
     drawer.classList.remove("open");
     drawer.setAttribute("aria-hidden","true");
   }
-  if(overlay) overlay.hidden = true;
+  if(overlay) overlay.classList.remove("open");
   unlockScroll();
 }
 
@@ -3367,7 +3363,9 @@ function toggleDrawer(){
 }
 
 if(btnDrawer) btnDrawer.addEventListener("click", toggleDrawer);
-if(overlay) overlay.addEventListener("click", closeDrawer);
+if(drawer){
+  drawer.addEventListener("click", (e)=> e.stopPropagation());
+}
 
 document.addEventListener("keydown", (e)=>{
   if(e.key === "Escape") closeDrawer();
