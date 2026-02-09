@@ -1547,7 +1547,7 @@ function vaultCardHTML(vaultId, v, bucket){
   const SALES_RATE  = 0.40;
   const salesValue  = profitVal * SALES_RATE;
   const salesClass  = salesValue >= 0 ? "kpiGood" : "kpiBad";
-
+  const createdBy = v?.createdBy || "-";
   const created = v.createdAtMs ? fmtDT(v.createdAtMs) : "-";
   const updated = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
   const closed  = v.closedAtMs  ? fmtDT(v.closedAtMs)  : "-";
@@ -1659,7 +1659,13 @@ ${!isHistory ? `
           </table>
         </div>
 
-        ${v.note ? `<div class="hr"></div><div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
+       ${(v.note || v.createdBy) ? `
+  <div class="hr"></div>
+  <div class="hint">
+    ${v.note ? `<div><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
+    <div><b>Create By:</b> ${escapeHtml(createdBy)}</div>
+  </div>
+` : ``}
 
 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px">
   ${
