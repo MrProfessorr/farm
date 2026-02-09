@@ -1613,7 +1613,7 @@ ${!isHistory ? `
               <tr><td>Total KG</td><td class="kpiGood" data-kpi="sellKg">${fmt(s.totalKg)}</td></tr>
               <tr><td>Total Quantity</td><td class="kpiGood" data-kpi="sellEkor">${Number(s.totalEkor||0).toLocaleString()}</td></tr>
               <tr><td>Total Death</td><td class="kpiBad" data-kpi="missingQty">${Number(s.missing?.qty||0).toLocaleString()}</td></tr>
-              <tr><td>Total Price Death</td><td class="kpiBad" data-kpi="missingTotal">${fmt((s.missing?.total||0))}</td></tr>
+              <tr><td>Total Price Death</td><td class="kpiGood" data-kpi="missingTotal">0.00</td></tr>
               <tr><td>Total Available</td><td class="kpiGood" data-kpi="availablePig">${availablePig.toLocaleString()}</td></tr>
             </table>
           </div>
@@ -2129,9 +2129,24 @@ if(t.kind === "missing"){
   setKpi("sellEkor", sellEkor.toLocaleString());
 
   // missing & available
-  setKpi("missingQty", missingQty.toLocaleString());
-  setKpi("missingTotal", fmt(missingTotal));
-  setKpi("availablePig", availablePig.toLocaleString());
+const missQtyEl = card.querySelector(`[data-kpi="missingQty"]`);
+if(missQtyEl){
+  missQtyEl.textContent = missingQty.toLocaleString();
+  missQtyEl.classList.toggle("kpiGood", missingQty === 0);
+  missQtyEl.classList.toggle("kpiBad",  missingQty > 0);
+}
+
+// missing total (0.00 hijau, ada -> merah & negatif)
+const missTotalEl = card.querySelector(`[data-kpi="missingTotal"]`);
+if(missTotalEl){
+  const showVal = (missingTotal > 0) ? -missingTotal : 0; // ✅ negatif bila ada
+  missTotalEl.textContent = fmt(showVal);
+
+  missTotalEl.classList.toggle("kpiGood", missingTotal === 0);
+  missTotalEl.classList.toggle("kpiBad",  missingTotal > 0);
+}
+
+setKpi("availablePig", availablePig.toLocaleString());
 }
   function wireVaultListeners(){
     // Open vaults
