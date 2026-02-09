@@ -1598,6 +1598,8 @@ ${!isHistory ? `
               <tr><td>Total Pets</td><td data-kpi="buyQty">${Number((s.babyPig?.qty||0)).toLocaleString()}</td></tr>
               <tr><td>Total Price Quantity</td><td class="kpiGood" data-kpi="buyAvg">${fmt((s.babyPig?.avgPrice||0))}</td></tr>
               <tr><td>Total Price</td><td class="kpiGood" data-kpi="buyTotal">${fmt((s.babyPig?.total||0))}</td></tr>
+              <tr><td>Total Feeding</td><td class="kpiGood" data-kpi="feedTotal">0.00</td></tr>
+              <tr><td>Total Other</td><td class="kpiGood" data-kpi="otherTotal">0.00</td></tr>
               <tr><td>Total Profit</td><td class="${profitClass}" data-kpi="profit">${fmt(profitVal)}</td></tr>
               <tr><td>Total Sales</td><td class="${salesClass}" data-kpi="sales">${fmt(salesValue)}</td></tr>
               <tr><td>Total Cash In/Out</td><td class="kpiGood" data-kpi="cashNet">0.00</td></tr>
@@ -2010,7 +2012,8 @@ function updateVaultKpiFromFiltered(vaultId){
   // compute KPI from filtered tx
   let buyCost = 0;
   let babyQty = 0, babyTotal = 0, babyPriceSum = 0;
-
+  let feedTotal = 0;
+  let otherTotal = 0; 
   let sellRevenue = 0;
   let sellKg = 0;
   let sellEkor = 0;
@@ -2031,19 +2034,22 @@ function updateVaultKpiFromFiltered(vaultId){
       if(t.direction === "in") cashIn += amt;
       else cashOut += amt;
     }
+if(t.kind === "buy"){
+  const total = Number(t.total||0);
+  buyCost += total;
 
-    if(t.kind === "buy"){
-      const total = Number(t.total||0);
-      buyCost += total;
-
-      if(t.category === "baby_pig"){
-        const q = Number(t.qty||0);
-        const p = Number(t.price||0);
-        babyQty += q;
-        babyTotal += total;
-        babyPriceSum += (q * p);
-      }
-    }
+  if(t.category === "baby_pig"){
+    const q = Number(t.qty||0);
+    const p = Number(t.price||0);
+    babyQty += q;
+    babyTotal += total;
+    babyPriceSum += (q * p);
+  } else if(t.category === "feed"){
+    feedTotal += total; 
+  } else {
+    otherTotal += total;
+  }
+}
 
     if(t.kind === "sell"){
       const total = Number(t.total||0);
@@ -2099,6 +2105,8 @@ if(cashOutEl){
   setKpi("buyQty", babyQty.toLocaleString());
   setKpi("buyAvg", fmt(buyAvg));
   setKpi("buyTotal", fmt(babyTotal));
+  setKpi("feedTotal", fmt(feedTotal));
+  setKpi("otherTotal", fmt(otherTotal));
 
   // update PROFIT & SALES + color
   const profitEl = card.querySelector(`[data-kpi="profit"]`);
