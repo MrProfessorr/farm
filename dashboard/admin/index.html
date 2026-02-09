@@ -6,13 +6,14 @@
   <title>Farm Admin</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <style>
-    :root{
-      --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
-      --bg:#070b16; --panel:rgba(255,255,255,.06);
-      --stroke:rgba(255,255,255,.12);
-      --txt:#eaf1ff; --muted:rgba(234,241,255,.7);
-      --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
-    }
+:root{
+  --headerH:64px;
+  --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
+  --bg:#070b16; --panel:rgba(255,255,255,.06);
+  --stroke:rgba(255,255,255,.12);
+  --txt:#eaf1ff; --muted:rgba(234,241,255,.7);
+  --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+}
     *{box-sizing:border-box}
     body{
       margin:0; color:var(--txt);
@@ -192,7 +193,6 @@
       text-align: center;
     }
     tr:hover td{background:rgba(255,255,255,.03)}
-    .tblWrap{max-height:360px; overflow:auto; border:1px solid rgba(255,255,255,.08); border-radius:14px}
     .num{font-variant-numeric: tabular-nums}
     .tag{
       display:inline-flex; align-items:center; gap:6px;
@@ -575,6 +575,8 @@ input[type="number"]{
   }
 }
 .iconBtn{
+  width:34px; height:34px;
+  border-radius:8px;
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -583,7 +585,7 @@ input[type="number"]{
   cursor:pointer;
   transition: all 0.2s;
 }
-
+.iconBtn:hover{ background: rgba(255,255,255,.06); }
 .icoRefresh{
   fill:#e9ecff;
   transition: fill .2s ease, transform .2s ease;
@@ -685,21 +687,18 @@ input[type="number"]{
 }
 @media (max-width:700px){
   header{
-    flex-wrap:wrap;   
+    flex-wrap: nowrap;        /* ✅ jangan wrap */
     gap:8px;
   }
-  .pill{
-    order:1;
-  }
   .vaultSearchWrap{
-    order:2;              /* ✅ sentiasa lepas role */
-    flex:1 1 220px;       /* masih boleh kecil */
-    min-width:160px;
-    margin-right:auto;    /* tolak item lain ke kanan */
+    flex: 1 1 auto;           /* ✅ search boleh shrink */
+    min-width: 0;
+    margin-right:auto;
   }
-
+  .vaultSearchBox{ max-width:100%; }
   .right{
-    order:3;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;        /* ✅ icon tak turun */
     margin-left:auto;
   }
 }
@@ -834,12 +833,6 @@ input[type="number"]{
   #btnBalance{ display:none !important; }
   #userDrop{ display:none !important; }
 }
-.iconBtn{
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-}
-.iconBtn:hover{ background: rgba(255,255,255,.06); }
 /* ✅ 1) Wallet/Username: value sahaja, center */
 .drawerRow.drawerOnlyValue{
   justify-content: center;
