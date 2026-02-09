@@ -878,6 +878,39 @@ input[type="number"]{
   .vaultSearchWrap{ max-width: 80vw; }
   .vaultSearchBox{ max-width: 80vw; }
 }
+header{
+  min-width: 360px;              /* ✅ limit minimum layout header */
+  overflow-x: auto;              /* ✅ kalau sempit sangat, scroll */
+  -webkit-overflow-scrolling: touch;
+}
+
+header::-webkit-scrollbar{ height: 6px; }
+header::-webkit-scrollbar-thumb{ background: rgba(255,255,255,.18); border-radius: 99px; }
+.vaultSearchWrap{
+  min-width: 220px;    /* ✅ search tak boleh kecil sangat */
+  flex: 1 1 220px;
+}
+
+.vaultSearchBox{
+  min-width: 220px;    /* ✅ penting */
+}
+
+#vaultSearch{
+  min-width: 220px;    /* ✅ penting */
+}
+.right{
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.rightDrawer{
+  min-width: 260px;              /* ✅ drawer tak jadi kecik pelik */
+}
+
+.drawerRow,
+.drawerLogoutBtn{
+  min-width: 220px;              /* ✅ row tak boleh kecik gila */
+}
   </style>
 </head>
 
