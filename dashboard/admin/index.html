@@ -1613,6 +1613,7 @@ ${!isHistory ? `
               <tr><td>Total KG</td><td class="kpiGood" data-kpi="sellKg">${fmt(s.totalKg)}</td></tr>
               <tr><td>Total Quantity</td><td class="kpiGood" data-kpi="sellEkor">${Number(s.totalEkor||0).toLocaleString()}</td></tr>
               <tr><td>Total Death</td><td class="kpiBad" data-kpi="missingQty">${Number(s.missing?.qty||0).toLocaleString()}</td></tr>
+              <tr><td>Total Price Death</td><td class="kpiBad" data-kpi="missingTotal">${fmt((s.missing?.total||0))}</td></tr>
               <tr><td>Total Available</td><td class="kpiGood" data-kpi="availablePig">${availablePig.toLocaleString()}</td></tr>
             </table>
           </div>
@@ -2013,8 +2014,8 @@ function updateVaultKpiFromFiltered(vaultId){
   let sellKg = 0;
   let sellEkor = 0;
   let sellKgSum = 0, sellPriceKgWeighted = 0;
-
   let missingQty = 0;
+  let missingTotal = 0;
 
   // ✅ NEW: cash in/out totals
   let cashIn = 0;
@@ -2059,9 +2060,10 @@ function updateVaultKpiFromFiltered(vaultId){
       }
     }
 
-    if(t.kind === "missing"){
-      missingQty += Number(t.qty||0);
-    }
+if(t.kind === "missing"){
+  missingQty += Number(t.qty||0);
+  missingTotal += Number(t.total || t.amount || 0); // ✅ jumlah harga mati
+}
   }
 
   const profit = sellRevenue - buyCost;
@@ -2128,6 +2130,7 @@ function updateVaultKpiFromFiltered(vaultId){
 
   // missing & available
   setKpi("missingQty", missingQty.toLocaleString());
+  setKpi("missingTotal", fmt(missingTotal));
   setKpi("availablePig", availablePig.toLocaleString());
 }
   function wireVaultListeners(){
