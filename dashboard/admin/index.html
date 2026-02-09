@@ -1390,18 +1390,25 @@ function closeModal(id){
     if(t.classList.contains("modalBack")) t.style.display="none";
   });
 
-  // ===== ROLE =====
-  async function loadRole(uid){
-    const r = await get(ref(db, `roles/${uid}`));
-    const role = r.exists() ? r.val() : {};
-    me.isAdmin = role?.isAdmin === true;
-    me.username = role?.username || me.username || "user";
-    $("rolePill").textContent = me.isAdmin ? "Admin" : "Client";
-    $("usernameText").textContent = me.username;
-
-    // permission UI
-    $("btnAddPoint").classList.toggle("hide", !me.isAdmin);
+// ===== ROLE =====
+async function loadRole(uid){
+  const r = await get(ref(db, `roles/${uid}`));
+  const role = r.exists() ? r.val() : {};
+  me.isAdmin = role?.isAdmin === true;
+  me.username = role?.username || me.username || "user";
+  const rolePill = $("rolePill");
+  if(rolePill){
+    rolePill.textContent = me.isAdmin ? "Admin" : "Client";
   }
+  const usernameText = $("usernameText");
+  if(usernameText){
+    usernameText.textContent = me.username;
+  }
+  const btnAddPoint = $("btnAddPoint");
+  if(btnAddPoint){
+    btnAddPoint.classList.toggle("hide", !me.isAdmin);
+  }
+}
 
   // ===== BALANCE =====
 function wireBalanceListener(){
