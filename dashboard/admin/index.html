@@ -644,7 +644,6 @@ input[type="number"]{
   display:flex;
   align-items:center;
   justify-content:flex-start;
-  margin-left:16px; 
   margin-right:auto;   
   min-width: 220px;
 }
@@ -656,20 +655,18 @@ input[type="number"]{
 
 #vaultSearch{
   width:100%;
-  height:42px;
+  height:32px;
   padding:0 42px 0 14px;
-  border-radius:12px;
-  background:rgba(0,0,0,.35);
-  border:1px solid rgba(255,255,255,.15);
-  color:#fff;
+  border-radius:6px;
+  background:#141414;
+  border:1px solid #303030;
+  color:rgba(255, 255, 255, 0.85);
   font-size:14px;
   outline:none;
+  transition: all 0.2s;
 }
 
-#vaultSearch:focus{
-  border-color:#3b82f6;
-  box-shadow:0 0 0 3px rgba(59,130,246,.25);
-}
+#vaultSearch:hover{border-color:#3c89e8;},#vaultSearch:focus{border-color:#1668dc;}
 
 .vaultSearchIcon{
   position:absolute;
