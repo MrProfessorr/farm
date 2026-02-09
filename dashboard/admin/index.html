@@ -890,6 +890,8 @@ header{ z-index: 50 !important; }      /* biar biasa */
 }
 
 #vaultSearch{ padding-right:52px !important; }
+    .drawerOverlay{ display:none; }
+.drawerOverlay.open{ display:block; }
   </style>
 </head>
 
@@ -965,7 +967,7 @@ header{ z-index: 50 !important; }      /* biar biasa */
   </div>
 </header>
 <!-- ✅ RIGHT DRAWER (mobile menu) -->
-<div id="rightDrawerOverlay" class="drawerOverlay" hidden></div>
+<div id="rightDrawerOverlay" class="drawerOverlay"></div>
 
 <aside id="rightDrawer" class="rightDrawer" aria-hidden="true">
   <div class="rightDrawerBody">
@@ -3419,6 +3421,19 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   toggleSearchUI();
 });
+// close bila klik luar drawer (fallback paling power)
+document.addEventListener("click", (e)=>{
+  if(!drawer || !drawer.classList.contains("open")) return;
+
+  const insideDrawer = drawer.contains(e.target);
+  const onBtn = btnDrawer && btnDrawer.contains(e.target);
+  const onOverlay = overlay && overlay.contains(e.target);
+
+  // kalau klik overlay atau mana2 luar drawer, tutup
+  if(onOverlay || (!insideDrawer && !onBtn)){
+    closeDrawer();
+  }
+}, true);
 </script>
 </body>
 </html>
