@@ -685,15 +685,24 @@ input[type="number"]{
   }
 }
 @media (max-width:700px){
-  header{ gap:10px; }
-  .vaultSearchWrap{
-    flex: 1 1 100%;
-    margin-left:0;
-    margin-right:0;
-    order: 3;                   /* jatuh bawah untuk phone */
+  header{
+    flex-wrap:wrap;   
+    gap:8px;
   }
-  .right{ order: 2; margin-left:auto; }
-  .pill{ order: 1; }
+  .pill{
+    order:1;
+  }
+  .vaultSearchWrap{
+    order:2;              /* ✅ sentiasa lepas role */
+    flex:1 1 220px;       /* masih boleh kecil */
+    min-width:160px;
+    margin-right:auto;    /* tolak item lain ke kanan */
+  }
+
+  .right{
+    order:3;
+    margin-left:auto;
+  }
 }
 /* bagi ruang kanan cukup untuk icon / clear */
 #vaultSearch{
