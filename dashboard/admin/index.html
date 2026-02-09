@@ -1600,6 +1600,7 @@ ${!isHistory ? `
               <tr><td>Total Price</td><td class="kpiGood" data-kpi="buyTotal">${fmt((s.babyPig?.total||0))}</td></tr>
               <tr><td>Total Profit</td><td class="${profitClass}" data-kpi="profit">${fmt(profitVal)}</td></tr>
               <tr><td>Total Sales</td><td class="${salesClass}" data-kpi="sales">${fmt(salesValue)}</td></tr>
+              <tr><td>Total Cash In/Out</td><td class="kpiGood" data-kpi="cashNet">0.00</td></tr>
             </table>
           </div>
 
@@ -2119,7 +2120,15 @@ if(cashOutEl){
     salesEl.classList.toggle("kpiGood", sales >= 0);
     salesEl.classList.toggle("kpiBad", sales < 0);
   }
+ // ===== CASH IN/OUT NET =====
+const cashNet = cashIn - cashOut;  // duit masuk tolak duit keluar
 
+const cashNetEl = card.querySelector(`[data-kpi="cashNet"]`);
+if(cashNetEl){
+  cashNetEl.textContent = fmt(cashNet);
+  cashNetEl.classList.toggle("kpiGood", cashNet >= 0);
+  cashNetEl.classList.toggle("kpiBad",  cashNet < 0);
+}
   // update SELL
   setKpi("sellRevenue", fmt(sellRevenue));
   setKpi("sellAvgKg", fmt(sellAvgKg));
