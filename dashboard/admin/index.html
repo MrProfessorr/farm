@@ -745,7 +745,6 @@ input[type="number"]{
    ========================= */
 
 /* Button drawer (guna iconBtn style kau) */
-:root{ --headerH:64px; }
 .rightDrawerBtn{ display:none; }
 
 /* Overlay */
@@ -807,13 +806,9 @@ input[type="number"]{
 }
 
 .drawerRow{
-  display:flex;
-  justify-content:space-between;
-  gap: 10px;
-  padding: 0px 15px;
   border: 1px solid #303030;
   border-radius: 6px;
-  background: #000;
+  background: #141414;
 }
 
 .drawerLabel{
@@ -832,22 +827,6 @@ input[type="number"]{
 
   #btnBalance{ display:none !important; }
   #userDrop{ display:none !important; }
-}
-/* ✅ 1) Wallet/Username: value sahaja, center */
-.drawerRow.drawerOnlyValue{
-  justify-content: center;
-  align-items: center;
-  padding: 0 12px;
-  height: 32px;
-}
-
-.drawerRow.drawerOnlyValue .drawerLabel{ display:none !important; }
-
-.drawerRow.drawerOnlyValue .drawerValue{
-  width: 100%;
-  text-align: center;
-  font-weight: 800;
-  letter-spacing: .2px;
 }
 
 /* ✅ 2) Logout ikut style dropdown (kalau guna .userMenuItem) */
@@ -894,6 +873,10 @@ input[type="number"]{
 
 .drawerRow.drawerBtnLike .drawerSpacer{
   display:block;
+}
+  @media (max-width:420px){
+  .vaultSearchWrap{ max-width: 80vw; }
+  .vaultSearchBox{ max-width: 80vw; }
 }
   </style>
 </head>
