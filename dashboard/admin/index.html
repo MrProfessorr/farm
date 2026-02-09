@@ -746,12 +746,15 @@ input[type="number"]{
    ========================= */
 
 /* Button drawer (guna iconBtn style kau) */
+:root{ --headerH:64px; }
 .rightDrawerBtn{ display:none; }
 
 /* Overlay */
 .drawerOverlay{
   position: fixed;
-  inset: 0;
+  left:0; right:0;
+  top: var(--headerH);
+  bottom:0;
   background: rgba(0,0,0,.55);
   z-index: 9998;
 }
@@ -759,16 +762,17 @@ input[type="number"]{
 /* Drawer panel */
 .rightDrawer{
   position: fixed;
-  top: 0;
+  top: var(--headerH);
   right: 0;
-  height: 100vh;
+  height: calc(100vh - var(--headerH));
   width: min(320px, 88vw);
-  background: #001529;                 /* match header */
+  background: #001529;
   border-left: 1px solid rgba(255,255,255,.12);
   z-index: 9999;
   transform: translateX(105%);
   transition: transform .22s ease;
   box-shadow: -18px 0 40px rgba(0,0,0,.45);
+  overflow:auto;
 }
 .rightDrawer.open{ transform: translateX(0); }
 
@@ -920,11 +924,6 @@ input[type="number"]{
 <div id="rightDrawerOverlay" class="drawerOverlay" hidden></div>
 
 <aside id="rightDrawer" class="rightDrawer" aria-hidden="true">
-  <div class="rightDrawerHead">
-    <div class="rightDrawerTitle">Menu</div>
-    <button id="btnRightDrawerClose" class="iconBtn" type="button" aria-label="Close">✕</button>
-  </div>
-
   <div class="rightDrawerBody">
     <div class="drawerRow">
       <div class="drawerLabel">Wallet</div>
@@ -3247,70 +3246,85 @@ onAuthStateChanged(auth, async (user)=>{
       setTimeout(()=> location.reload(), 250);
     });
   }
-    // ✅ RIGHT DRAWER (MOBILE MENU)
-  const btnDrawer = document.getElementById("btnRightDrawer");
-  const drawer = document.getElementById("rightDrawer");
-  const overlay = document.getElementById("rightDrawerOverlay");
-  const btnClose = document.getElementById("btnRightDrawerClose");
+// ✅ RIGHT DRAWER (MOBILE MENU) - UPDATED
+const btnDrawer = document.getElementById("btnRightDrawer");
+const drawer = document.getElementById("rightDrawer");
+const overlay = document.getElementById("rightDrawerOverlay");
 
-  const drawerWallet = document.getElementById("drawerWallet");
-  const drawerUsername = document.getElementById("drawerUsername");
-  const drawerLogoutBtn = document.getElementById("drawerLogoutBtn");
+const drawerWallet = document.getElementById("drawerWallet");
+const drawerUsername = document.getElementById("drawerUsername");
+const drawerLogoutBtn = document.getElementById("drawerLogoutBtn");
 
-  function syncDrawer(){
-    // Wallet: guna balanceText (kau ada element ni)
-    const balEl = document.getElementById("balanceText");
-    if(drawerWallet && balEl) drawerWallet.textContent = balEl.textContent.trim();
+function syncDrawer(){
+  const balEl = document.getElementById("balanceText");
+  if(drawerWallet && balEl) drawerWallet.textContent = balEl.textContent.trim();
 
-    // Username: guna usernameText (kau set banyak kali dalam code)
-    const uEl = document.getElementById("usernameText");
-    if(drawerUsername && uEl) drawerUsername.textContent = uEl.textContent.trim();
+  const uEl = document.getElementById("usernameText");
+  if(drawerUsername && uEl) drawerUsername.textContent = uEl.textContent.trim();
+}
+
+// optional: elak “layout lonjak” bila lock scroll
+function lockScroll(){
+  const sb = window.innerWidth - document.documentElement.clientWidth;
+  document.documentElement.style.overflow = "hidden";
+  document.documentElement.style.paddingRight = sb ? (sb + "px") : "";
+}
+function unlockScroll(){
+  document.documentElement.style.overflow = "";
+  document.documentElement.style.paddingRight = "";
+}
+
+function openDrawer(){
+  syncDrawer();
+  if(overlay) overlay.hidden = false;
+  if(drawer){
+    drawer.classList.add("open");
+    drawer.setAttribute("aria-hidden","false");
   }
+  lockScroll();
+}
 
-  function openDrawer(){
-    syncDrawer();
-    if(overlay) overlay.hidden = false;
-    if(drawer) drawer.classList.add("open");
-    if(drawer) drawer.setAttribute("aria-hidden","false");
-    document.documentElement.style.overflow = "hidden";
+function closeDrawer(){
+  if(drawer){
+    drawer.classList.remove("open");
+    drawer.setAttribute("aria-hidden","true");
   }
+  if(overlay) overlay.hidden = true;
+  unlockScroll();
+}
 
-  function closeDrawer(){
-    if(drawer) drawer.classList.remove("open");
-    if(drawer) drawer.setAttribute("aria-hidden","true");
-    if(overlay) overlay.hidden = true;
-    document.documentElement.style.overflow = "";
-  }
+function toggleDrawer(){
+  if(drawer && drawer.classList.contains("open")) closeDrawer();
+  else openDrawer();
+}
 
-  if(btnDrawer) btnDrawer.addEventListener("click", openDrawer);
-  if(btnClose) btnClose.addEventListener("click", closeDrawer);
-  if(overlay) overlay.addEventListener("click", closeDrawer);
+if(btnDrawer) btnDrawer.addEventListener("click", toggleDrawer);
+if(overlay) overlay.addEventListener("click", closeDrawer);
 
-  document.addEventListener("keydown", (e)=>{
-    if(e.key === "Escape") closeDrawer();
+document.addEventListener("keydown", (e)=>{
+  if(e.key === "Escape") closeDrawer();
+});
+
+if(drawerLogoutBtn){
+  drawerLogoutBtn.addEventListener("click", async ()=>{
+    try{
+      await signOut(auth);
+      location.replace("../login/");
+    }catch(e){
+      console.error(e);
+      toast(e?.message || "Logout failed");
+    }
   });
+}
 
-  // ✅ Logout dalam drawer (guna logic logout asal kau)
-  if(drawerLogoutBtn){
-    drawerLogoutBtn.addEventListener("click", async ()=>{
-      try{
-        await signOut(auth);
-        location.replace("../login/");
-      }catch(e){
-        console.error(e);
-        toast(e?.message || "Logout failed");
-      }
-    });
-  }
-
-  // ✅ bila balance berubah (listener), update drawer juga bila drawer tengah open
-  const balTextEl = document.getElementById("balanceText");
-  if(balTextEl){
-    const obs = new MutationObserver(()=>{
-      if(drawer && drawer.classList.contains("open")) syncDrawer();
-    });
-    obs.observe(balTextEl, { childList:true, characterData:true, subtree:true });
-  }
+// ✅ bila balance berubah, update drawer kalau tengah open
+const balTextEl = document.getElementById("balanceText");
+if(balTextEl){
+  const obs = new MutationObserver(()=>{
+    if(drawer && drawer.classList.contains("open")) syncDrawer();
+  });
+  obs.observe(balTextEl, { childList:true, characterData:true, subtree:true });
+}
   toast("Ready.");
 });
 // ===== SEARCH INPUT UI =====
