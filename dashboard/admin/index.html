@@ -826,18 +826,6 @@ input[type="number"]{
   color: rgba(255,255,255,.85);
 }
 
-.drawerLogoutBtn{
-  width: 100%;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid #303030;
-  background: #141414;
-  color: rgba(255,255,255,.85);
-  cursor: pointer;
-  transition: all .2s;
-}
-.drawerLogoutBtn:hover{ border-color: rgba(239,68,68,.55); }
-.drawerLogoutBtn:active{ transform: translateY(1px); }
 
 /* ✅ MOBILE: sembunyi wallet + dropdown, guna drawer */
 @media (max-width: 640px){
@@ -852,6 +840,40 @@ input[type="number"]{
   border-radius: 8px;
 }
 .iconBtn:hover{ background: rgba(255,255,255,.06); }
+/* ✅ 1) Wallet/Username: value sahaja, center */
+.drawerRow.drawerOnlyValue{
+  justify-content: center;
+  align-items: center;
+  padding: 0 12px;
+  height: 32px;
+}
+
+.drawerRow.drawerOnlyValue .drawerLabel{ display:none !important; }
+
+.drawerRow.drawerOnlyValue .drawerValue{
+  width: 100%;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: .2px;
+}
+
+/* ✅ 2) Logout ikut style dropdown (kalau guna .userMenuItem) */
+.drawerLogoutBtn.userMenuItem{
+  width: 100%;
+  height: 38px;              /* ikut button dropdown (kau boleh adjust) */
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 22px 1fr 22px; /* icon kiri, text center, spacer */
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+}
+
+/* hover merah sikit */
+.drawerLogoutBtn.userMenuItem:hover{
+  border-color: rgba(239,68,68,.55);
+  color: rgba(239,68,68,.95);
+}
   </style>
 </head>
 
@@ -931,17 +953,23 @@ input[type="number"]{
 
 <aside id="rightDrawer" class="rightDrawer" aria-hidden="true">
   <div class="rightDrawerBody">
-    <div class="drawerRow">
-      <div class="drawerLabel">Wallet</div>
-      <div id="drawerWallet" class="drawerValue">0.00</div>
-    </div>
+<div class="drawerRow drawerOnlyValue">
+  <div id="drawerWallet" class="drawerValue">0.00</div>
+</div>
 
-    <div class="drawerRow">
-      <div class="drawerLabel">Username</div>
-      <div id="drawerUsername" class="drawerValue">user</div>
-    </div>
+<div class="drawerRow drawerOnlyValue">
+  <div id="drawerUsername" class="drawerValue">user</div>
+</div>
 
-    <button id="drawerLogoutBtn" class="drawerLogoutBtn" type="button">Logout</button>
+<button id="drawerLogoutBtn" class="userMenuItem drawerLogoutBtn" type="button">
+  <span class="miIcon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+      <path d="M3 21V3h9v2H5v14h7v2zm13-4l-1.375-1.45l2.55-2.55H9v-2h8.175l-2.55-2.55L16 7l5 5z"/>
+    </svg>
+  </span>
+  <span class="miText">Logout</span>
+  <span></span>
+</button>
   </div>
 </aside>
 
