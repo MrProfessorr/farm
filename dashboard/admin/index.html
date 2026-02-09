@@ -874,7 +874,23 @@ input[type="number"]{
 .drawerRow.drawerBtnLike .drawerSpacer{
   display:block;
 }
+/* ===== PATCH FIX ===== */
+header{ height: var(--headerH); z-index: 10000 !important; }
+.drawerOverlay{ z-index: 9000 !important; }
+.rightDrawer{ z-index: 9001 !important; }
 
+.vaultSearchWrap,.vaultSearchBox,.right,.walletBtn{ min-width:0; }
+
+#walletAmount,.walletAmount{
+  max-width:140px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  display:block;
+  font-variant-numeric: tabular-nums;
+}
+
+#vaultSearch{ padding-right:52px !important; }
   </style>
 </head>
 
