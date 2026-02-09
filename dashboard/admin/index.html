@@ -2089,11 +2089,14 @@ if(t.kind === "missing"){
 
 const cashOutEl = card.querySelector(`[data-kpi="cashOut"]`);
 if(cashOutEl){
-  const showOut = (cashOut > 0) ? -cashOut : 0;
-  cashOutEl.textContent = fmt(showOut);
-
-  cashOutEl.classList.toggle("kpiGood", cashOut === 0);
-  cashOutEl.classList.toggle("kpiBad",  cashOut > 0);
+  cashOutEl.textContent = fmt(cashOut);
+  if(cashOut > 0){
+    cashOutEl.classList.remove("kpiGood");
+    cashOutEl.classList.add("kpiBad");
+  }else{
+    cashOutEl.classList.remove("kpiBad");
+    cashOutEl.classList.add("kpiGood");
+  }
 }
 
   // update BUY
