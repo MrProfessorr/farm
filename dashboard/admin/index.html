@@ -608,7 +608,38 @@ input[type="number"]{
   .txTimeRow{ flex-direction:column; align-items:stretch; }
   .txTimeRow .btn{ width:100%; }
 }
+.vaultFooter{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:12px;
+  margin-top:14px;
+}
 
+.vaultFooterLeft{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+}
+
+.vaultFooterRight{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+/* responsive phone: jadi stack */
+@media (max-width:560px){
+  .vaultFooter{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .vaultFooterRight{
+    justify-content:flex-start;
+  }
+}
   </style>
 </head>
 
@@ -1659,38 +1690,39 @@ ${!isHistory ? `
           </table>
         </div>
 
-       ${(v.note || v.createdBy) ? `
-  <div class="hr"></div>
-  <div class="hint">
-    ${v.note ? `<div><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
-    <div><b>Create By:</b> ${escapeHtml(createdBy)}</div>
+${(v.note || v.createdBy) ? `<div class="hr"></div>` : ``}
+
+<div class="vaultFooter">
+  <div class="vaultFooterLeft">
+    ${v.note ? `<div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
+    <div class="hint"><b>Create By:</b> ${escapeHtml(createdBy)}</div>
   </div>
-` : ``}
 
-<div style="display:flex; justify-content:flex-end; gap:10px; margin-top:14px">
-  ${
-    (!isHistory)
-      ? `
-        ${
-          (me.isAdmin || isOwner)
-            ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
-            : ``
-        }
-      `
-      : `
-        ${(() => {
-          const isOwnerUnclose =
-            me.isAdmin ||
-            (v?.createdByUid && v.createdByUid === me.uid) ||
-            (v?.closedByUid && v.closedByUid === me.uid);
+  <div class="vaultFooterRight">
+    ${
+      (!isHistory)
+        ? `
+          ${
+            (me.isAdmin || isOwner)
+              ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="open">Delete Vault</button>`
+              : ``
+          }
+        `
+        : `
+          ${(() => {
+            const isOwnerUnclose =
+              me.isAdmin ||
+              (v?.createdByUid && v.createdByUid === me.uid) ||
+              (v?.closedByUid && v.closedByUid === me.uid);
 
-          return isOwnerUnclose
-            ? `<button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>`
-            : ``;
-        })()}
-        ${me.isAdmin ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>` : ``}
-      `
-  }
+            return isOwnerUnclose
+              ? `<button class="btn ghost" data-act="vaultUnclose" data-id="${vaultId}">Unclosing</button>`
+              : ``;
+          })()}
+          ${me.isAdmin ? `<button class="btn danger" data-act="vaultDel" data-id="${vaultId}" data-b="history">Delete Vault</button>` : ``}
+        `
+    }
+  </div>
 </div>
 
       </div>
