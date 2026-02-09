@@ -640,12 +640,59 @@ input[type="number"]{
     justify-content:flex-start;
   }
 }
+.vaultSearchWrap{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.vaultSearchBox{
+  position:relative;
+  width:100%;
+  max-width:420px;
+}
+
+#vaultSearch{
+  width:100%;
+  height:42px;
+  padding:0 42px 0 14px;
+  border-radius:12px;
+  background:rgba(0,0,0,.35);
+  border:1px solid rgba(255,255,255,.15);
+  color:#fff;
+  font-size:14px;
+  outline:none;
+}
+
+#vaultSearch:focus{
+  border-color:#3b82f6;
+  box-shadow:0 0 0 3px rgba(59,130,246,.25);
+}
+
+.vaultSearchIcon{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  opacity:.7;
+  pointer-events:none;
+}
   </style>
 </head>
 
 <body>
 <header>
-  <div class="pill" id="rolePill">loading...</div>
+  <!-- 🔍 VAULT SEARCH -->
+  <div class="vaultSearchWrap">
+    <div class="vaultSearchBox">
+      <input id="vaultSearch" type="text" placeholder="Search vault (title / note / create by)..." />
+      <svg class="vaultSearchIcon" viewBox="0 0 24 24" width="18" height="18">
+        <path fill="currentColor" d="M21.71 20.29l-3.4-3.39A8 8 0 1 0 17 18l3.39 3.4a1 1 0 0 0 1.41-1.41ZM5 11a6 6 0 1 1 6 6a6 6 0 0 1-6-6Z"/>
+      </svg>
+    </div>
+  </div>
+
   <div class="right">
   <button class="btn-modal walletBtn" id="btnBalance">
   <span class="walletIcon" aria-hidden="true">
@@ -1321,6 +1368,9 @@ function ymd(ms){
   const vaultPickers = {};   // { [vaultId]: flatpickrInstance }
   const vaultTxCache = {}; 
   const vaultTxUnsubs = {};
+  let vaultSearchTerm = "";
+  let openVaultDataCache = {};
+  let histVaultDataCache = {};
   // ===== MODAL helper =====
   function openModal(id){ $(id).style.display="flex"; }
 function closeModal(id){
@@ -2196,19 +2246,39 @@ if(missTotalEl){
 
 setKpi("availablePig", availablePig.toLocaleString());
 }
-  function wireVaultListeners(){
-    // Open vaults
-    onValue(query(vaultRefOpen(), orderByChild("createdAtMs"), limitToLast(80)), (snap)=>{
-      const data = snap.exists()? snap.val() : {};
-      renderVaultList("viewOpen", data, "open");
-    });
+function vaultMatchesSearch(v, term){
+  if(!term) return true;
+  const t = term.toLowerCase();
+  return (
+    String(v.title||"").toLowerCase().includes(t) ||
+    String(v.note||"").toLowerCase().includes(t) ||
+    String(v.createdBy||"").toLowerCase().includes(t)
+  );
+}
 
-    // History vaults
-    onValue(query(vaultRefHist(), orderByChild("createdAtMs"), limitToLast(120)), (snap)=>{
-      const data = snap.exists()? snap.val() : {};
-      renderVaultList("viewHistory", data, "history");
-    });
+function filterVaultData(data){
+  const out = {};
+  for(const [id,v] of Object.entries(data||{})){
+    if(vaultMatchesSearch(v, vaultSearchTerm)) out[id]=v;
   }
+  return out;
+}
+
+function rerenderVaultLists(){
+  renderVaultList("viewOpen", filterVaultData(openVaultDataCache), "open");
+  renderVaultList("viewHistory", filterVaultData(histVaultDataCache), "history");
+}
+function wireVaultListeners(){
+  onValue(query(vaultRefOpen(), orderByChild("createdAtMs"), limitToLast(80)), (snap)=>{
+    openVaultDataCache = snap.exists()? snap.val() : {};
+    rerenderVaultLists();
+  });
+
+  onValue(query(vaultRefHist(), orderByChild("createdAtMs"), limitToLast(120)), (snap)=>{
+    histVaultDataCache = snap.exists()? snap.val() : {};
+    rerenderVaultLists();
+  });
+}
  async function assertCanOperateOpenVault(vaultId){
   if(me.isAdmin) return true;
   const s = await get(ref(db, `vaults/open/${vaultId}/createdByUid`));
@@ -2949,6 +3019,13 @@ onAuthStateChanged(auth, async (user)=>{
 
   wireBalanceListener();
   wireVaultListeners();
+  const searchInput = document.getElementById("vaultSearch");
+  if(searchInput){
+  searchInput.addEventListener("input", e=>{
+    vaultSearchTerm = e.target.value.trim();
+    rerenderVaultLists();
+  });
+}
   setView("open");
   initCustomSelects();
     // 🔄 REFRESH BUTTON
