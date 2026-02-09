@@ -3331,11 +3331,19 @@ function syncDrawer(){
 // optional: elak “layout lonjak” bila lock scroll
 function lockScroll(){
   const sb = window.innerWidth - document.documentElement.clientWidth;
+
+  document.documentElement.style.overflow = "hidden";
+  document.documentElement.style.paddingRight = sb ? (sb + "px") : "";
+
+  // safety: kalau ada style lain kat body
   document.body.style.overflow = "hidden";
-  document.body.style.paddingRight = sb ? (sb + "px") : "";
+  document.body.style.paddingRight = "";
 }
 
 function unlockScroll(){
+  document.documentElement.style.overflow = "";
+  document.documentElement.style.paddingRight = "";
+
   document.body.style.overflow = "";
   document.body.style.paddingRight = "";
 }
