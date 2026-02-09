@@ -742,6 +742,110 @@ input[type="number"]{
 
 .vaultSearchClear:hover svg{ opacity:1; color:#3c89e8; }
 .vaultSearchClear:active svg{ transform: scale(.95); color:#1554ad; }
+/* =========================
+   ✅ RIGHT DRAWER (MOBILE MENU)
+   ========================= */
+
+/* Button drawer (guna iconBtn style kau) */
+.rightDrawerBtn{ display:none; }
+
+/* Overlay */
+.drawerOverlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 9998;
+}
+
+/* Drawer panel */
+.rightDrawer{
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: min(320px, 88vw);
+  background: #001529;                 /* match header */
+  border-left: 1px solid rgba(255,255,255,.12);
+  z-index: 9999;
+  transform: translateX(105%);
+  transition: transform .22s ease;
+  box-shadow: -18px 0 40px rgba(0,0,0,.45);
+}
+.rightDrawer.open{ transform: translateX(0); }
+
+.rightDrawerHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+
+.rightDrawerTitle{
+  font-weight: 800;
+  color: rgba(255,255,255,.9);
+}
+
+.rightDrawerHead .iconBtn{
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+}
+.rightDrawerHead .iconBtn:hover{ border-color:#3c89e8; color:#3c89e8; }
+.rightDrawerHead .iconBtn:active{ border-color:#1554ad; color:#1554ad; }
+
+.rightDrawerBody{
+  padding: 14px;
+  display:flex;
+  flex-direction:column;
+  gap: 12px;
+}
+
+.drawerRow{
+  display:flex;
+  justify-content:space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 10px;
+  background: rgba(255,255,255,.06);
+}
+
+.drawerLabel{
+  color: rgba(255,255,255,.7);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.drawerValue{
+  color: rgba(255,255,255,.9);
+  font-weight: 800;
+}
+
+.drawerLogoutBtn{
+  width: 100%;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(239,68,68,.35);
+  background: rgba(239,68,68,.14);
+  color: rgba(255,255,255,.92);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+}
+.drawerLogoutBtn:hover{ border-color: rgba(239,68,68,.55); }
+.drawerLogoutBtn:active{ transform: translateY(1px); }
+
+/* ✅ MOBILE: sembunyi wallet + dropdown, guna drawer */
+@media (max-width: 640px){
+  .rightDrawerBtn{ display:inline-flex; }
+
+  #btnBalance{ display:none !important; }
+  #userDrop{ display:none !important; }
+}
   </style>
 </head>
 
@@ -808,9 +912,37 @@ input[type="number"]{
     <path d="m21.897 13.404.008-.057v.002c.024-.178.044-.357.058-.537.024-.302-.189-.811-.749-.811-.391 0-.715.3-.747.69-.018.221-.044.44-.078.656-.645 4.051-4.158 7.153-8.391 7.153-3.037 0-5.704-1.597-7.206-3.995l1.991-.005c.414 0 .75-.336.75-.75s-.336-.75-.75-.75h-4.033c-.414 0-.75.336-.75.75v4.049c0 .414.336.75.75.75s.75-.335.75-.75l.003-2.525c1.765 2.836 4.911 4.726 8.495 4.726 5.042 0 9.217-3.741 9.899-8.596zm-19.774-2.974-.009.056v-.002c-.035.233-.063.469-.082.708-.024.302.189.811.749.811.391 0 .715-.3.747-.69.022-.28.058-.556.107-.827.716-3.968 4.189-6.982 8.362-6.982 3.037 0 5.704 1.597 7.206 3.995l-1.991.005c-.414 0-.75.336-.75.75s.336.75.75.75h4.033c.414 0 .75-.336.75-.75v-4.049c0-.414-.336-.75-.75-.75s-.75.335-.75.75l-.003 2.525c-1.765-2.836-4.911-4.726-8.495-4.726-4.984 0-9.12 3.654-9.874 8.426z"/>
   </svg>
 </button>
-    
+
+<button id="btnRightDrawer" class="iconBtn rightDrawerBtn" type="button" title="Menu" aria-label="Menu">
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <path d="M24 6h-24v-4h24v4zm0 4h-24v4h24v-4zm0 8h-24v4h24v-4z"></path>
+  </svg>
+</button>
   </div>
 </header>
+<!-- ✅ RIGHT DRAWER (mobile menu) -->
+<div id="rightDrawerOverlay" class="drawerOverlay" hidden></div>
+
+<aside id="rightDrawer" class="rightDrawer" aria-hidden="true">
+  <div class="rightDrawerHead">
+    <div class="rightDrawerTitle">Menu</div>
+    <button id="btnRightDrawerClose" class="iconBtn" type="button" aria-label="Close">✕</button>
+  </div>
+
+  <div class="rightDrawerBody">
+    <div class="drawerRow">
+      <div class="drawerLabel">Wallet</div>
+      <div id="drawerWallet" class="drawerValue">0.00</div>
+    </div>
+
+    <div class="drawerRow">
+      <div class="drawerLabel">Username</div>
+      <div id="drawerUsername" class="drawerValue">user</div>
+    </div>
+
+    <button id="drawerLogoutBtn" class="drawerLogoutBtn" type="button">Logout</button>
+  </div>
+</aside>
 
 <div class="container">
   <div class="topRow">
@@ -3118,6 +3250,70 @@ onAuthStateChanged(auth, async (user)=>{
       btnRefresh.classList.add("spinning");
       setTimeout(()=> location.reload(), 250);
     });
+  }
+    // ✅ RIGHT DRAWER (MOBILE MENU)
+  const btnDrawer = document.getElementById("btnRightDrawer");
+  const drawer = document.getElementById("rightDrawer");
+  const overlay = document.getElementById("rightDrawerOverlay");
+  const btnClose = document.getElementById("btnRightDrawerClose");
+
+  const drawerWallet = document.getElementById("drawerWallet");
+  const drawerUsername = document.getElementById("drawerUsername");
+  const drawerLogoutBtn = document.getElementById("drawerLogoutBtn");
+
+  function syncDrawer(){
+    // Wallet: guna balanceText (kau ada element ni)
+    const balEl = document.getElementById("balanceText");
+    if(drawerWallet && balEl) drawerWallet.textContent = balEl.textContent.trim();
+
+    // Username: guna usernameText (kau set banyak kali dalam code)
+    const uEl = document.getElementById("usernameText");
+    if(drawerUsername && uEl) drawerUsername.textContent = uEl.textContent.trim();
+  }
+
+  function openDrawer(){
+    syncDrawer();
+    if(overlay) overlay.hidden = false;
+    if(drawer) drawer.classList.add("open");
+    if(drawer) drawer.setAttribute("aria-hidden","false");
+    document.documentElement.style.overflow = "hidden";
+  }
+
+  function closeDrawer(){
+    if(drawer) drawer.classList.remove("open");
+    if(drawer) drawer.setAttribute("aria-hidden","true");
+    if(overlay) overlay.hidden = true;
+    document.documentElement.style.overflow = "";
+  }
+
+  if(btnDrawer) btnDrawer.addEventListener("click", openDrawer);
+  if(btnClose) btnClose.addEventListener("click", closeDrawer);
+  if(overlay) overlay.addEventListener("click", closeDrawer);
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") closeDrawer();
+  });
+
+  // ✅ Logout dalam drawer (guna logic logout asal kau)
+  if(drawerLogoutBtn){
+    drawerLogoutBtn.addEventListener("click", async ()=>{
+      try{
+        await signOut(auth);
+        location.replace("../login/");
+      }catch(e){
+        console.error(e);
+        toast(e?.message || "Logout failed");
+      }
+    });
+  }
+
+  // ✅ bila balance berubah (listener), update drawer juga bila drawer tengah open
+  const balTextEl = document.getElementById("balanceText");
+  if(balTextEl){
+    const obs = new MutationObserver(()=>{
+      if(drawer && drawer.classList.contains("open")) syncDrawer();
+    });
+    obs.observe(balTextEl, { childList:true, characterData:true, subtree:true });
   }
   toast("Ready.");
 });
