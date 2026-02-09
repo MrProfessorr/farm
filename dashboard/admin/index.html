@@ -1774,11 +1774,11 @@ function buildTxDesc(t){
 
   if(t.kind==="buy"){
     return t.category==="baby_pig" ? "Pets"
-         : (t.category==="feed" ? "Pakan Babi" : "Other");
+         : (t.category==="feed" ? "Feed" : "Other");
   }
 
-  if(t.kind==="missing"){
-    return "Missing";
+  if(t.kind==="Death"){
+    return "Death Pets";
   }
 
   if(t.kind==="sell"){
