@@ -732,20 +732,23 @@ input[type="number"]{
 /* Button drawer (guna iconBtn style kau) */
 .rightDrawerBtn{ display:none; }
 
-/* ✅ Overlay full screen */
+/* ✅ Overlay start bawah header */
 .drawerOverlay{
   position: fixed;
-  inset: 0;                 /* top/right/bottom/left = 0 */
+  top: var(--headerH);
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0,0,0,.55);
   z-index: 9000;
 }
 
-/* ✅ Drawer full height dari atas */
+/* ✅ Drawer start bawah header */
 .rightDrawer{
   position: fixed;
-  top: 0;
+  top: var(--headerH);
   right: 0;
-  height: 100vh;
+  height: calc(100dvh - var(--headerH)); /* ✅ guna 100dvh (mobile lebih tepat) */
   width: min(320px, 88vw);
   background: #001529;
   border-left: 1px solid rgba(255,255,255,.12);
@@ -753,8 +756,9 @@ input[type="number"]{
   transform: translateX(105%);
   transition: transform .22s ease;
   box-shadow: -18px 0 40px rgba(0,0,0,.45);
-  overflow:auto;
+  overflow: auto;
 }
+
 .rightDrawer.open{ transform: translateX(0); }
 
 .rightDrawerHead{
@@ -858,7 +862,7 @@ input[type="number"]{
   display:block;
 }
 /* ===== PATCH FIX ===== */
-header{ z-index: 50 !important; }      /* biar biasa */
+header{ z-index: 9500 !important; }      /* biar biasa */
 .drawerOverlay{ z-index: 9000 !important; }
 .rightDrawer{ z-index: 9001 !important; }
 
