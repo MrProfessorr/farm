@@ -890,47 +890,40 @@ input[type="number"]{
 
 .drawerOverlay{ display:none; }
 .drawerOverlay.open{ display:block; }
-/* =========================
-   ✅ Drawer text jangan overflow bila screen kecik
-   ========================= */
-
-/* bagi column tengah boleh shrink betul-betul */
+/* Biar grid boleh mengecil */
 .drawerRow.drawerBtnLike{
   min-width: 0;
 }
 
-/* text tengah (wallet/username) */
-.drawerRow.drawerBtnLike .drawerText{
-  min-width: 0;                 /* 🔥 penting utk grid */
-  overflow: hidden;
-  text-overflow: ellipsis;       /* ... */
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-/* kalau kau guna id drawerWallet/drawerUsername */
+/* TEXT WALLET & USERNAME — FULL TEXT, AUTO WRAP */
+.drawerRow.drawerBtnLike .drawerText,
 #drawerWallet,
 #drawerUsername{
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;          /* 🔥 boleh turun baris */
+  word-break: break-word;       /* 🔥 patahkan nombor panjang */
+  overflow-wrap: anywhere;      /* 🔥 support semua browser */
+  line-height: 1.2;
 }
 
-/* Logout button pun sama (text tengah) */
-.drawerLogoutBtn.userMenuItem .miText{
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* Logout text pun sama */
+.drawerLogoutBtn .miText{
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
 }
 
-/* extra: bila screen terlalu kecil, kecilkan padding + font sikit */
-@media (max-width:360px){
-  .rightDrawerBody{ padding: 10px; }
-  .drawerRow.drawerBtnLike{ padding: 0 10px; }
-  .drawerRow.drawerBtnLike .drawerText{
-    font-size: 13px;
+@media (max-width: 380px){
+  .drawerRow.drawerBtnLike{
+    padding: 8px 10px;
+  }
+
+  .drawerRow.drawerBtnLike .drawerText,
+  #drawerWallet,
+  #drawerUsername,
+  .drawerLogoutBtn .miText{
+    font-size: 13px;  /* kecil sikit bila phone kecik */
   }
 }
   </style>
