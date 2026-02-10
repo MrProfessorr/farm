@@ -27,10 +27,9 @@
       padding:0 16px;
       position:sticky; top:0; z-index:50;
       background:#001529;
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--stroke);
+      border-bottom:1px solid var(--stroke);gap:10px; 
     }
-    .right{display:flex; align-items:center; gap:5px}
+    .right{display:flex; align-items:center; gap:5px;flex:0 0 auto;flex-wrap:nowrap;}
     .btn-delete{
       border: 1px solid rgb(196 19 19); 
       border-radius:6px; padding: 8px 10px; cursor:pointer;
@@ -498,13 +497,6 @@ input[type="number"]{
 .kpiTable .kpiBad{ color:red!important; }
 /* ===== USER DROPDOWN ===== */
 .userDrop{ position:relative; }
-
-.btn-user{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-}
-
 .btn-user .caret{ opacity:.8; font-size:12px; transform: translateY(-1px); }
 
 .userMenu{
@@ -648,6 +640,8 @@ input[type="number"]{
   justify-content:flex-start;
   margin-right:auto;   
   min-width: 220px;
+  flex:1 1 auto; 
+  min-width:0;
 }
 
 .vaultSearchBox{
@@ -659,7 +653,7 @@ input[type="number"]{
 #vaultSearch{
   width:100%;
   height:32px;
-  padding:0 42px 0 14px;
+  padding:0 60px 0 14px;
   border-radius:6px;
   background:#141414;
   border:1px solid #303030;
@@ -672,7 +666,7 @@ input[type="number"]{
 #vaultSearch:focus{border-color:#1668dc;}
 .vaultSearchIcon{
   position:absolute;
-  right:12px;
+  right:42px;
   top:50%;
   transform:translateY(-50%);
   opacity:.7;
@@ -703,12 +697,6 @@ input[type="number"]{
     margin-left:auto;
   }
 }
-
-/* 🔍 icon (default nampak bila input kosong) */
-.vaultSearchIcon{
-  display:block; /* default */
-}
-
 /* ❌ clear button */
 .vaultSearchClear{
   position:absolute;
@@ -885,8 +873,7 @@ header{ z-index: 50 !important; }      /* biar biasa */
   font-variant-numeric: tabular-nums;
 }
 
-#vaultSearch{ padding-right:52px !important; }
-    .drawerOverlay{ display:none; }
+.drawerOverlay{ display:none; }
 .drawerOverlay.open{ display:block; }
   </style>
 </head>
