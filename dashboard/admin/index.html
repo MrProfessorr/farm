@@ -39,7 +39,7 @@ body.drawerOpen{
       padding:0 16px;
       position:sticky; top:0; z-index:50;
       background:#001529;
-      border-bottom:1px solid var(--stroke);gap:10px; 
+      border-bottom:1px solid var(--stroke);gap:10px; z-index: 9500 !important;
     }
     .right{display:flex; align-items:center; gap:5px;flex:0 0 auto;flex-wrap:nowrap;}
     .btn-delete{
@@ -874,7 +874,6 @@ input[type="number"]{
   display:block;
 }
 /* ===== PATCH FIX ===== */
-header{ z-index: 9500 !important; }      /* biar biasa */
 .drawerOverlay{ z-index: 9000 !important; }
 .rightDrawer{ z-index: 9001 !important; }
 
@@ -891,6 +890,49 @@ header{ z-index: 9500 !important; }      /* biar biasa */
 
 .drawerOverlay{ display:none; }
 .drawerOverlay.open{ display:block; }
+/* =========================
+   ✅ Drawer text jangan overflow bila screen kecik
+   ========================= */
+
+/* bagi column tengah boleh shrink betul-betul */
+.drawerRow.drawerBtnLike{
+  min-width: 0;
+}
+
+/* text tengah (wallet/username) */
+.drawerRow.drawerBtnLike .drawerText{
+  min-width: 0;                 /* 🔥 penting utk grid */
+  overflow: hidden;
+  text-overflow: ellipsis;       /* ... */
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* kalau kau guna id drawerWallet/drawerUsername */
+#drawerWallet,
+#drawerUsername{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Logout button pun sama (text tengah) */
+.drawerLogoutBtn.userMenuItem .miText{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* extra: bila screen terlalu kecil, kecilkan padding + font sikit */
+@media (max-width:360px){
+  .rightDrawerBody{ padding: 10px; }
+  .drawerRow.drawerBtnLike{ padding: 0 10px; }
+  .drawerRow.drawerBtnLike .drawerText{
+    font-size: 13px;
+  }
+}
   </style>
 </head>
 
