@@ -168,6 +168,7 @@ body.drawerOpen{
     .tab.active{background:rgba(22,104,220,.18); color:var(--txt); border-color:rgba(22,104,220,.45)}
     .actions{display:flex; gap:5px; align-items:center; flex-wrap:wrap}
     .hint{color:var(--muted); font-size:12px; line-height:1.4}
+    .create-vault{color:#1668dc; font-size:12px; line-height:1.4}
 
     .grid{display:grid; gap:12px}
     .card{
@@ -2167,7 +2168,7 @@ ${(v.note || v.createdBy) ? `<div class="hr"></div>` : ``}
 <div class="vaultFooter">
   <div class="vaultFooterLeft">
     ${v.note ? `<div class="hint"><b>Note:</b> ${escapeHtml(v.note)}</div>` : ``}
-    <div class="hint"><b>Create By:</b> ${escapeHtml(createdBy)}</div>
+    <div class="create-vault"><b>Create By:</b> ${escapeHtml(createdBy)}</div>
   </div>
 
   <div class="vaultFooterRight">
