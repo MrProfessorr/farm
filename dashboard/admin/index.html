@@ -822,12 +822,11 @@ input[type="number"]{
 }
 
 
-/* ✅ MOBILE: sembunyi wallet + dropdown, guna drawer */
-@media (max-width: 640px){
-  .rightDrawerBtn{ display:inline-flex; }
-
-  #btnBalance{ display:none !important; }
-  #userDrop{ display:none !important; }
+/* ✅ RESPONSIVE: bila screen kecil/tablet -> pindah wallet ke drawer */
+@media (max-width: 900px){
+  .rightDrawerBtn{ display:inline-flex !important; }
+  #btnBalance{ display:none !important; }  /* hide wallet header */
+  #userDrop{ display:none !important; }    /* hide user dropdown header */
 }
 
 /* ===== PATCH FIX ===== */
