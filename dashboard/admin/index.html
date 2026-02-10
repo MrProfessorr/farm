@@ -106,6 +106,7 @@ body.drawerOpen{
       height: 32px;
       font-size: 14px;
       transition: all 0.2s;
+      grid-template-columns: 24px 1fr 24px;
     }
     .btn-user:hover{border: 1px solid #3c89e8;color:#3c89e8;}
     .btn-user:active{border: 1px solid #1554ad;color:#1554ad;}
@@ -938,8 +939,8 @@ input[type="number"]{
 </div>
 
 <!-- Username -->
-<div class="drawerRow drawerBtnLike" id="drawerUserRow">
-  <span class="drawerIcon" aria-hidden="true">
+<div class="btn-user" id="drawerUserRow">
+  <span class="userIcon" aria-hidden="true">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
       <path d="M12 12a4 4 0 1 0-4-4a4 4 0 0 0 4 4zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/>
     </svg>
