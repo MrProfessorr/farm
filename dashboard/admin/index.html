@@ -3426,6 +3426,14 @@ onAuthStateChanged(auth, async (user)=>{
     });
   }
 initRightDrawerOnce();
+function syncHeaderHeightVar(){
+  const header = document.querySelector("header");
+  if(!header) return;
+  const h = Math.round(header.getBoundingClientRect().height || 64);
+  document.documentElement.style.setProperty("--headerH", h + "px");
+}
+syncHeaderHeightVar();
+window.addEventListener("resize", syncHeaderHeightVar);
 syncDrawer();
   toast("Ready.");
 });
