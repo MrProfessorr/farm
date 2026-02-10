@@ -1709,7 +1709,10 @@ function closeDrawer(){
   if(overlay) overlay.classList.remove("open");
   unlockScroll();
 }
-
+function openWalletFromAnywhere(){
+  try{ closeDrawer(); }catch(_){}
+  openModal("mBalance");
+}
 function toggleDrawer(){
   if(drawer && drawer.classList.contains("open")) closeDrawer();
   else openDrawer();
@@ -1738,6 +1741,14 @@ function initRightDrawerOnce(){
   drawerWallet = document.getElementById("drawerWallet");
   drawerUsername = document.getElementById("drawerUsername");
   drawerLogoutBtn = document.getElementById("drawerLogoutBtn");
+  const drawerWalletRow = document.getElementById("drawerWalletRow"); 
+  if(drawerWalletRow){
+  drawerWalletRow.addEventListener("click", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    openWalletFromAnywhere();
+  });
+}
 
   if(btnDrawer){
     btnDrawer.addEventListener("click", (e)=>{
@@ -2697,7 +2708,7 @@ function wireVaultListeners(){
   return owner === me.uid;
 }
   // ===== EVENTS =====
-  $("btnBalance").addEventListener("click", ()=> openModal("mBalance"));
+ $("btnBalance").addEventListener("click", openWalletFromAnywhere);
 // ===== USER DROPDOWN TOGGLE =====
 const userDrop = $("userDrop");
 const userBtn  = $("btnUser");
