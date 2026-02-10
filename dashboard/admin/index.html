@@ -1380,6 +1380,14 @@ import {
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
+  function setSelectAndSync(selectId, value){
+  const el = document.getElementById(selectId);
+  if(!el) return;
+
+  el.value = value;
+  el.dispatchEvent(new Event("change", { bubbles:true }));
+  el.dispatchEvent(new Event("input",  { bubbles:true }));
+}
   function vaultRefOpen(){
   return ref(db, "vaults/open");
 }
@@ -2752,7 +2760,7 @@ $("btnLogout").addEventListener("click", async ()=>{
 
   $("btnAddPoint").addEventListener("click", ()=>{
     if(!me.isAdmin){ toast("Limited user: tiada akses Add Point."); return; }
-    $("apType").value="in"; $("apAmount").value=""; $("apNote").value="";
+    setSelectAndSync("apType", "in"); $("apAmount").value=""; $("apNote").value="";
     openModal("mAddPoint");
   });
 
@@ -2810,7 +2818,7 @@ $("nvCreate").addEventListener("click", async ()=>{
       ctxVaultId = vid;
       const vSnap = await get(ref(db, `vaults/open/${vid}`));
       $("cashVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
-      $("cashType").value="cash_in"; $("cashAmount").value=""; $("cashNote").value="";
+      setSelectAndSync("cashType", "cash_in"); $("cashAmount").value=""; $("cashNote").value="";
       resetTxTimeInput("txTime_cash");
       if(!(await assertCanOperateOpenVault(vid))){
       toast("No access: this vault is not yours.");
@@ -2823,7 +2831,7 @@ $("nvCreate").addEventListener("click", async ()=>{
       ctxVaultId = vid;
       const vSnap = await get(ref(db, `vaults/open/${vid}`));
       $("buyVaultTitle").textContent = vSnap.exists()? `Vault: ${vSnap.val().title}` : "Vault";
-      $("buyCat").value="baby_pig";
+      setSelectAndSync("buyCat", "baby_pig");
       $("buyQty").value=""; $("buyPrice").value=""; $("buyTotal").value="";
       $("buyNote").value="";
       $("buyBalanceHint").textContent = `Current balance: ${fmt(currentBalance)}`;
@@ -2919,7 +2927,7 @@ if(act==="close"){
 
   if(t.kind==="buy"){
     $("buyVaultTitle").textContent = `Edit Buy • Vault: ${vaultId}`;
-    $("buyCat").value = t.category || "baby_pig";
+    setSelectAndSync("buyCat", t.category || "baby_pig");
     $("buyQty").value = String(t.qty ?? "");
     $("buyPrice").value = String(t.price ?? "");
     $("buyTotal").value = String(t.total ?? "");
