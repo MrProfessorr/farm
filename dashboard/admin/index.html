@@ -70,6 +70,7 @@ body.drawerOpen{
       height: 32px;
       font-size: 14px;
       transition: all 0.2s;
+      grid-template-columns: 24px 1fr 24px;
     }
     .btn-modal:hover{border: 1px solid #3c89e8;}
     .walletBtn:hover .walletIcon{color:#3c89e8;}
@@ -828,33 +829,6 @@ input[type="number"]{
   #userDrop{ display:none !important; }
 }
 
-  /* ✅ Drawer row jadi macam desktop: icon kiri, text center */
-.drawerRow.drawerBtnLike{
-  display: grid;
-  grid-template-columns: 24px 1fr 24px; /* icon kiri, text center, spacer kanan */
-  align-items: center;
-  height: 32px;
-  padding: 0 12px;
-  border: 1px solid #303030;
-  border-radius: 6px;
-  background: #141414;
-  color: rgba(255,255,255,.85);
-}
-
-.drawerRow.drawerBtnLike .drawerIcon{
-  display: grid;
-  place-items: center;
-  color: rgba(255,255,255,.85);
-}
-
-.drawerRow.drawerBtnLike .drawerText{
-  text-align: center;
-  letter-spacing: .2px;
-}
-
-.drawerRow.drawerBtnLike .drawerSpacer{
-  display:block;
-}
 /* ===== PATCH FIX ===== */
 .drawerOverlay{ z-index: 9000 !important; }
 .rightDrawer{ z-index: 9001 !important; }
