@@ -15,10 +15,17 @@
   --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
 }
     *{box-sizing:border-box}
-  body.drawerOpen{
-  overflow:hidden;
-  height:100dvh;
-  touch-action:none;
+html.drawerOpen,
+body.drawerOpen{
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+body.drawerOpen{
+  position: fixed !important;
+  left: 0; right: 0;
+  width: 100%;
+  touch-action: none;
 }
     body{
       margin:0; color:var(--txt);
@@ -1642,6 +1649,7 @@ let drawerUsername = null;
 let drawerLogoutBtn = null;
 
 let drawerBound = false;
+let __scrollY = 0;
 
 function syncDrawer(){
   const balEl = document.getElementById("balanceText");
@@ -1652,14 +1660,24 @@ function syncDrawer(){
 }
 
 function lockScroll(){
-  const sb = window.innerWidth - document.documentElement.clientWidth;
+  __scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.documentElement.classList.add("drawerOpen");
   document.body.classList.add("drawerOpen");
+  document.body.style.top = `-${__scrollY}px`;
+  const sb = window.innerWidth - document.documentElement.clientWidth;
   document.body.style.paddingRight = sb ? (sb + "px") : "";
+  const header = document.querySelector("header");
+  if(header) header.style.paddingRight = sb ? (sb + "px") : "";
 }
 
 function unlockScroll(){
+  document.documentElement.classList.remove("drawerOpen");
   document.body.classList.remove("drawerOpen");
+  document.body.style.top = "";
   document.body.style.paddingRight = "";
+  const header = document.querySelector("header");
+  if(header) header.style.paddingRight = "";
+  window.scrollTo(0, __scrollY);
 }
 
 function openDrawer(){
