@@ -42,9 +42,6 @@ body.drawerOpen{
       border-bottom:1px solid var(--stroke);gap:10px; z-index: 9500 !important;
     }
     .right{display:flex; align-items:center; gap:5px;flex:0 0 auto;flex-wrap:nowrap;}
-    .btn-user .miText {
-    text-align: center;
-}
     .btn-delete{
       border: 1px solid rgb(196 19 19); 
       border-radius:6px; padding: 8px 10px; cursor:pointer;
@@ -851,6 +848,61 @@ input[type="number"]{
 .drawerOverlay{ display:none; }
 .drawerOverlay.open{ display:block; }
 /* Biar grid boleh mengecil */
+/* =========================================
+   ✅ PATCH CENTER WALLET + USERNAME
+   Letak PALING BAWAH CSS kau
+   ========================================= */
+
+/* ===== HEADER WALLET (btnBalance): icon kiri, amount betul2 center ===== */
+#btnBalance{
+  display:grid !important;
+  grid-template-columns: 24px 1fr 24px; /* kiri icon, tengah text, kanan spacer */
+  align-items:center;
+  gap:10px;
+}
+#btnBalance .walletIcon{ justify-self:center; }
+#btnBalance #balanceText{ justify-self:center; text-align:center; }
+
+/* spacer kanan (sebab header wallet tak ada span spacer) */
+#btnBalance::after{
+  content:"";
+  width:24px;
+  height:1px;
+  justify-self:center;
+}
+
+/* ===== HEADER USER DROPDOWN (btnUser): icon kiri, username center, caret kanan ===== */
+#btnUser{
+  display:grid !important;
+  grid-template-columns: 24px 1fr 24px;
+  align-items:center;
+  gap:10px;
+}
+#btnUser .userIcon{ justify-self:center; }
+#btnUser #usernameText{ justify-self:center; text-align:center; }
+#btnUser .caret{ justify-self:center; }
+
+/* ===== DRAWER USER ROW (drawerUserRow): icon kiri, text center, tiada caret ===== */
+#drawerUserRow{
+  display:grid !important;
+  grid-template-columns: 24px 1fr 24px;
+  align-items:center;
+  gap:10px;
+}
+#drawerUserRow .userIcon{ justify-self:center; }
+#drawerUserRow #drawerUsername{ justify-self:center; text-align:center; }
+#drawerUserRow .drawerSpacer{ justify-self:center; }
+
+/* ===== DRAWER WALLET ROW (drawerWalletRow): icon kiri, amount center ===== */
+#drawerWalletRow{
+  display:grid !important;
+  grid-template-columns: 24px 1fr 24px;
+  align-items:center;
+  gap:10px;
+}
+#drawerWalletRow .walletIcon{ justify-self:center; }
+#drawerWalletRow #drawerWallet{ justify-self:center; text-align:center; }
+#drawerWalletRow .drawerSpacer{ justify-self:center; }
   </style>
 </head>
 
