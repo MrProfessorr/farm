@@ -891,41 +891,6 @@ input[type="number"]{
 .drawerOverlay{ display:none; }
 .drawerOverlay.open{ display:block; }
 /* Biar grid boleh mengecil */
-.drawerRow.drawerBtnLike{
-  min-width: 0;
-}
-
-/* TEXT WALLET & USERNAME — FULL TEXT, AUTO WRAP */
-.drawerRow.drawerBtnLike .drawerText,
-#drawerWallet,
-#drawerUsername{
-  min-width: 0;
-  white-space: normal;          /* 🔥 boleh turun baris */
-  word-break: break-word;       /* 🔥 patahkan nombor panjang */
-  overflow-wrap: anywhere;      /* 🔥 support semua browser */
-  line-height: 1.2;
-}
-
-/* Logout text pun sama */
-.drawerLogoutBtn .miText{
-  white-space: normal;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-  line-height: 1.2;
-}
-
-@media (max-width: 380px){
-  .drawerRow.drawerBtnLike{
-    padding: 8px 10px;
-  }
-
-  .drawerRow.drawerBtnLike .drawerText,
-  #drawerWallet,
-  #drawerUsername,
-  .drawerLogoutBtn .miText{
-    font-size: 13px;  /* kecil sikit bila phone kecik */
-  }
-}
   </style>
 </head>
 
