@@ -1382,6 +1382,59 @@ import {
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
+  // ========= INPUT NUMBER FORMAT (1,000.00) =========
+function parseNumberLoose(v){
+  if (v == null) return 0;
+  const s = String(v).replace(/[^\d.-]/g, ""); // buang comma, RM, space
+  const n = Number(s);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatMoney2(n){
+  const x = Number(n);
+  if (!Number.isFinite(x)) return "";
+  return x.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+
+function formatInt(n){
+  const x = Math.round(Number(n));
+  if (!Number.isFinite(x)) return "";
+  return x.toLocaleString("en-US");
+}
+
+function attachAutoFormat(el, mode="money"){
+  if(!el) return;
+
+  el.setAttribute("inputmode", mode==="int" ? "numeric" : "decimal");
+  el.setAttribute("autocomplete","off");
+
+  el.addEventListener("focus", ()=>{
+    const raw = parseNumberLoose(el.value);
+    el.value = raw ? String(raw) : "";
+    requestAnimationFrame(()=> el.select?.());
+  });
+
+  el.addEventListener("input", ()=>{
+    el.value = el.value.replace(/[^\d.,-]/g,"");
+  });
+
+  el.addEventListener("blur", ()=>{
+    if(el.value.trim()===""){ el.value=""; return; }
+    const num = parseNumberLoose(el.value);
+    el.value = (mode==="int") ? formatInt(num) : formatMoney2(num);
+  });
+
+  // format on load if already has value
+  if(el.value && el.value.trim()!==""){
+    const num = parseNumberLoose(el.value);
+    el.value = (mode==="int") ? formatInt(num) : formatMoney2(num);
+  }
+}
+
+// shortcut ambil nombor sebenar dari input (walaupun ada comma)
+function getNum(id){
+  return parseNumberLoose($(id)?.value);
+}
   function setSelectAndSync(selectId, value){
   const el = document.getElementById(selectId);
   if(!el) return;
@@ -2775,7 +2828,7 @@ $("btnLogout").addEventListener("click", async ()=>{
   $("apSave").addEventListener("click", async ()=>{
     if(!me.isAdmin){ toast("No access."); return; }
     const type = $("apType").value;
-    const amount = Number($("apAmount").value||0);
+    const amount = getNum("apAmount");
     const note = $("apNote").value.trim();
     if(amount<=0){ toast("Amount mesti > 0"); return; }
 
@@ -3112,7 +3165,7 @@ if(act==="vaultUnclose"){
 // CASH SAVE (CREATE + EDIT)
 $("cashSave").addEventListener("click", async ()=>{
   const type = $("cashType").value;
-  const amount = Number($("cashAmount").value||0);
+  const amount = getNum("cashAmount");
   const note = $("cashNote").value.trim();
   if(amount<=0){ toast("Amount mesti > 0"); return; }
 
@@ -3169,14 +3222,14 @@ $("cashSave").addEventListener("click", async ()=>{
 });
 // BUY AUTO CALC
 function calcBuy(){
-  const qty   = Number($("buyQty").value||0);
-  const price = Number($("buyPrice").value||0);
+  const qty   = getNum("buyQty");
+  const price = getNum("buyPrice");
   const autoTotal = (qty > 0 && price > 0) ? (qty * price) : 0;
   if(!buyTotalManual){
-    $("buyTotal").value = autoTotal ? autoTotal.toFixed(2) : "";
+    $("buyTotal").value = autoTotal ? formatMoney2(autoTotal) : "";
   }
 
-  const total = Number($("buyTotal").value||0);
+  const total = getNum("buyTotal");
   const enough = total <= currentBalance;
   $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
   $("buyBalanceHint").textContent = enough
@@ -3196,9 +3249,9 @@ $("buyTotal").addEventListener("input", ()=>{
 // BUY SAVE (CREATE + EDIT)
 $("buySave").addEventListener("click", async ()=>{
   const category = $("buyCat").value;
-  const qty = Number($("buyQty").value||0);
-  const price = Number($("buyPrice").value||0);
-  const total = Number($("buyTotal").value||0) || (qty*price);
+  const qty = getNum("buyQty");
+  const price = getNum("buyPrice");
+  const total = getNum("buyTotal") || (qty*price);
   const note = $("buyNote").value.trim();
 
   if(total<=0){ toast("Total mesti > 0"); return; }
@@ -3269,17 +3322,17 @@ $("buySave").addEventListener("click", async ()=>{
 
 // MISSING AUTO CALC
 function calcMissing(){
-  const q = Number($("missQty").value||0);
-  const p = Number($("missPrice").value||0);
+  const q = getNum("missQty");
+  const p = getNum("missPrice");;
   const t = q*p;
-  $("missTotal").value = t ? t.toFixed(2) : "";
+  $("missTotal").value = (q>0 && p>0) ? formatMoney2(q*p) : "";
 }
 ["missQty","missPrice"].forEach(id=> $(id).addEventListener("input", calcMissing));
 
 // MISSING SAVE (CREATE + EDIT)
 $("missSave").addEventListener("click", async ()=>{
-  const qty = Number($("missQty").value||0);
-  const price = Number($("missPrice").value||0);
+  const qty = getNum("missQty");
+  const price = getNum("missPrice");
   const total = qty * price;
   const note = $("missNote").value.trim();
 
@@ -3320,19 +3373,19 @@ $("missSave").addEventListener("click", async ()=>{
 
 // SELL AUTO CALC
 function calcSell(){
-  const priceKg = Number($("sellPriceKg").value||0);
-  const kg = Number($("sellKg").value||0);
+  const priceKg = getNum("sellPriceKg");
+  const kg = getNum("sellKg");
   const total = priceKg * kg;
-  $("sellTotal").value = total ? total.toFixed(2) : "";
+  $("sellTotal").value = (priceKg>0 && kg>0) ? formatMoney2(priceKg*kg) : "";
 }
 ["sellPriceKg","sellKg"].forEach(id=> $(id).addEventListener("input", calcSell));
 
 // SELL SAVE (CREATE + EDIT)
 $("sellSave").addEventListener("click", async ()=>{
-  const priceKg = Number($("sellPriceKg").value||0);
-  const kg = Number($("sellKg").value||0);
-  const ekor = Number($("sellEkor").value||0);
-  const total = Number($("sellTotal").value||0) || (priceKg*kg);
+  const priceKg = getNum("sellPriceKg");
+  const kg = getNum("sellKg");
+  const ekor = getNum("sellEkor");
+  const total = getNum("sellTotal") || (priceKg*kg);
   const note = $("sellNote").value.trim();
 
   if(total<=0 || kg<=0){ toast("Price/Kg dan Kg mesti isi."); return; }
@@ -3400,7 +3453,7 @@ $("sellSave").addEventListener("click", async ()=>{
 });
 // VALIDATE EKOR INPUT
 function validateSellEkor(){
-  const ekor = Number($("sellEkor").value||0);
+  const ekor = getNum("sellEkor");
   const ok = ekor <= ctxAvailablePig;
 
   $("sellEkor").style.borderColor = ok ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.85)";
@@ -3461,6 +3514,23 @@ onAuthStateChanged(auth, async (user)=>{
 }
   setView("open");
   initCustomSelects();
+  // ===== AUTO FORMAT INPUTS =====
+attachAutoFormat($("apAmount"), "money");
+
+attachAutoFormat($("cashAmount"), "money");
+
+attachAutoFormat($("buyPrice"), "money");
+attachAutoFormat($("buyQty"), "int");
+attachAutoFormat($("buyTotal"), "money");
+
+attachAutoFormat($("missPrice"), "money");
+attachAutoFormat($("missQty"), "int");
+attachAutoFormat($("missTotal"), "money");
+
+attachAutoFormat($("sellPriceKg"), "money");
+attachAutoFormat($("sellKg"), "money");      // kg boleh decimal
+attachAutoFormat($("sellEkor"), "int");
+attachAutoFormat($("sellTotal"), "money");
     // 🔄 REFRESH BUTTON
   const btnRefresh = document.getElementById("btnRefresh");
   if(btnRefresh){
