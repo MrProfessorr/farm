@@ -1087,7 +1087,7 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Amount</label>
-          <input id="apAmount" type="number" min="0" step="0.01" />
+          <input id="apAmount" type="text" inputmode="decimal">
         </div>
         <div>
           <label>Note</label>
@@ -1152,7 +1152,7 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Amount</label>
-          <input id="cashAmount" type="number" min="0" step="0.01" />
+          <input id="cashAmount" type="text" inputmode="decimal">
         </div>
         <div>
           <label>Note</label>
@@ -1195,18 +1195,18 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Quantity</label>
-          <input id="buyQty" type="number" min="0" step="1" />
+          <input id="buyQty"   type="text" inputmode="numeric">
         </div>
         <div>
           <label>Price Quantity</label>
-          <input id="buyPrice" type="number" min="0" step="0.01" />
+          <input id="buyPrice" type="text" inputmode="decimal">
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Total Price</label>
-          <input id="buyTotal" type="number" min="0" step="0.01" />
+          <input id="buyTotal" type="text" inputmode="decimal">
           <div class="hint" id="buyBalanceHint"></div>
         </div>
         <div>
@@ -1243,18 +1243,18 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Price Quantity</label>
-          <input id="sellPriceKg" type="number" min="0" step="0.01" />
+          <input id="sellPriceKg" type="text" inputmode="decimal">
         </div>
         <div>
           <label>Total Kg</label>
-          <input id="sellKg" type="number" min="0" step="0.01" />
+          <input id="sellKg" type="text" inputmode="decimal">
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Total Quantity</label>
-          <input id="sellEkor" type="number" min="0" step="1" />
+          <input id="sellEkor" type="text" inputmode="numeric">
           <div class="hint" id="sellEkorHint"></div>
         </div>
 
@@ -1265,7 +1265,7 @@ input[type="number"]{
 
         <div>
           <label>Total Amount</label>
-          <input id="sellTotal" type="number" min="0" step="0.01" />
+          <input id="sellTotal" type="text" inputmode="decimal">
         </div>
       </div>
 
@@ -1301,18 +1301,18 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Quantity Death</label>
-          <input id="missQty" type="number" min="0" step="1" />
+          <input id="missQty"   type="text" inputmode="numeric">
         </div>
         <div>
           <label>Price Quantity</label>
-          <input id="missPrice" type="number" min="0" step="0.01" />
+          <input id="missPrice" type="text" inputmode="decimal">
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Total Amount</label>
-          <input id="missTotal" type="number" disabled placeholder="auto" />
+          <input id="missTotal" type="text" inputmode="decimal" disabled>
         </div>
         <div>
           <label>Note</label>
@@ -1408,23 +1408,40 @@ function attachAutoFormat(el, mode="money"){
   el.setAttribute("inputmode", mode==="int" ? "numeric" : "decimal");
   el.setAttribute("autocomplete","off");
 
+  // ===== FOCUS: buang format supaya senang edit =====
   el.addEventListener("focus", ()=>{
     const raw = parseNumberLoose(el.value);
     el.value = raw ? String(raw) : "";
     requestAnimationFrame(()=> el.select?.());
   });
 
+  // ===== INPUT: tapis karakter pelik =====
   el.addEventListener("input", ()=>{
-    el.value = el.value.replace(/[^\d.,-]/g,"");
+    let v = el.value;
+
+    // buang semua selain digit, dot, minus
+    v = v.replace(/[^\d.-]/g,"");
+
+    // hanya benarkan satu minus di depan
+    v = v.replace(/(?!^)-/g, "");
+
+    // hanya satu titik decimal
+    const parts = v.split(".");
+    if(parts.length > 2){
+      v = parts[0] + "." + parts.slice(1).join("");
+    }
+
+    el.value = v;
   });
 
+  // ===== BLUR: format cantik =====
   el.addEventListener("blur", ()=>{
     if(el.value.trim()===""){ el.value=""; return; }
     const num = parseNumberLoose(el.value);
     el.value = (mode==="int") ? formatInt(num) : formatMoney2(num);
   });
 
-  // format on load if already has value
+  // ===== ON LOAD: format jika ada value awal =====
   if(el.value && el.value.trim()!==""){
     const num = parseNumberLoose(el.value);
     el.value = (mode==="int") ? formatInt(num) : formatMoney2(num);
@@ -3505,13 +3522,7 @@ onAuthStateChanged(auth, async (user)=>{
 
   wireBalanceListener();
   wireVaultListeners();
-  const searchInput = document.getElementById("vaultSearch");
-  if(searchInput){
-  searchInput.addEventListener("input", e=>{
-    vaultSearchTerm = e.target.value.trim();
-    rerenderVaultLists();
-  });
-}
+  
   setView("open");
   initCustomSelects();
   // ===== AUTO FORMAT INPUTS =====
@@ -3560,15 +3571,20 @@ document.addEventListener("DOMContentLoaded", () => {
     console.warn("Search UI missing element:", { searchInput, clearBtn, searchIcon });
     return;
   }
+
   function toggleSearchUI() {
     const hasText = searchInput.value.trim().length > 0;
     searchIcon.style.display = hasText ? "none" : "block";
     clearBtn.style.display   = hasText ? "inline-flex" : "none";
   }
+
+  // ✅ LETAK KAT SINI (gantikan listener lama)
   searchInput.addEventListener("input", () => {
+    vaultSearchTerm = searchInput.value.trim();
+    rerenderVaultLists();
     toggleSearchUI();
-    // filterVaults(searchInput.value);
   });
+
   clearBtn.addEventListener("click", () => {
     searchInput.value = "";
     toggleSearchUI();
@@ -3577,7 +3593,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   toggleSearchUI();
 });
-
 </script>
 </body>
 </html>
