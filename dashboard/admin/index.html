@@ -906,6 +906,21 @@ input[type="number"]{
 #drawerWalletRow .walletIcon{ justify-self:center; }
 #drawerWalletRow #drawerWallet{ justify-self:center; text-align:center; }
 #drawerWalletRow .drawerSpacer{ justify-self:center; }
+.btn.isLoading{
+  pointer-events:none;
+  opacity:.85;
+}
+
+.btn .btnSpin{
+  width:14px;height:14px;
+  display:inline-block;
+  margin-right:8px;
+  vertical-align:-2px;
+  animation: btnSpin .9s linear infinite;
+}
+
+@keyframes btnSpin{ to{ transform:rotate(360deg); } }
+
   </style>
 </head>
 
@@ -1118,7 +1133,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mAddPoint">Cancel</button>
-      <button class="btn" id="apSave">Save</button>
+      <button class="btn" id="apSave" data-loading="Saving...">Save</button>
     </div>
   </div>
 </div>
@@ -1149,7 +1164,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mNewVault">Cancel</button>
-      <button class="btn" id="nvCreate">Create</button>
+      <button class="btn" id="nvCreate" data-loading="Creating...">Create</button>
     </div>
   </div>
 </div>
@@ -1191,7 +1206,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mCash">Cancel</button>
-      <button class="btn" id="cashSave">Save</button>
+      <button class="btn" id="cashSave" data-loading="Saving...">Save</button>
     </div>
   </div>
 </div>
@@ -1246,7 +1261,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mBuy">Cancel</button>
-      <button class="btn" id="buySave">Save</button>
+      <button class="btn" id="buySave"  data-loading="Saving...">Save</button>
     </div>
   </div>
 </div>
@@ -1303,7 +1318,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mSell">Cancel</button>
-      <button class="btn" id="sellSave">Save</button>
+      <button class="btn" id="sellSave" data-loading="Saving...">Save</button>
     </div>
   </div>
 </div>
@@ -1354,7 +1369,7 @@ input[type="number"]{
 
     <div class="modalFoot">
       <button class="btn ghost" data-close="mMissing">Cancel</button>
-      <button class="btn" id="missSave">Save</button>
+      <button class="btn" id="missSave" data-loading="Saving...">Save</button>
     </div>
   </div>
 </div>
@@ -1391,7 +1406,7 @@ input[type="number"]{
 
     <div class="modalFoot">
       <button class="btn ghost" data-close="mChangePass" type="button">Cancel</button>
-      <button class="btn" id="cpSave" type="button">Save</button>
+      <button class="btn" id="cpSave" data-loading="Saving...">Save</button>
     </div>
   </div>
 </div>
@@ -1571,6 +1586,50 @@ document.addEventListener("click", (e)=>{
     clearTimeout(window.__t);
     window.__t = setTimeout(()=> el.style.display="none", 2600);
   };
+const SPINNER_SVG = `
+<svg class="btnSpin" viewBox="0 0 24 24" aria-hidden="true">
+  <path fill="currentColor" opacity=".28"
+    d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8a8 8 0 0 1-8 8z"/>
+  <path fill="currentColor"
+    d="M20 12a8 8 0 0 0-8-8v2.2A5.8 5.8 0 0 1 17.8 12z"/>
+</svg>`;
+
+function setBtnLoading(btn, on, label){
+  if(!btn) return;
+  if(on){
+    if(btn.dataset._busy === "1") return;
+    btn.dataset._busy = "1";
+    btn.dataset._oldHtml = btn.innerHTML;
+
+    const txt = label || btn.getAttribute("data-loading") || btn.textContent.trim() || "Loading...";
+    btn.classList.add("isLoading");
+    btn.disabled = true;
+    btn.innerHTML = `${SPINNER_SVG}<span>${txt}</span>`;
+  }else{
+    btn.dataset._busy = "0";
+    btn.classList.remove("isLoading");
+    btn.disabled = false;
+    if(btn.dataset._oldHtml){
+      btn.innerHTML = btn.dataset._oldHtml;
+      delete btn.dataset._oldHtml;
+    }
+  }
+}
+
+function bindLoadingClick(btnId, handler){
+  const btn = document.getElementById(btnId);
+  if(!btn) return;
+  btn.addEventListener("click", async (e)=>{
+    e.preventDefault();
+    if(btn.dataset._busy === "1") return;
+    setBtnLoading(btn, true);
+    try{
+      await handler(e);
+    }finally{
+      setBtnLoading(btn, false);
+    }
+  });
+}
 
   const fmt = (n)=> (Number(n||0)).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
   const fmtDT = (ms)=>{
@@ -2958,7 +3017,7 @@ if(drawerChangePassBtn){
 // Save dalam modal
 const cpSave = $("cpSave");
 if(cpSave){
-  cpSave.addEventListener("click", doChangePassword);
+  bindLoadingClick("cpSave", doChangePassword);
 }
 
 function closeUserMenu(){
@@ -3008,7 +3067,7 @@ $("btnLogout").addEventListener("click", async ()=>{
     openModal("mNewVault");
   });
 
-  $("apSave").addEventListener("click", async ()=>{
+  async function onApSave(){
     if(!me.isAdmin){ toast("No access."); return; }
     const type = $("apType").value;
     const amount = moneyVal("apAmount");
@@ -3025,9 +3084,10 @@ $("btnLogout").addEventListener("click", async ()=>{
       console.error(e);
       toast(e?.message || "Failed");
     }
-  });
-
-$("nvCreate").addEventListener("click", async ()=>{
+  }
+ bindLoadingClick("apSave", onApSave);
+  
+async function onNvCreate(){
   const title = $("nvTitle").value.trim();
   const note  = $("nvNote").value.trim();
   if(!title){ toast("Title wajib isi."); return; }
@@ -3042,7 +3102,8 @@ $("nvCreate").addEventListener("click", async ()=>{
     console.error(e);
     toast(e?.message || "Failed");
   }
-});
+}
+bindLoadingClick("nvCreate", onNvCreate);
 
   // table button actions (event delegation)
   document.addEventListener("click", async (e)=>{
@@ -3346,7 +3407,7 @@ if(act==="vaultUnclose"){
   });
 
 // CASH SAVE (CREATE + EDIT)
-$("cashSave").addEventListener("click", async ()=>{
+async function onCashSave(){
   const type = $("cashType").value;
   const amount = moneyVal("cashAmount");
   const note = $("cashNote").value.trim();
@@ -3402,7 +3463,8 @@ $("cashSave").addEventListener("click", async ()=>{
     console.error(e);
     toast(e?.message || "Failed (maybe limited user no access).");
   }
-});
+}
+bindLoadingClick("cashSave", onCashSave);
 // BUY AUTO CALC
 function calcBuy(){
   const qty   = intVal("buyQty");
@@ -3430,7 +3492,7 @@ $("buyTotal").addEventListener("input", ()=>{
 });
 
 // BUY SAVE (CREATE + EDIT)
-$("buySave").addEventListener("click", async ()=>{
+async function onBuySave(){
   const category = $("buyCat").value;
   const qty = intVal("buyQty");
   const price = moneyVal("buyPrice");
@@ -3501,8 +3563,8 @@ $("buySave").addEventListener("click", async ()=>{
     console.error(e);
     toast(e?.message || "Failed (maybe limited user no access).");
   }
-});
-
+}
+bindLoadingClick("buySave", onBuySave);
 // MISSING AUTO CALC
 function calcMissing(){
   const q = intVal("missQty");
@@ -3513,7 +3575,7 @@ function calcMissing(){
 ["missQty","missPrice"].forEach(id=> $(id).addEventListener("input", calcMissing));
 
 // MISSING SAVE (CREATE + EDIT)
-$("missSave").addEventListener("click", async ()=>{
+async function onMissSave(){
   const qty = intVal("missQty");
   const price = moneyVal("missPrice");
   const total = qty * price;
@@ -3552,8 +3614,8 @@ $("missSave").addEventListener("click", async ()=>{
     console.error(e);
     toast(e?.message || "Failed");
   }
-});
-
+}
+bindLoadingClick("missSave", onMissSave);
 // SELL AUTO CALC
 function calcSell(){
   const priceKg = moneyVal("sellPriceKg");
@@ -3564,7 +3626,7 @@ function calcSell(){
 ["sellPriceKg","sellKg"].forEach(id=> $(id).addEventListener("input", calcSell));
 
 // SELL SAVE (CREATE + EDIT)
-$("sellSave").addEventListener("click", async ()=>{
+async function onSellSave(){
   const priceKg = moneyVal("sellPriceKg");
   const kg = moneyVal("sellKg");
   const ekor = intVal("sellEkor");
@@ -3633,7 +3695,8 @@ $("sellSave").addEventListener("click", async ()=>{
     console.error(e);
     toast(e?.message || "Failed (maybe limited user no access).");
   }
-});
+}
+bindLoadingClick("sellSave", onSellSave);
 // VALIDATE EKOR INPUT
 function validateSellEkor(){
   const ekor = intVal("sellEkor");
