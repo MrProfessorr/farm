@@ -1667,12 +1667,36 @@ function intVal(idOrEl){
   const n = Number(raw);
   return Number.isFinite(n) ? n : 0;
 }
+function formatMoneyTyping(raw){
+  raw = _stripNum(raw);
+
+  if(raw === "") return "";
+  if(raw === ".") return "0.";
+
+  // split integer & decimals
+  const parts = raw.split(".");
+  let intPart = parts[0] || "0";
+  let decPart = parts[1] ?? "";
+
+  intPart = intPart.replace(/^0+(?=\d)/, "");
+  if(decPart.length > 2) decPart = decPart.slice(0,2);
+  intPart = Number(intPart || "0").toLocaleString("en-US");
+  if(raw.endsWith(".") && parts.length === 2) return intPart + ".";
+  if(decPart.length > 0) return intPart + "." + decPart;
+
+  return intPart;
+}
+
 function attachMoney(el){
   if(!el) return;
   el.addEventListener("input", ()=>{
-    const raw = _stripNum(el.value);
-    el.value = raw ? moneyFormat(raw) : "";
+    const start = el.selectionStart || 0;
+    const before = el.value;
+
+    el.value = formatMoneyTyping(before);
+    el.setSelectionRange(el.value.length, el.value.length);
   });
+
   el.addEventListener("blur", ()=>{
     const raw = _stripNum(el.value);
     el.value = raw ? moneyFormat(raw) : "";
