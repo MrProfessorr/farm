@@ -1386,23 +1386,43 @@ import {
 function parseNumberLoose(v){
   if (v == null) return 0;
   let s = String(v).trim();
+  if(!s) return 0;
   s = s.replace(/[^\d.,-]/g, "");
-  s = s.replace(/\./g, "");
-  s = s.replace(/,/g, ".");
+  const lastComma = s.lastIndexOf(",");
+  const lastDot   = s.lastIndexOf(".");
+
+  if(lastComma > lastDot){
+    s = s.replace(/\./g, "");
+    s = s.replace(",", ".");
+  } else if(lastDot > lastComma){
+    s = s.replace(/,/g, "");
+  } else {
+    s = s.replace(/,/g, "").replace(/\./g, "");
+  }
+
   const n = Number(s);
   return Number.isFinite(n) ? n : 0;
 }
 
+const NF_RP = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+const NF_ID_INT = new Intl.NumberFormat("id-ID", { maximumFractionDigits: 0 });
+
 function formatMoney2(n){
   const x = Number(n);
   if (!Number.isFinite(x)) return "";
-  return x.toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
+  // hasil: "Rp 1.000,00" (ada NBSP) -> kita tukar jadi space biasa
+  return NF_RP.format(x).replace(/\u00A0/g, " ");
 }
 
 function formatInt(n){
   const x = Math.round(Number(n));
   if (!Number.isFinite(x)) return "";
-  return x.toLocaleString("en-US");
+  return NF_ID_INT.format(x);
 }
 
 function attachAutoFormat(el, mode="money"){
@@ -1412,14 +1432,43 @@ function attachAutoFormat(el, mode="money"){
   el.setAttribute("inputmode", mode==="int" ? "numeric" : "decimal");
   el.setAttribute("autocomplete","off");
 
-  const nfMoney = new Intl.NumberFormat("id-ID", { minimumFractionDigits:2, maximumFractionDigits:2 });
-  const nfInt   = new Intl.NumberFormat("id-ID", { maximumFractionDigits:0 });
-  const nfGroup = new Intl.NumberFormat("id-ID", { maximumFractionDigits:0 }); // ribu sahaja
+  // ===== formatter IDR =====
+  const nfMoney = new Intl.NumberFormat("id-ID", {
+    style:"currency",
+    currency:"IDR",
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  });
+
+  const nfInt = new Intl.NumberFormat("id-ID", { maximumFractionDigits:0 });
+  const nfGroup = new Intl.NumberFormat("id-ID", { maximumFractionDigits:0 });
+
+  // ✅ parse khas untuk format Indonesia (1.500.000,00) + boleh ada Rp
+  function parseIdr(v){
+    if(v == null) return 0;
+    let s = String(v).trim();
+    s = s.replace(/[^\d.,-]/g, "");
+    if(s.includes(",")){
+      s = s.replace(/\./g, "");   // buang pemisah ribu
+      s = s.replace(/,/g, ".");   // koma -> titik decimal
+    }else{
+      s = s.replace(/\./g, "");
+    }
+
+    const n = Number(s);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // ✅ fix NBSP (kadang Intl bagi spasi pelik)
+  function formatIdr(n){
+    return nfMoney.format(n).replace(/\u00A0/g, " ");
+  }
 
   function getCaretDigitCount(raw, caretPos){
     const left = raw.slice(0, caretPos);
     return (left.match(/\d/g) || []).length;
   }
+
   function caretPosFromDigitCount(formatted, digitCount){
     if(digitCount <= 0) return 0;
     let seen = 0;
@@ -1435,13 +1484,13 @@ function attachAutoFormat(el, mode="money"){
     const caret = el.selectionStart ?? raw.length;
     const leftDigits = getCaretDigitCount(raw, caret);
 
-    // sanitize
+    // sanitize ringkas
     let cleaned = raw.replace(/[^\d,.-]/g,"");
 
-    // mode int
+    // ===== INT MODE =====
     if(mode==="int"){
       cleaned = cleaned.replace(/[.,]/g,"");
-      const num = parseNumberLoose(cleaned);
+      const num = parseIdr(cleaned);
       const formatted = nfInt.format(Math.round(num));
       el.value = formatted;
       const newPos = caretPosFromDigitCount(formatted, leftDigits);
@@ -1449,22 +1498,22 @@ function attachAutoFormat(el, mode="money"){
       return;
     }
 
-    // mode money:
-    // kalau user belum taip koma -> format ribu sahaja (jangan paksa ,00)
+    // ===== MONEY MODE =====
     const hasComma = cleaned.includes(",");
-    const num = parseNumberLoose(cleaned);
+    const num = parseIdr(cleaned);
 
+    // kalau user belum taip koma -> format ribu sahaja (tanpa Rp & tanpa ,00)
     if(!hasComma){
       const intPart = Math.floor(num);
-      const formatted = nfGroup.format(intPart);
+      const formatted = nfGroup.format(intPart).replace(/\u00A0/g," ");
       el.value = formatted;
       const newPos = caretPosFromDigitCount(formatted, leftDigits);
       requestAnimationFrame(()=>{ try{ el.setSelectionRange(newPos,newPos);}catch(_){} });
       return;
     }
 
-    // kalau ada koma -> baru format full 2 decimal
-    const formatted = nfMoney.format(num);
+    // kalau ada koma -> format full IDR 2 decimal (dengan Rp)
+    const formatted = formatIdr(num);
     el.value = formatted;
     const newPos = caretPosFromDigitCount(formatted, leftDigits);
     requestAnimationFrame(()=>{ try{ el.setSelectionRange(newPos,newPos);}catch(_){} });
@@ -1472,17 +1521,22 @@ function attachAutoFormat(el, mode="money"){
 
   el.addEventListener("input", formatInputLive);
 
-  // blur: pastikan jadi 2 decimal
+  // blur: pastikan jadi 2 decimal (IDR)
   el.addEventListener("blur", ()=>{
     if(el.value.trim()===""){ el.value=""; return; }
-    const num = parseNumberLoose(el.value);
-    el.value = (mode==="int") ? nfInt.format(Math.round(num)) : nfMoney.format(num);
+    const num = parseIdr(el.value);
+
+    el.value = (mode==="int")
+      ? nfInt.format(Math.round(num))
+      : formatIdr(num);
   });
 
   // format awal
   if(el.value && el.value.trim()!==""){
-    const num = parseNumberLoose(el.value);
-    el.value = (mode==="int") ? nfInt.format(Math.round(num)) : nfMoney.format(num);
+    const num = parseIdr(el.value);
+    el.value = (mode==="int")
+      ? nfInt.format(Math.round(num))
+      : formatIdr(num);
   }
 }
 
@@ -3281,7 +3335,7 @@ function calcBuy(){
   const price = getNum("buyPrice");
   const autoTotal = (qty > 0 && price > 0) ? (qty * price) : 0;
   if(!buyTotalManual){
-    $("buyTotal").value = autoTotal ? formatMoney2(autoTotal) : "";
+  $("buyTotal").value = autoTotal ? formatMoney2(autoTotal) : "";
   }
 
   const total = getNum("buyTotal");
