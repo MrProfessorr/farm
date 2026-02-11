@@ -1385,7 +1385,8 @@ import {
   // ========= INPUT NUMBER FORMAT (1,000.00) =========
 function parseNumberLoose(v){
   if (v == null) return 0;
-  const s = String(v).replace(/[^\d.-]/g, ""); // buang comma, RM, space
+  let s = String(v).replace(/[^\d,-]/g, "");
+  s = s.replace(",", ".");
   const n = Number(s);
   return Number.isFinite(n) ? n : 0;
 }
@@ -1408,44 +1409,52 @@ function attachAutoFormat(el, mode="money"){
   el.setAttribute("inputmode", mode==="int" ? "numeric" : "decimal");
   el.setAttribute("autocomplete","off");
 
-  // ===== FOCUS: buang format supaya senang edit =====
+  const nfMoney = new Intl.NumberFormat("id-ID", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  const nfInt = new Intl.NumberFormat("id-ID", {
+    maximumFractionDigits: 0
+  });
+
+  function formatNow(){
+    const old = el.value;
+    const caretFromEnd = old.length - el.selectionStart;
+
+    const num = parseNumberLoose(old);
+
+    if(old.trim()==="" || !Number.isFinite(num)){
+      el.value = "";
+      return;
+    }
+
+    el.value = (mode==="int") 
+      ? nfInt.format(Math.round(num)) 
+      : nfMoney.format(num);
+
+    const newPos = Math.max(0, el.value.length - caretFromEnd);
+    requestAnimationFrame(()=>{
+      try{ el.setSelectionRange(newPos, newPos); }catch(_){}
+    });
+  }
+
   el.addEventListener("focus", ()=>{
-    const raw = parseNumberLoose(el.value);
-    el.value = raw ? String(raw) : "";
     requestAnimationFrame(()=> el.select?.());
   });
 
-  // ===== INPUT: tapis karakter pelik =====
+  // 🔥 AUTO FORMAT MASA TAIP
   el.addEventListener("input", ()=>{
-    let v = el.value;
-
-    // buang semua selain digit, dot, minus
-    v = v.replace(/[^\d.-]/g,"");
-
-    // hanya benarkan satu minus di depan
-    v = v.replace(/(?!^)-/g, "");
-
-    // hanya satu titik decimal
-    const parts = v.split(".");
-    if(parts.length > 2){
-      v = parts[0] + "." + parts.slice(1).join("");
-    }
-
-    el.value = v;
+    el.value = el.value.replace(/[^\d,.-]/g,"");
+    formatNow();
   });
 
-  // ===== BLUR: format cantik =====
   el.addEventListener("blur", ()=>{
     if(el.value.trim()===""){ el.value=""; return; }
-    const num = parseNumberLoose(el.value);
-    el.value = (mode==="int") ? formatInt(num) : formatMoney2(num);
+    formatNow();
   });
 
-  // ===== ON LOAD: format jika ada value awal =====
-  if(el.value && el.value.trim()!==""){
-    const num = parseNumberLoose(el.value);
-    el.value = (mode==="int") ? formatInt(num) : formatMoney2(num);
-  }
+  if(el.value && el.value.trim()!=="") formatNow();
 }
 
 // shortcut ambil nombor sebenar dari input (walaupun ada comma)
