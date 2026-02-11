@@ -1385,8 +1385,10 @@ import {
   // ========= INPUT NUMBER FORMAT (1,000.00) =========
 function parseNumberLoose(v){
   if (v == null) return 0;
-  let s = String(v).replace(/[^\d,-]/g, "");
-  s = s.replace(",", ".");
+  let s = String(v).trim();
+  s = s.replace(/[^\d.,-]/g, "");
+  s = s.replace(/\./g, "");
+  s = s.replace(/,/g, ".");
   const n = Number(s);
   return Number.isFinite(n) ? n : 0;
 }
@@ -1406,55 +1408,82 @@ function formatInt(n){
 function attachAutoFormat(el, mode="money"){
   if(!el) return;
 
+  el.type = "text";
   el.setAttribute("inputmode", mode==="int" ? "numeric" : "decimal");
   el.setAttribute("autocomplete","off");
 
-  const nfMoney = new Intl.NumberFormat("id-ID", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  const nfMoney = new Intl.NumberFormat("id-ID", { minimumFractionDigits:2, maximumFractionDigits:2 });
+  const nfInt   = new Intl.NumberFormat("id-ID", { maximumFractionDigits:0 });
+  const nfGroup = new Intl.NumberFormat("id-ID", { maximumFractionDigits:0 }); // ribu sahaja
 
-  const nfInt = new Intl.NumberFormat("id-ID", {
-    maximumFractionDigits: 0
-  });
+  function getCaretDigitCount(raw, caretPos){
+    const left = raw.slice(0, caretPos);
+    return (left.match(/\d/g) || []).length;
+  }
+  function caretPosFromDigitCount(formatted, digitCount){
+    if(digitCount <= 0) return 0;
+    let seen = 0;
+    for(let i=0;i<formatted.length;i++){
+      if(/\d/.test(formatted[i])) seen++;
+      if(seen >= digitCount) return i+1;
+    }
+    return formatted.length;
+  }
 
-  function formatNow(){
-    const old = el.value;
-    const caretFromEnd = old.length - el.selectionStart;
+  function formatInputLive(){
+    const raw = el.value;
+    const caret = el.selectionStart ?? raw.length;
+    const leftDigits = getCaretDigitCount(raw, caret);
 
-    const num = parseNumberLoose(old);
+    // sanitize
+    let cleaned = raw.replace(/[^\d,.-]/g,"");
 
-    if(old.trim()==="" || !Number.isFinite(num)){
-      el.value = "";
+    // mode int
+    if(mode==="int"){
+      cleaned = cleaned.replace(/[.,]/g,"");
+      const num = parseNumberLoose(cleaned);
+      const formatted = nfInt.format(Math.round(num));
+      el.value = formatted;
+      const newPos = caretPosFromDigitCount(formatted, leftDigits);
+      requestAnimationFrame(()=>{ try{ el.setSelectionRange(newPos,newPos);}catch(_){} });
       return;
     }
 
-    el.value = (mode==="int") 
-      ? nfInt.format(Math.round(num)) 
-      : nfMoney.format(num);
+    // mode money:
+    // kalau user belum taip koma -> format ribu sahaja (jangan paksa ,00)
+    const hasComma = cleaned.includes(",");
+    const num = parseNumberLoose(cleaned);
 
-    const newPos = Math.max(0, el.value.length - caretFromEnd);
-    requestAnimationFrame(()=>{
-      try{ el.setSelectionRange(newPos, newPos); }catch(_){}
-    });
+    if(!hasComma){
+      const intPart = Math.floor(num);
+      const formatted = nfGroup.format(intPart);
+      el.value = formatted;
+      const newPos = caretPosFromDigitCount(formatted, leftDigits);
+      requestAnimationFrame(()=>{ try{ el.setSelectionRange(newPos,newPos);}catch(_){} });
+      return;
+    }
+
+    // kalau ada koma -> baru format full 2 decimal
+    const formatted = nfMoney.format(num);
+    el.value = formatted;
+    const newPos = caretPosFromDigitCount(formatted, leftDigits);
+    requestAnimationFrame(()=>{ try{ el.setSelectionRange(newPos,newPos);}catch(_){} });
   }
 
-  el.addEventListener("focus", ()=>{
-    requestAnimationFrame(()=> el.select?.());
-  });
+  el.addEventListener("input", formatInputLive);
 
-  // 🔥 AUTO FORMAT MASA TAIP
-  el.addEventListener("input", ()=>{
-    el.value = el.value.replace(/[^\d,.-]/g,"");
-    formatNow();
-  });
-
+  // blur: pastikan jadi 2 decimal
   el.addEventListener("blur", ()=>{
     if(el.value.trim()===""){ el.value=""; return; }
-    formatNow();
+    const num = parseNumberLoose(el.value);
+    el.value = (mode==="int") ? nfInt.format(Math.round(num)) : nfMoney.format(num);
   });
 
-  if(el.value && el.value.trim()!=="") formatNow();
+  // format awal
+  if(el.value && el.value.trim()!==""){
+    const num = parseNumberLoose(el.value);
+    el.value = (mode==="int") ? nfInt.format(Math.round(num)) : nfMoney.format(num);
+  }
 }
 
 // shortcut ambil nombor sebenar dari input (walaupun ada comma)
