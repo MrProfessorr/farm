@@ -1709,6 +1709,41 @@ function attachInt(el){
     el.value = raw ? Number(raw).toLocaleString("en-US") : "";
   });
 }
+function formatKgTyping(raw){
+  raw = _stripNum(raw);
+
+  if(raw === "") return "";
+  if(raw === ".") return "0.";
+
+  const parts = raw.split(".");
+  let intPart = parts[0] || "0";
+  let decPart = parts[1] ?? "";
+
+  intPart = intPart.replace(/^0+(?=\d)/, "");
+  // kalau nak limit decimal kg max 2 (boleh ubah 3 kalau kau mahu)
+  if(decPart.length > 2) decPart = decPart.slice(0,2);
+
+  intPart = Number(intPart || "0").toLocaleString("en-US");
+
+  if(raw.endsWith(".") && parts.length === 2) return intPart + ".";
+  if(decPart.length > 0) return intPart + "." + decPart;
+  return intPart;
+}
+
+function attachKg(el){
+  if(!el) return;
+
+  // typing: commas + decimal, tak paksa .00
+  el.addEventListener("input", ()=>{
+    el.value = formatKgTyping(el.value);
+    el.setSelectionRange(el.value.length, el.value.length);
+  });
+
+  // blur: kemaskan je (still tak paksa .00)
+  el.addEventListener("blur", ()=>{
+    el.value = formatKgTyping(el.value);
+  });
+}
   let me = { uid:null, username:null, isAdmin:false };
   let currentBalance = 0;
   const WALLET_ID = "main";
@@ -3536,7 +3571,7 @@ onAuthStateChanged(auth, async (user)=>{
   attachMoney($("buyTotal"));
 
   attachMoney($("sellPriceKg"));
-  attachMoney($("sellKg"));
+  attachKg($("sellKg"));
   attachInt($("sellEkor"));
   attachMoney($("sellTotal"));
 
