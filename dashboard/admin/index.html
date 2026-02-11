@@ -1133,7 +1133,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mAddPoint">Cancel</button>
-      <button class="btn" id="apSave" data-loading="Saving...">Save</button>
+      <button class="btn" id="apSave" data-loading="Saving..." >Save</button>
     </div>
   </div>
 </div>
@@ -1164,7 +1164,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mNewVault">Cancel</button>
-      <button class="btn" id="nvCreate" data-loading="Creating...">Create</button>
+      <button class="btn" id="nvCreate" data-loading="Creating..." data-close-modal="mNewVault">Create</button>
     </div>
   </div>
 </div>
@@ -1206,7 +1206,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mCash">Cancel</button>
-      <button class="btn" id="cashSave" data-loading="Saving...">Save</button>
+      <button class="btn" id="cashSave" data-loading="Saving..." data-close-modal="mCash">Save</button>
     </div>
   </div>
 </div>
@@ -1261,7 +1261,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mBuy">Cancel</button>
-      <button class="btn" id="buySave"  data-loading="Saving...">Save</button>
+      <button class="btn" id="buySave"  data-loading="Saving..."data-close-modal="mBuy">Save</button>
     </div>
   </div>
 </div>
@@ -1318,7 +1318,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mSell">Cancel</button>
-      <button class="btn" id="sellSave" data-loading="Saving...">Save</button>
+      <button class="btn" id="sellSave" data-loading="Saving..." data-close-modal="mSell">Save</button>
     </div>
   </div>
 </div>
@@ -1369,7 +1369,7 @@ input[type="number"]{
 
     <div class="modalFoot">
       <button class="btn ghost" data-close="mMissing">Cancel</button>
-      <button class="btn" id="missSave" data-loading="Saving...">Save</button>
+      <button class="btn" id="missSave" data-loading="Saving..." data-close-modal="mMissing">Save</button>
     </div>
   </div>
 </div>
@@ -1406,7 +1406,7 @@ input[type="number"]{
 
     <div class="modalFoot">
       <button class="btn ghost" data-close="mChangePass" type="button">Cancel</button>
-      <button class="btn" id="cpSave" data-loading="Saving...">Save</button>
+      <button class="btn" id="cpSave" data-loading="Saving..." data-close-modal="mChangePass">Save</button>
     </div>
   </div>
 </div>
@@ -1586,6 +1586,7 @@ document.addEventListener("click", (e)=>{
     clearTimeout(window.__t);
     window.__t = setTimeout(()=> el.style.display="none", 2600);
   };
+const sleep = (ms)=> new Promise(r=>setTimeout(r, ms));
 const SPINNER_SVG = `
 <svg class="btnSpin" viewBox="0 0 24 24" aria-hidden="true">
   <path fill="currentColor" opacity=".28"
@@ -1625,20 +1626,29 @@ function bindLoadingClick(btnId, handler){
 
     setBtnLoading(btn, true);
 
-    const MIN_TIME = 2400;
+    // ✅ bagi browser sempat paint spinner dulu
+    await sleep(80);
+
+    const MIN_TIME = 1200; // ⏳ cuba 1200–1800 (1.2s–1.8s)
     const start = Date.now();
 
+    let ok = false;
     try{
       await handler();
+      ok = true;
+    }catch(e){
+      console.error(e);
+      toast(e?.message || "Failed");
     }finally{
       const elapsed = Date.now() - start;
-      const remaining = MIN_TIME - elapsed;
+      const wait = Math.max(0, MIN_TIME - elapsed);
+      if(wait) await sleep(wait);
 
-      if(remaining > 0){
-        setTimeout(()=> setBtnLoading(btn, false), remaining);
-      }else{
-        setBtnLoading(btn, false);
-      }
+      setBtnLoading(btn, false);
+
+      // ✅ AUTO close modal lepas loading (kalau button ada attribute)
+      const mid = btn.getAttribute("data-close-modal");
+      if(ok && mid) closeModal(mid);
     }
   });
 }
@@ -2995,7 +3005,7 @@ async function doChangePassword(){
     // ✅ Update password baru
     await updatePassword(user, newPass);
 
-    closeModal("mChangePass");
+    
     toast("Password updated ✅");
   }catch(e){
     console.error(e);
@@ -3005,6 +3015,7 @@ async function doChangePassword(){
     : e?.code === "auth/requires-recent-login" ? "Sila logout/login semula, then cuba lagi."
     : (e?.message || "Failed update password.");
     toast(msg);
+    throw e;
   }
 }
 
@@ -3090,11 +3101,12 @@ $("btnLogout").addEventListener("click", async ()=>{
 
     try{
       await changeBalance(delta, { kind:"add_point", direction:type, amount, note });
-      closeModal("mAddPoint");
+  
       toast("Balance updated.");
     }catch(e){
       console.error(e);
       toast(e?.message || "Failed");
+      throw e;
     }
   }
  bindLoadingClick("apSave", onApSave);
@@ -3107,12 +3119,13 @@ async function onNvCreate(){
     const createdAtMs = await getAtMsFromControl("newVault", "txTime_newVault");
     await createVault(title, note, createdAtMs);
 
-    closeModal("mNewVault");
+   
     toast("Vault created.");
     setView("open");
   }catch(e){
     console.error(e);
     toast(e?.message || "Failed");
+    throw e;
   }
 }
 bindLoadingClick("nvCreate", onNvCreate);
@@ -3461,7 +3474,7 @@ async function onCashSave(){
       });
       await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
       ctxEdit = null;
-      closeModal("mCash");
+     
       toast("Cash updated.");
       return;
     }
@@ -3469,11 +3482,12 @@ async function onCashSave(){
     await changeBalance(delta, { kind:"cash_transfer", direction, amount, note, vaultId: ctxVaultId }, atMs);
     await addTx(ctxVaultId, newTx, atMs);
 
-    closeModal("mCash");
+  
     toast("Cash transfer saved.");
   }catch(e){
     console.error(e);
     toast(e?.message || "Failed (maybe limited user no access).");
+    throw e;
   }
 }
 bindLoadingClick("cashSave", onCashSave);
@@ -3555,7 +3569,7 @@ async function onBuySave(){
       await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
 
       ctxEdit = null;
-      closeModal("mBuy");
+     
       toast("Buy updated.");
       return;
     }
@@ -3569,11 +3583,12 @@ async function onBuySave(){
     await changeBalance(-total, { kind:"buy", category, qty, price, total, note, vaultId: ctxVaultId }, atMs);
     await addTx(ctxVaultId, newTx, atMs);
 
-    closeModal("mBuy");
+    
     toast("Buy saved.");
   }catch(e){
     console.error(e);
     toast(e?.message || "Failed (maybe limited user no access).");
+    throw e;
   }
 }
 bindLoadingClick("buySave", onBuySave);
@@ -3613,18 +3628,19 @@ async function onMissSave(){
       await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
 
       ctxEdit = null;
-      closeModal("mMissing");
+      
       toast("Missing updated.");
       return;
     }
 
     // ===== CREATE MODE =====
     await addTx(ctxVaultId, newTx, atMs);
-    closeModal("mMissing");
+    
     toast("Missing saved.");
   }catch(e){
     console.error(e);
     toast(e?.message || "Failed");
+    throw e;
   }
 }
 bindLoadingClick("missSave", onMissSave);
@@ -3692,7 +3708,7 @@ async function onSellSave(){
       await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
 
       ctxEdit = null;
-      closeModal("mSell");
+      
       toast("Sell updated.");
       return;
     }
@@ -3701,11 +3717,12 @@ async function onSellSave(){
     await changeBalance(+total, { kind:"sell", priceKg, kg, ekor, total, note, vaultId: ctxVaultId }, atMs);
     await addTx(ctxVaultId, newTx, atMs);
 
-    closeModal("mSell");
+    
     toast("Sell saved.");
   }catch(e){
     console.error(e);
     toast(e?.message || "Failed (maybe limited user no access).");
+    throw e;
   }
 }
 bindLoadingClick("sellSave", onSellSave);
