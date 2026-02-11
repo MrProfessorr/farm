@@ -1622,33 +1622,47 @@ function bindLoadingClick(btnId, handler){
   if(!btn) return;
 
   btn.addEventListener("click", async ()=>{
-    if(btn.disabled) return;
+    if(btn.disabled) return; // elak double click spam
 
     setBtnLoading(btn, true);
+    await sleep(80); // bagi spinner sempat appear
 
-    // ✅ bagi browser sempat paint spinner dulu
-    await sleep(80);
-
-    const MIN_TIME = 1200; // ⏳ cuba 1200–1800 (1.2s–1.8s)
+    const MIN_TIME = 1200; // minimum loading time
     const start = Date.now();
 
-    let ok = false;
     try{
-      await handler();
-      ok = true;
-    }catch(e){
-      console.error(e);
-      toast(e?.message || "Failed");
-    }finally{
+      // handler wajib throw kalau gagal
+      const msg = await handler(); // boleh return string utk success toast
+
+      // pastikan loading tak terlalu cepat
       const elapsed = Date.now() - start;
       const wait = Math.max(0, MIN_TIME - elapsed);
       if(wait) await sleep(wait);
 
       setBtnLoading(btn, false);
 
-      // ✅ AUTO close modal lepas loading (kalau button ada attribute)
+      // tutup modal jika ada
       const mid = btn.getAttribute("data-close-modal");
-      if(ok && mid) closeModal(mid);
+      if(mid) closeModal(mid);
+
+      // bagi modal animation habis dulu baru toast
+      await sleep(180);
+
+      if(typeof msg === "string" && msg.trim()){
+        toast(msg);
+      }
+
+    }catch(e){
+      console.error(e);
+
+      const elapsed = Date.now() - start;
+      const wait = Math.max(0, MIN_TIME - elapsed);
+      if(wait) await sleep(wait);
+
+      setBtnLoading(btn, false);
+
+      // ❌ error = modal kekal buka
+      toast(e?.message || "Failed");
     }
   });
 }
@@ -2975,55 +2989,43 @@ function openChangePass(){
 
 async function doChangePassword(){
   const user = auth.currentUser;
-  if(!user || !user.email){
-    toast("No user session.");
-    return;
-  }
+  if(!user || !user.email) throw new Error("No user session.");
 
   const oldPass = $("cpOld")?.value || "";
   const newPass  = $("cpNew")?.value || "";
   const newPass2 = $("cpNew2")?.value || "";
 
-  if(!oldPass || !newPass || !newPass2){
-    toast("Sila isi semua field.");
-    return;
-  }
-  if(newPass.length < 6){
-    toast("Password baru minimum 6 characters.");
-    return;
-  }
-  if(newPass !== newPass2){
-    toast("Confirm password tak sama.");
-    return;
-  }
+  if(!oldPass || !newPass || !newPass2) throw new Error("Sila isi semua field.");
+  if(newPass.length < 6) throw new Error("Password baru minimum 6 characters.");
+  if(newPass !== newPass2) throw new Error("Confirm password tak sama.");
 
   try{
     const cred = EmailAuthProvider.credential(user.email, oldPass);
     await reauthenticateWithCredential(user, cred);
     await updatePassword(user, newPass);
 
-    // optional: clear input lepas berjaya
     $("cpOld").value = "";
     $("cpNew").value = "";
     $("cpNew2").value = "";
 
-    closeModal("mChangePass"); // kalau kau nak auto tutup
-    toast("Password success change.");
+    return "Password success change ✅";
   }catch(e){
     const code = String(e?.code || "");
 
-    const msg =
-      (code === "auth/wrong-password" || code === "auth/invalid-login-credentials")
-        ? "Password lama salah."
-    : (code === "auth/too-many-requests")
-        ? "Terlalu banyak cubaan, cuba lagi nanti."
-    : (code === "auth/requires-recent-login")
-        ? "Sesi dah lama. Sila logout/login semula."
-    : (code === "auth/weak-password")
-        ? "Password baru terlalu lemah (min 6)."
-    : (e?.message || "Failed update password.");
+    if(code === "auth/invalid-login-credentials" || code === "auth/wrong-password"){
+      throw new Error("Password lama salah.");
+    }
+    if(code === "auth/too-many-requests"){
+      throw new Error("Terlalu banyak cubaan, cuba lagi nanti.");
+    }
+    if(code === "auth/requires-recent-login"){
+      throw new Error("Sesi dah lama. Sila logout/login semula.");
+    }
+    if(code === "auth/weak-password"){
+      throw new Error("Password baru terlalu lemah (min 6).");
+    }
 
-    toast(msg);
+    throw new Error(e?.message || "Failed update password.");
   }
 }
 
@@ -3122,19 +3124,13 @@ $("btnLogout").addEventListener("click", async ()=>{
 async function onNvCreate(){
   const title = $("nvTitle").value.trim();
   const note  = $("nvNote").value.trim();
-  if(!title){ toast("Title wajib isi."); return; }
-  try{
-    const createdAtMs = await getAtMsFromControl("newVault", "txTime_newVault");
-    await createVault(title, note, createdAtMs);
+  if(!title) throw new Error("Title wajib isi.");
 
-   
-    toast("Vault created.");
-    setView("open");
-  }catch(e){
-    console.error(e);
-    toast(e?.message || "Failed");
-    throw e;
-  }
+  const createdAtMs = await getAtMsFromControl("newVault", "txTime_newVault");
+  await createVault(title, note, createdAtMs);
+
+  setView("open");
+  return "Vault created ✅";
 }
 bindLoadingClick("nvCreate", onNvCreate);
 
@@ -3439,65 +3435,72 @@ if(act==="vaultUnclose"){
 }
   });
 
-// CASH SAVE (CREATE + EDIT)
+// CASH SAVE (CREATE + EDIT) — upgraded (no auto close on error)
 async function onCashSave(){
   const type = $("cashType").value;
   const amount = moneyVal("cashAmount");
   const note = $("cashNote").value.trim();
-  if(amount<=0){ toast("Amount mesti > 0"); return; }
 
-  const direction = (type==="cash_in") ? "in" : "out";
-  const delta = (direction==="in") ? amount : -amount;
+  // ❌ validation fail => THROW (modal kekal buka)
+  if(amount <= 0) throw new Error("Amount mesti > 0");
+
+  const direction = (type === "cash_in") ? "in" : "out";
+  const delta = (direction === "in") ? amount : -amount;
 
   const newTx = { kind:"cash", direction, amount, total: amount, note };
 
-  try{
-    const atMs = await getAtMsFromControl("cash", "txTime_cash");
+  // ambil masa sekali sahaja
+  const atMs = await getAtMsFromControl("cash", "txTime_cash");
 
-    // ===== EDIT MODE =====
-    if(ctxEdit && ctxEdit.txId){
-      const old = ctxEdit.oldTx;
+  // ===== EDIT MODE =====
+  if(ctxEdit && ctxEdit.txId){
+    const old = ctxEdit.oldTx;
 
-      const oldEff = txBalanceEffect(old);
-      const newEff = txBalanceEffect(newTx);
-      const diff = newEff - oldEff;
+    const oldEff = txBalanceEffect(old);
+    const newEff = txBalanceEffect(newTx);
+    const diff = newEff - oldEff;
 
-      if(diff !== 0){
-        await changeBalance(diff, {
-          kind:"tx_edit_adjust",
-          txKind:"cash",
-          vaultId: ctxEdit.vaultId,
-          txId: ctxEdit.txId,
-          note:"Edit cash"
-        }, atMs);
-      }
-
-      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
-        ...newTx,
-        atMs,
-        editedAt: serverTimestamp(),
-        editedAtMs: Date.now(),
-        editedByUid: me.uid,
-        editedBy: me.username
-      });
-      await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
-      ctxEdit = null;
-     
-      toast("Cash updated.");
-      return;
+    // adjust balance ikut beza
+    if(diff !== 0){
+      await changeBalance(diff, {
+        kind:"tx_edit_adjust",
+        txKind:"cash",
+        vaultId: ctxEdit.vaultId,
+        txId: ctxEdit.txId,
+        note:"Edit cash"
+      }, atMs);
     }
-    // ===== CREATE MODE =====
-    await changeBalance(delta, { kind:"cash_transfer", direction, amount, note, vaultId: ctxVaultId }, atMs);
-    await addTx(ctxVaultId, newTx, atMs);
 
-  
-    toast("Cash transfer saved.");
-  }catch(e){
-    console.error(e);
-    toast(e?.message || "Failed (maybe limited user no access).");
-    throw e;
+    await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+      ...newTx,
+      atMs,
+      editedAt: serverTimestamp(),
+      editedAtMs: Date.now(),
+      editedByUid: me.uid,
+      editedBy: me.username
+    });
+
+    await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
+
+    ctxEdit = null;
+
+    // ✅ success => return message (toast keluar lepas modal close)
+    return "Cash updated ✅";
   }
+
+  // ===== CREATE MODE =====
+  await changeBalance(delta, {
+    kind:"cash_transfer",
+    direction, amount, note,
+    vaultId: ctxVaultId
+  }, atMs);
+
+  await addTx(ctxVaultId, newTx, atMs);
+
+  // ✅ success
+  return "Cash transfer saved ✅";
 }
+
 bindLoadingClick("cashSave", onCashSave);
 // BUY AUTO CALC
 function calcBuy(){
@@ -3525,80 +3528,77 @@ $("buyTotal").addEventListener("input", ()=>{
   calcBuy();
 });
 
-// BUY SAVE (CREATE + EDIT)
+// BUY SAVE (CREATE + EDIT) — upgraded
 async function onBuySave(){
   const category = $("buyCat").value;
-  const qty = intVal("buyQty");
+  const qty   = intVal("buyQty");
   const price = moneyVal("buyPrice");
   const total = moneyVal("buyTotal") || (qty * price);
-  const note = $("buyNote").value.trim();
+  const note  = $("buyNote").value.trim();
 
-  if(total<=0){ toast("Total mesti > 0"); return; }
+  // ❌ validation fail → THROW (modal kekal buka)
+  if(total <= 0) throw new Error("Total mesti > 0");
 
-  try{
-    const atMs = await getAtMsFromControl("buy", "txTime_buy"); // ✅ MANUAL TIME
-    const newTx = { kind:"buy", category, qty, price, total, note };
+  const atMs = await getAtMsFromControl("buy", "txTime_buy"); // manual time
+  const newTx = { kind:"buy", category, qty, price, total, note };
 
-    // ===== EDIT MODE =====
-    if(ctxEdit && ctxEdit.txId){
-      const old = ctxEdit.oldTx;
+  // ===== EDIT MODE =====
+  if(ctxEdit && ctxEdit.txId){
+    const old = ctxEdit.oldTx;
 
-      const oldEff = txBalanceEffect(old);
-      const newEff = txBalanceEffect(newTx);
-      const diff = newEff - oldEff; // buy negatif
+    const oldEff = txBalanceEffect(old);
+    const newEff = txBalanceEffect(newTx);
+    const diff = newEff - oldEff; // buy = negatif
 
-      // kalau tambah cost (diff negatif) pastikan balance cukup
-      if(diff < 0 && Math.abs(diff) > currentBalance){
-        toast("Balance tak cukup untuk edit buy (tambahan cost).");
-        return;
-      }
-
-      // adjust balance ikut beza
-      if(diff !== 0){
-        await changeBalance(diff, {
-          kind:"tx_edit_adjust",
-          txKind:"buy",
-          vaultId: ctxEdit.vaultId,
-          txId: ctxEdit.txId,
-          note:"Edit buy"
-        }, atMs);
-      }
-
-      // update tx (atMs ikut manual)
-      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
-        ...newTx,
-        atMs, // ✅ ikut manual time
-        editedAt: serverTimestamp(),
-        editedAtMs: Date.now(),
-        editedByUid: me.uid,
-        editedBy: me.username
-      });
-
-      await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
-
-      ctxEdit = null;
-     
-      toast("Buy updated.");
-      return;
+    // kalau tambah cost → pastikan cukup balance
+    if(diff < 0 && Math.abs(diff) > currentBalance){
+      throw new Error("Balance tak cukup untuk edit buy (tambahan cost).");
     }
 
-    // ===== CREATE MODE =====
-    if(total > currentBalance){
-      toast("Modal tak cukup untuk buy.");
-      return;
+    // adjust balance ikut beza
+    if(diff !== 0){
+      await changeBalance(diff, {
+        kind:"tx_edit_adjust",
+        txKind:"buy",
+        vaultId: ctxEdit.vaultId,
+        txId: ctxEdit.txId,
+        note:"Edit buy"
+      }, atMs);
     }
 
-    await changeBalance(-total, { kind:"buy", category, qty, price, total, note, vaultId: ctxVaultId }, atMs);
-    await addTx(ctxVaultId, newTx, atMs);
+    await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+      ...newTx,
+      atMs,
+      editedAt: serverTimestamp(),
+      editedAtMs: Date.now(),
+      editedByUid: me.uid,
+      editedBy: me.username
+    });
 
-    
-    toast("Buy saved.");
-  }catch(e){
-    console.error(e);
-    toast(e?.message || "Failed (maybe limited user no access).");
-    throw e;
+    await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
+
+    ctxEdit = null;
+
+    // ✅ success
+    return "Buy updated ✅";
   }
+
+  // ===== CREATE MODE =====
+  if(total > currentBalance){
+    throw new Error("Modal tak cukup untuk buy.");
+  }
+
+  await changeBalance(-total, {
+    kind:"buy", category, qty, price, total, note,
+    vaultId: ctxVaultId
+  }, atMs);
+
+  await addTx(ctxVaultId, newTx, atMs);
+
+  // ✅ success
+  return "Buy saved ✅";
 }
+
 bindLoadingClick("buySave", onBuySave);
 // MISSING AUTO CALC
 function calcMissing(){
@@ -3609,48 +3609,47 @@ function calcMissing(){
 }
 ["missQty","missPrice"].forEach(id=> $(id).addEventListener("input", calcMissing));
 
-// MISSING SAVE (CREATE + EDIT)
+// MISSING SAVE (CREATE + EDIT) — upgraded
 async function onMissSave(){
-  const qty = intVal("missQty");
+  const qty   = intVal("missQty");
   const price = moneyVal("missPrice");
   const total = qty * price;
-  const note = $("missNote").value.trim();
+  const note  = $("missNote").value.trim();
 
-  if(qty<=0 || price<=0){ toast("Missing & harga mesti > 0"); return; }
-
-  try{
-    const atMs = await getAtMsFromControl("missing", "txTime_missing"); // ✅ MANUAL TIME
-    const newTx = { kind:"missing", qty, price, total, note };
-
-    // ===== EDIT MODE =====
-    if(ctxEdit && ctxEdit.txId){
-      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
-        ...newTx,
-        atMs, // ✅ ikut manual time
-        editedAt: serverTimestamp(),
-        editedAtMs: Date.now(),
-        editedByUid: me.uid,
-        editedBy: me.username
-      });
-
-      await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
-
-      ctxEdit = null;
-      
-      toast("Missing updated.");
-      return;
-    }
-
-    // ===== CREATE MODE =====
-    await addTx(ctxVaultId, newTx, atMs);
-    
-    toast("Missing saved.");
-  }catch(e){
-    console.error(e);
-    toast(e?.message || "Failed");
-    throw e;
+  // ❌ validation fail → modal kekal buka
+  if(qty <= 0 || price <= 0){
+    throw new Error("Missing & harga mesti > 0");
   }
+
+  const atMs = await getAtMsFromControl("missing", "txTime_missing"); // manual time
+  const newTx = { kind:"missing", qty, price, total, note };
+
+  // ===== EDIT MODE =====
+  if(ctxEdit && ctxEdit.txId){
+    await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+      ...newTx,
+      atMs,
+      editedAt: serverTimestamp(),
+      editedAtMs: Date.now(),
+      editedByUid: me.uid,
+      editedBy: me.username
+    });
+
+    await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
+
+    ctxEdit = null;
+
+    // ✅ success
+    return "Missing updated ✅";
+  }
+
+  // ===== CREATE MODE =====
+  await addTx(ctxVaultId, newTx, atMs);
+
+  // ✅ success
+  return "Missing saved ✅";
 }
+
 bindLoadingClick("missSave", onMissSave);
 // SELL AUTO CALC
 function calcSell(){
@@ -3661,78 +3660,74 @@ function calcSell(){
 }
 ["sellPriceKg","sellKg"].forEach(id=> $(id).addEventListener("input", calcSell));
 
-// SELL SAVE (CREATE + EDIT)
+// SELL SAVE (CREATE + EDIT) — upgraded
 async function onSellSave(){
   const priceKg = moneyVal("sellPriceKg");
-  const kg = moneyVal("sellKg");
-  const ekor = intVal("sellEkor");
-  const total = moneyVal("sellTotal") || (priceKg * kg);
-  const note = $("sellNote").value.trim();
+  const kg      = moneyVal("sellKg");
+  const ekor    = intVal("sellEkor");
+  const total   = moneyVal("sellTotal") || (priceKg * kg);
+  const note    = $("sellNote").value.trim();
 
-  if(total<=0 || kg<=0){ toast("Price/Kg dan Kg mesti isi."); return; }
+  // ❌ validation fail → modal kekal buka
+  if(total <= 0 || kg <= 0){
+    throw new Error("Price/Kg dan Kg mesti isi.");
+  }
   if(ekor > ctxAvailablePig){
-    toast(`Total ekor tak boleh lebih dari tersedia (${ctxAvailablePig}).`);
-    $("sellEkor").focus();
-    return;
+    $("sellEkor")?.focus();
+    throw new Error(`Total ekor tak boleh lebih dari tersedia (${ctxAvailablePig}).`);
   }
 
-  try{
-    const atMs = await getAtMsFromControl("sell", "txTime_sell"); // ✅ MANUAL TIME
-    const newTx = { kind:"sell", priceKg, kg, ekor, total, note };
+  const atMs = await getAtMsFromControl("sell", "txTime_sell"); // manual time
+  const newTx = { kind:"sell", priceKg, kg, ekor, total, note };
 
-    // ===== EDIT MODE =====
-    if(ctxEdit && ctxEdit.txId){
-      const old = ctxEdit.oldTx;
+  // ===== EDIT MODE =====
+  if(ctxEdit && ctxEdit.txId){
+    const old = ctxEdit.oldTx;
 
-      const oldEff = txBalanceEffect(old);
-      const newEff = txBalanceEffect(newTx);
-      const diff = newEff - oldEff;
+    const oldEff = txBalanceEffect(old);
+    const newEff = txBalanceEffect(newTx);
+    const diff   = newEff - oldEff;
 
-      // kalau diff negatif (kena tolak balik), check balance cukup
-      if(diff < 0 && Math.abs(diff) > currentBalance){
-        toast("Balance tak cukup untuk edit sell (kena tolak balik).");
-        return;
-      }
-
-      if(diff !== 0){
-        await changeBalance(diff, {
-          kind:"tx_edit_adjust",
-          txKind:"sell",
-          vaultId: ctxEdit.vaultId,
-          txId: ctxEdit.txId,
-          note:"Edit sell"
-        }, atMs);
-      }
-
-      await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
-        ...newTx,
-        atMs, // ✅ ikut manual time
-        editedAt: serverTimestamp(),
-        editedAtMs: Date.now(),
-        editedByUid: me.uid,
-        editedBy: me.username
-      });
-
-      await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
-
-      ctxEdit = null;
-      
-      toast("Sell updated.");
-      return;
+    // kalau diff negatif (kena tolak balik), check balance cukup
+    if(diff < 0 && Math.abs(diff) > currentBalance){
+      throw new Error("Balance tak cukup untuk edit sell (kena tolak balik).");
     }
 
-    // ===== CREATE MODE =====
-    await changeBalance(+total, { kind:"sell", priceKg, kg, ekor, total, note, vaultId: ctxVaultId }, atMs);
-    await addTx(ctxVaultId, newTx, atMs);
+    if(diff !== 0){
+      await changeBalance(diff, {
+        kind:"tx_edit_adjust",
+        txKind:"sell",
+        vaultId: ctxEdit.vaultId,
+        txId: ctxEdit.txId,
+        note:"Edit sell"
+      }, atMs);
+    }
 
-    
-    toast("Sell saved.");
-  }catch(e){
-    console.error(e);
-    toast(e?.message || "Failed (maybe limited user no access).");
-    throw e;
+    await update(ref(db, `vaults/${ctxEdit.bucket}/${ctxEdit.vaultId}/transactions/${ctxEdit.txId}`), {
+      ...newTx,
+      atMs,
+      editedAt: serverTimestamp(),
+      editedAtMs: Date.now(),
+      editedByUid: me.uid,
+      editedBy: me.username
+    });
+
+    await recomputeVaultSummary(ctxEdit.vaultId, ctxEdit.bucket);
+
+    ctxEdit = null;
+
+    // ✅ success
+    return "Sell updated ✅";
   }
+
+  // ===== CREATE MODE =====
+  await changeBalance(+total, { kind:"sell", priceKg, kg, ekor, total, note, vaultId: ctxVaultId }, atMs);
+  await addTx(ctxVaultId, newTx, atMs);
+
+  // ✅ success
+  return "Sell saved ✅";
 }
+
 bindLoadingClick("sellSave", onSellSave);
 // VALIDATE EKOR INPUT
 function validateSellEkor(){
