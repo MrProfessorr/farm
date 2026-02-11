@@ -1087,7 +1087,7 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Amount</label>
-          <input id="apAmount" type="number" min="0" step="0.01" />
+          <input id="apAmount" type="text" inputmode="decimal" />
         </div>
         <div>
           <label>Note</label>
@@ -1152,7 +1152,7 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Amount</label>
-          <input id="cashAmount" type="number" min="0" step="0.01" />
+          <input id="cashAmount" type="text" inputmode="decimal" />
         </div>
         <div>
           <label>Note</label>
@@ -1195,18 +1195,18 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Quantity</label>
-          <input id="buyQty" type="number" min="0" step="1" />
+          <input id="buyQty"   type="text" inputmode="numeric" />
         </div>
         <div>
           <label>Price Quantity</label>
-          <input id="buyPrice" type="number" min="0" step="0.01" />
+          <input id="buyPrice" type="text" inputmode="decimal" />
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Total Price</label>
-          <input id="buyTotal" type="number" min="0" step="0.01" />
+          <input id="buyTotal" type="text" inputmode="decimal" />
           <div class="hint" id="buyBalanceHint"></div>
         </div>
         <div>
@@ -1243,18 +1243,18 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Price Quantity</label>
-          <input id="sellPriceKg" type="number" min="0" step="0.01" />
+          <input id="sellPriceKg" type="text" inputmode="decimal" />
         </div>
         <div>
           <label>Total Kg</label>
-          <input id="sellKg" type="number" min="0" step="0.01" />
+          <input id="sellKg"      type="text" inputmode="decimal" />
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Total Quantity</label>
-          <input id="sellEkor" type="number" min="0" step="1" />
+          <input id="sellEkor"    type="text" inputmode="numeric" />
           <div class="hint" id="sellEkorHint"></div>
         </div>
 
@@ -1265,7 +1265,7 @@ input[type="number"]{
 
         <div>
           <label>Total Amount</label>
-          <input id="sellTotal" type="number" min="0" step="0.01" />
+          <input id="sellTotal"   type="text" inputmode="decimal" />
         </div>
       </div>
 
@@ -1301,18 +1301,18 @@ input[type="number"]{
       <div class="row">
         <div>
           <label>Quantity Death</label>
-          <input id="missQty" type="number" min="0" step="1" />
+          <input id="missQty"   type="text" inputmode="numeric" />
         </div>
         <div>
           <label>Price Quantity</label>
-          <input id="missPrice" type="number" min="0" step="0.01" />
+          <input id="missPrice" type="text" inputmode="decimal" />
         </div>
       </div>
 
       <div class="row">
         <div>
           <label>Total Amount</label>
-          <input id="missTotal" type="number" disabled placeholder="auto" />
+          <input id="missTotal" type="text" disabled placeholder="auto" />
         </div>
         <div>
           <label>Note</label>
@@ -1642,6 +1642,48 @@ function ymd(ms){
   const d = new Date(ms);
   const pad = (n)=> String(n).padStart(2,"0");
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+// ===== LIVE MONEY FORMAT: 1000 -> 1,000.00 =====
+function _stripNum(s){
+  return String(s ?? "")
+    .replace(/[^\d.]/g, "")
+    .replace(/(\..*)\./g, "$1"); // only one dot
+}
+function moneyFormat(raw){
+  if(raw === "" || raw === ".") return "";
+  const n = Number(raw);
+  if(!Number.isFinite(n)) return "";
+  return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function moneyVal(idOrEl){
+  const el = (typeof idOrEl === "string") ? $(idOrEl) : idOrEl;
+  const raw = _stripNum(el?.value);
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+function intVal(idOrEl){
+  const el = (typeof idOrEl === "string") ? $(idOrEl) : idOrEl;
+  const raw = String(el?.value ?? "").replace(/[^\d]/g, "");
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+function attachMoney(el){
+  if(!el) return;
+  el.addEventListener("input", ()=>{
+    const raw = _stripNum(el.value);
+    el.value = raw ? moneyFormat(raw) : "";
+  });
+  el.addEventListener("blur", ()=>{
+    const raw = _stripNum(el.value);
+    el.value = raw ? moneyFormat(raw) : "";
+  });
+}
+function attachInt(el){
+  if(!el) return;
+  el.addEventListener("input", ()=>{
+    const raw = String(el.value ?? "").replace(/[^\d]/g, "");
+    el.value = raw ? Number(raw).toLocaleString("en-US") : "";
+  });
 }
   let me = { uid:null, username:null, isAdmin:false };
   let currentBalance = 0;
@@ -2775,7 +2817,7 @@ $("btnLogout").addEventListener("click", async ()=>{
   $("apSave").addEventListener("click", async ()=>{
     if(!me.isAdmin){ toast("No access."); return; }
     const type = $("apType").value;
-    const amount = Number($("apAmount").value||0);
+    const amount = moneyVal("apAmount");
     const note = $("apNote").value.trim();
     if(amount<=0){ toast("Amount mesti > 0"); return; }
 
@@ -3112,7 +3154,7 @@ if(act==="vaultUnclose"){
 // CASH SAVE (CREATE + EDIT)
 $("cashSave").addEventListener("click", async ()=>{
   const type = $("cashType").value;
-  const amount = Number($("cashAmount").value||0);
+  const amount = moneyVal("cashAmount");
   const note = $("cashNote").value.trim();
   if(amount<=0){ toast("Amount mesti > 0"); return; }
 
@@ -3169,14 +3211,14 @@ $("cashSave").addEventListener("click", async ()=>{
 });
 // BUY AUTO CALC
 function calcBuy(){
-  const qty   = Number($("buyQty").value||0);
-  const price = Number($("buyPrice").value||0);
+  const qty   = intVal("buyQty");
+  const price = moneyVal("buyPrice");
   const autoTotal = (qty > 0 && price > 0) ? (qty * price) : 0;
   if(!buyTotalManual){
-    $("buyTotal").value = autoTotal ? autoTotal.toFixed(2) : "";
+    $("buyTotal").value = autoTotal ? moneyFormat(String(autoTotal)) : "";
   }
 
-  const total = Number($("buyTotal").value||0);
+  const total = moneyVal("buyTotal");
   const enough = total <= currentBalance;
   $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
   $("buyBalanceHint").textContent = enough
@@ -3196,9 +3238,9 @@ $("buyTotal").addEventListener("input", ()=>{
 // BUY SAVE (CREATE + EDIT)
 $("buySave").addEventListener("click", async ()=>{
   const category = $("buyCat").value;
-  const qty = Number($("buyQty").value||0);
-  const price = Number($("buyPrice").value||0);
-  const total = Number($("buyTotal").value||0) || (qty*price);
+  const qty = intVal("buyQty");
+  const price = moneyVal("buyPrice");
+  const total = moneyVal("buyTotal") || (qty * price);
   const note = $("buyNote").value.trim();
 
   if(total<=0){ toast("Total mesti > 0"); return; }
@@ -3269,17 +3311,17 @@ $("buySave").addEventListener("click", async ()=>{
 
 // MISSING AUTO CALC
 function calcMissing(){
-  const q = Number($("missQty").value||0);
-  const p = Number($("missPrice").value||0);
+  const q = intVal("missQty");
+  const p = moneyVal("missPrice");
   const t = q*p;
-  $("missTotal").value = t ? t.toFixed(2) : "";
+  $("missTotal").value = t ? moneyFormat(String(t)) : "";
 }
 ["missQty","missPrice"].forEach(id=> $(id).addEventListener("input", calcMissing));
 
 // MISSING SAVE (CREATE + EDIT)
 $("missSave").addEventListener("click", async ()=>{
-  const qty = Number($("missQty").value||0);
-  const price = Number($("missPrice").value||0);
+  const qty = intVal("missQty");
+  const price = moneyVal("missPrice");
   const total = qty * price;
   const note = $("missNote").value.trim();
 
@@ -3320,19 +3362,19 @@ $("missSave").addEventListener("click", async ()=>{
 
 // SELL AUTO CALC
 function calcSell(){
-  const priceKg = Number($("sellPriceKg").value||0);
-  const kg = Number($("sellKg").value||0);
+  const priceKg = moneyVal("sellPriceKg");
+  const kg = moneyVal("sellKg");
   const total = priceKg * kg;
-  $("sellTotal").value = total ? total.toFixed(2) : "";
+  $("sellTotal").value = total ? moneyFormat(String(total)) : "";
 }
 ["sellPriceKg","sellKg"].forEach(id=> $(id).addEventListener("input", calcSell));
 
 // SELL SAVE (CREATE + EDIT)
 $("sellSave").addEventListener("click", async ()=>{
-  const priceKg = Number($("sellPriceKg").value||0);
-  const kg = Number($("sellKg").value||0);
-  const ekor = Number($("sellEkor").value||0);
-  const total = Number($("sellTotal").value||0) || (priceKg*kg);
+  const priceKg = moneyVal("sellPriceKg");
+  const kg = moneyVal("sellKg");
+  const ekor = intVal("sellEkor");
+  const total = moneyVal("sellTotal") || (priceKg * kg);
   const note = $("sellNote").value.trim();
 
   if(total<=0 || kg<=0){ toast("Price/Kg dan Kg mesti isi."); return; }
@@ -3400,7 +3442,7 @@ $("sellSave").addEventListener("click", async ()=>{
 });
 // VALIDATE EKOR INPUT
 function validateSellEkor(){
-  const ekor = Number($("sellEkor").value||0);
+  const ekor = intVal("sellEkor");
   const ok = ekor <= ctxAvailablePig;
 
   $("sellEkor").style.borderColor = ok ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.85)";
@@ -3461,6 +3503,21 @@ onAuthStateChanged(auth, async (user)=>{
 }
   setView("open");
   initCustomSelects();
+    // ===== LIVE FORMAT INPUTS =====
+  attachMoney($("apAmount"));
+  attachMoney($("cashAmount"));
+
+  attachInt($("buyQty"));
+  attachMoney($("buyPrice"));
+  attachMoney($("buyTotal"));
+
+  attachMoney($("sellPriceKg"));
+  attachMoney($("sellKg"));
+  attachInt($("sellEkor"));
+  attachMoney($("sellTotal"));
+
+  attachInt($("missQty"));
+  attachMoney($("missPrice"));
     // 🔄 REFRESH BUTTON
   const btnRefresh = document.getElementById("btnRefresh");
   if(btnRefresh){
