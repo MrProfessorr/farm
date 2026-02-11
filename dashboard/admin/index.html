@@ -1206,7 +1206,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mCash">Cancel</button>
-      <button class="btn" id="cashSave" data-loading="Saving..." data-close-modal="mCash">Save</button>
+      <button class="btn" id="cashSave" data-loading="Saving..." data-close-modal="mCash" data-ok="Cash transfer saved.">Save</button>
     </div>
   </div>
 </div>
@@ -1626,33 +1626,43 @@ function bindLoadingClick(btnId, handler){
 
     setBtnLoading(btn, true);
 
-    // ✅ bagi browser sempat paint spinner dulu
-    await sleep(80);
+    const closeId = btn.dataset.closeModal; // contoh mCash
+    const okMsg   = btn.dataset.ok || "Saved successfully";
 
-    const MIN_TIME = 1200; // ⏳ cuba 1200–1800 (1.2s–1.8s)
-    const start = Date.now();
-
-    let ok = false;
     try{
-      await handler();
-      ok = true;
+      await handler(); // buat kerja save
+
+      // 🟡 TUTUP MODAL DULU
+      if(closeId){
+        await closeModalAnimated(closeId);
+      }
+
+      // 🟢 LEPAS TUTUP BARU TOAST
+      toast(okMsg);
+
     }catch(e){
       console.error(e);
       toast(e?.message || "Failed");
     }finally{
-      const elapsed = Date.now() - start;
-      const wait = Math.max(0, MIN_TIME - elapsed);
-      if(wait) await sleep(wait);
-
       setBtnLoading(btn, false);
-
-      // ✅ AUTO close modal lepas loading (kalau button ada attribute)
-      const mid = btn.getAttribute("data-close-modal");
-      if(ok && mid) closeModal(mid);
     }
   });
 }
+function closeModalAnimated(id){
+  const el = document.getElementById(id);
+  if(!el) return Promise.resolve();
 
+  el.classList.add("is-closing");
+  el.classList.remove("is-open");
+
+  return new Promise(resolve=>{
+    setTimeout(()=>{
+      el.style.display = "none";
+      el.classList.remove("is-closing");
+      resolve();
+    }, 180); // sama dengan animation close CSS
+  });
+}
   const fmt = (n)=> (Number(n||0)).toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2});
   const fmtDT = (ms)=>{
    if(!ms) return "-";
