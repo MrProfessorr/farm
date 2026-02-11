@@ -2981,7 +2981,7 @@ async function doChangePassword(){
   }
 
   const oldPass = $("cpOld")?.value || "";
-  const newPass = $("cpNew")?.value || "";
+  const newPass  = $("cpNew")?.value || "";
   const newPass2 = $("cpNew2")?.value || "";
 
   if(!oldPass || !newPass || !newPass2){
@@ -2998,24 +2998,32 @@ async function doChangePassword(){
   }
 
   try{
-    // 🔒 Wajib re-auth pakai password lama
     const cred = EmailAuthProvider.credential(user.email, oldPass);
     await reauthenticateWithCredential(user, cred);
-
-    // ✅ Update password baru
     await updatePassword(user, newPass);
 
-    
-    toast("Password updated ✅");
+    // optional: clear input lepas berjaya
+    $("cpOld").value = "";
+    $("cpNew").value = "";
+    $("cpNew2").value = "";
+
+    closeModal("mChangePass"); // kalau kau nak auto tutup
+    toast("Password success change.");
   }catch(e){
-    console.error(e);
+    const code = String(e?.code || "");
+
     const msg =
-      e?.code === "auth/wrong-password" ? "Password lama salah."
-    : e?.code === "auth/too-many-requests" ? "Terlalu banyak cubaan, cuba lagi nanti."
-    : e?.code === "auth/requires-recent-login" ? "Sila logout/login semula, then cuba lagi."
+      (code === "auth/wrong-password" || code === "auth/invalid-login-credentials")
+        ? "Password lama salah."
+    : (code === "auth/too-many-requests")
+        ? "Terlalu banyak cubaan, cuba lagi nanti."
+    : (code === "auth/requires-recent-login")
+        ? "Sesi dah lama. Sila logout/login semula."
+    : (code === "auth/weak-password")
+        ? "Password baru terlalu lemah (min 6)."
     : (e?.message || "Failed update password.");
+
     toast(msg);
-    throw e;
   }
 }
 
