@@ -1619,14 +1619,26 @@ function setBtnLoading(btn, on, label){
 function bindLoadingClick(btnId, handler){
   const btn = document.getElementById(btnId);
   if(!btn) return;
-  btn.addEventListener("click", async (e)=>{
-    e.preventDefault();
-    if(btn.dataset._busy === "1") return;
+
+  btn.addEventListener("click", async ()=>{
+    if(btn.disabled) return;
+
     setBtnLoading(btn, true);
+
+    const MIN_TIME = 800;
+    const start = Date.now();
+
     try{
-      await handler(e);
+      await handler();
     }finally{
-      setBtnLoading(btn, false);
+      const elapsed = Date.now() - start;
+      const remaining = MIN_TIME - elapsed;
+
+      if(remaining > 0){
+        setTimeout(()=> setBtnLoading(btn, false), remaining);
+      }else{
+        setBtnLoading(btn, false);
+      }
     }
   });
 }
