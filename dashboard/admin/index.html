@@ -1034,6 +1034,42 @@ input[type="number"]{
   width:100%;
   padding-right: 44px;
 }
+  /* ===== MODAL ZOOM IN/OUT ===== */
+.modalBack{
+  display:none;              /* default hidden */
+  opacity:0;
+  transition: opacity .18s ease;
+  will-change: opacity;
+}
+.modalBack.show{
+  display:flex;
+  opacity:1;
+}
+
+/* panel */
+.modalBack .modal{
+  transform: translateY(10px) scale(.94);
+  opacity:0;
+  transition: transform .18s ease, opacity .18s ease;
+  will-change: transform, opacity;
+}
+.modalBack.show .modal{
+  transform: translateY(0) scale(1);
+  opacity:1;
+}
+
+/* closing */
+.modalBack.closing{
+  opacity:0;
+}
+.modalBack.closing .modal{
+  transform: translateY(12px) scale(.94);
+  opacity:0;
+}
+
+@media (prefers-reduced-motion: reduce){
+  .modalBack, .modalBack .modal{ transition:none !important; }
+}
   </style>
 </head>
 
@@ -2166,25 +2202,60 @@ function initRightDrawerOnce(){
     });
   }
 }
-  // ===== MODAL helper =====
-  function openModal(id){ $(id).style.display="flex"; }
-function closeModal(id){
-  $(id).style.display="none";
-  if(id==="mCash" || id==="mBuy" || id==="mMissing" || id==="mSell"){
-    ctxEdit = null;
-  }
-  if(id==="mNewVault") resetTxTimeInput("txTime_newVault");
-  if(id==="mCash")    resetTxTimeInput("txTime_cash");
-  if(id==="mBuy")     resetTxTimeInput("txTime_buy");
-  if(id==="mMissing") resetTxTimeInput("txTime_missing");
-  if(id==="mSell")    resetTxTimeInput("txTime_sell");
-}
-  document.addEventListener("click",(e)=>{
-    const t = e.target;
-    if(t?.dataset?.close) closeModal(t.dataset.close);
-    if(t.classList.contains("modalBack")) t.style.display="none";
-  });
+  // ===== MODAL helper (ZOOM IN/OUT) =====
+const MODAL_MS = 200; // match CSS transition ~0.18s
 
+function openModal(id){
+  const back = $(id);
+  if(!back) return;
+
+  back.classList.remove("closing");
+  back.style.display = "flex";
+
+  // trigger transition
+  requestAnimationFrame(()=>{
+    back.classList.add("show");
+  });
+}
+
+function closeModal(id){
+  const back = $(id);
+  if(!back) return;
+
+  // kalau modal memang tak open, ignore
+  if(!back.classList.contains("show") && back.style.display === "none") return;
+
+  // trigger zoom-out
+  back.classList.add("closing");
+  back.classList.remove("show");
+
+  setTimeout(()=>{
+    back.style.display = "none";
+    back.classList.remove("closing");
+
+    // reset context ikut logic asal kau
+    if(id==="mCash" || id==="mBuy" || id==="mMissing" || id==="mSell"){
+      ctxEdit = null;
+    }
+    if(id==="mNewVault") resetTxTimeInput("txTime_newVault");
+    if(id==="mCash")    resetTxTimeInput("txTime_cash");
+    if(id==="mBuy")     resetTxTimeInput("txTime_buy");
+    if(id==="mMissing") resetTxTimeInput("txTime_missing");
+    if(id==="mSell")    resetTxTimeInput("txTime_sell");
+  }, MODAL_MS);
+}
+document.addEventListener("click",(e)=>{
+  const t = e.target;
+  if(t?.dataset?.close) closeModal(t.dataset.close);
+  if(t.classList.contains("modalBack")){
+    closeModal(t.id);
+  }
+});
+document.addEventListener("keydown",(e)=>{
+  if(e.key !== "Escape") return;
+  const openBack = document.querySelector(".modalBack.show");
+  if(openBack) closeModal(openBack.id);
+});
 // ===== ROLE =====
 async function loadRole(uid){
   const r = await get(ref(db, `roles/${uid}`));
