@@ -1097,6 +1097,39 @@ input[type="number"]{
     max-height: calc(var(--vvh, 100vh) - 12px);
   }
 }
+/* Chrome/Edge/Safari */
+.modal .modalBody::-webkit-scrollbar{
+  width: 10px;   /* vertical */
+  height: 10px;  /* horizontal */
+}
+.modal .modalBody::-webkit-scrollbar-track{
+  background: rgba(255,255,255,.06);
+  border-radius: 999px;
+}
+.modal .modalBody::-webkit-scrollbar-thumb{
+  background: rgba(160,160,160,.45);
+  border-radius: 999px;
+  border: 2px solid rgba(0,0,0,.25);
+}
+.modal .modalBody::-webkit-scrollbar-thumb:hover{
+  background: rgba(190,190,190,.65);
+}
+
+/* Firefox */
+.modal .modalBody{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) rgba(253, 253, 253, 0.12);
+}
+
+/* (Optional) bagi modal body tepi scrollbar tak "melekat" */
+.modal .modalBody{
+  scrollbar-gutter: stable both-edges; /* ok kalau browser support */
+}
+.modal::-webkit-scrollbar{ width:10px; height:10px; }
+.modal::-webkit-scrollbar-track{ background: rgba(255,255,255,.06); border-radius:999px; }
+.modal::-webkit-scrollbar-thumb{ background: rgba(160,160,160,.45); border-radius:999px; border:2px solid rgba(0,0,0,.25); }
+.modal::-webkit-scrollbar-thumb:hover{ background: rgba(190,190,190,.65); }
+.modal{ scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) rgba(255,255,255,.08); }
   </style>
 </head>
 
