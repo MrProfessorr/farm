@@ -1975,7 +1975,7 @@ function bindLoadingClick(btnId, handler){
     setBtnLoading(btn, true);
     await sleep(80); // bagi spinner sempat appear
 
-    const MIN_TIME = 1200; // minimum loading time
+    const MIN_TIME = 800; // minimum loading time
     const start = Date.now();
 
     try{
