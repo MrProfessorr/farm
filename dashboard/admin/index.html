@@ -989,7 +989,22 @@ input[type="number"]{
 }
 .txSearchInput::placeholder{ color: rgba(255,255,255,.45); }
 .txSearchInput:focus{ border-color: rgba(255,255,255,.22); }
+/* ✅ align semua dalam baris filter jadi center */
+.rangeBar{ align-items:center; }
+.rangeRight{ align-items:center; }
 
+/* ✅ bagi preset button jadi betul2 center & sama tinggi */
+.pbtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:32px;          /* sama macam daterange/dropdown */
+  line-height:32px;     /* elak baseline naik */
+  padding:0 15px;       /* kekal style kau */
+}
+
+/* optional: bila wrap ke 2 baris, bagi kemas */
+.rangeRight{ gap:6px 8px; }
   </style>
 </head>
 
