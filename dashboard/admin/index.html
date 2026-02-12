@@ -275,14 +275,78 @@ body.drawerOpen{
     .danger{background:#d11f3a}
     .danger:hover{background:#e2445b}
     .danger:active{background:#b31930}
-    .toast{
-      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
-      background:rgba(0,0,0,.78); color:var(--txt);
-      border:1px solid rgba(255,255,255,.12);
-      padding:10px 12px; border-radius:12px; display:none;
-      max-width:min(720px,92vw);
-      z-index:9999999;
-    }
+.toast{
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, 92vw);
+  z-index: 9999999;
+  display: none;
+}
+
+.toastCard{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 12px;
+  border-radius: 10px;
+  background: rgba(20,20,20,.92);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 18px 60px rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+}
+
+.toastIcon{
+  width:22px;
+  height:22px;
+  border-radius:999px;
+  display:grid;
+  place-items:center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,.12);
+}
+.toastIcon svg{ width:16px; height:16px; display:block; }
+
+.toastMsg{
+  flex:1 1 auto;
+  min-width:0;
+  color: rgba(255,255,255,.90);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toastClose{
+  width:28px;
+  height:28px;
+  border:none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255,255,255,.75);
+  cursor:pointer;
+  display:grid;
+  place-items:center;
+  transition: all .2s;
+  flex:0 0 auto;
+}
+.toastClose:hover{ background: rgba(255,255,255,.06); color:#fff; }
+.toastClose:active{ transform: translateY(1px); opacity:.85; }
+
+/* success/error variants */
+.toast.success .toastIcon{
+  background: rgba(34,197,94,.18);
+  border-color: rgba(34,197,94,.35);
+  color: #22c55e;
+}
+.toast.error .toastIcon{
+  background: rgba(239,68,68,.16);
+  border-color: rgba(239,68,68,.35);
+  color: #ef4444;
+}
     .hr{height:1px;background:rgba(255,255,255,.10); margin:12px 0}
     .kpiRow{display:flex; gap:10px; flex-wrap:wrap}
     .kpi{
@@ -596,15 +660,6 @@ input[type="number"]{
   align-items:center;
   flex-wrap:nowrap;          /* desktop: jangan turun */
 }
-
-/* kanan: preset buttons */
-.rangeRight{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-}
-
 /* ===== MOBILE ===== */
 @media (max-width: 720px){
   .rangeLeft{
@@ -1223,7 +1278,7 @@ input[type="number"]{
 <div class="btn-modal" id="drawerWalletRow">
   <span class="walletIcon" aria-hidden="true">
     <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-      <path d="M5 19V5zm0 2q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v2.5h-2V5H5v14h14v-2.5h2V19q0 .825-.587 1.413T19 21zm8-4q-.825 0-1.412-.587T11 15V99q0-.825.588-1.412T13 7h7q.825 0 1.413.588T22 9v6q0 .825-.587 1.413T20 17zm7-2V9h-7v6zm-4-1.5q.625 0 1.063-.437T17.5 12t-.437-1.062T16 10.5t-1.062.438T14.5 12t.438 1.063T16 13.5"/>
+      <path d="M5 19V5zm0 2q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v2.5h-2V5H5v14h14v-2.5h2V19q0 .825-.587 1.413T19 21zm8-4q-.825 0-1.412-.587T11 15V9q0-.825.588-1.412T13 7h7q.825 0 1.413.588T22 9v6q0 .825-.587 1.413T20 17zm7-2V9h-7v6zm-4-1.5q.625 0 1.063-.437T17.5 12t-.437-1.062T16 10.5t-1.062.438T14.5 12t.438 1.063T16 13.5"/>
     </svg>
   </span>
   <span class="drawerText num" id="drawerWallet">0.00</span>
@@ -1788,13 +1843,58 @@ document.addEventListener("click", (e)=>{
   if(!e.target.closest(".cs")) closeAllCustomSelects();
 });
 
-  const toast = (msg)=>{
-    const el = $("toast");
-    el.textContent = msg;
-    el.style.display="block";
-    clearTimeout(window.__t);
-    window.__t = setTimeout(()=> el.style.display="none", 2600);
+// ===== TOAST UPGRADE (success/error + icon + close) =====
+let __toastTimer = null;
+
+function toast(message, type = "success", ms = 2600){
+  const el = $("toast");
+  if(!el) return;
+
+  const svgSuccess = `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor"
+        d="M9.55 17.25 4.8 12.5l1.4-1.4 3.35 3.35 8.25-8.25 1.4 1.4z"/>
+    </svg>
+  `;
+
+  // ❌ icon ikut path yang kau bagi
+  const svgError = `
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor"
+        d="m12.002 2.005c5.518 0 9.998 4.48 9.998 9.997 0 5.518-4.48 9.998-9.998 9.998-5.517 0-9.997-4.48-9.997-9.998 0-5.517 4.48-9.997 9.997-9.997zm0 8.933-2.721-2.722c-.146-.146-.339-.219-.531-.219-.404 0-.75.324-.75.749 0 .193.073.384.219.531l2.722 2.722-2.728 2.728c-.147.147-.22.34-.22.531 0 .427.35.75.751.75.192 0 .384-.073.53-.219l2.728-2.728 2.729 2.728c.146.146.338.219.53.219.401 0 .75-.323.75-.75 0-.191-.073-.384-.22-.531l-2.727-2.728 2.717-2.717c.146-.147.219-.338.219-.531 0-.425-.346-.75-.75-.75-.192 0-.385.073-.531.22z"/>
+    </svg>
+  `;
+
+  const icon = (type === "error") ? svgError : svgSuccess;
+
+  // class variant
+  el.className = `toast ${type}`;
+
+  // build UI
+  el.innerHTML = `
+    <div class="toastCard">
+      <div class="toastIcon">${icon}</div>
+      <div class="toastMsg">${escapeHtml(String(message || ""))}</div>
+      <button class="toastClose" type="button" aria-label="Close">✕</button>
+    </div>
+  `;
+
+  el.style.display = "block";
+
+  const closeBtn = el.querySelector(".toastClose");
+  const hide = ()=>{
+    el.style.display = "none";
+    el.className = "toast";
+    el.innerHTML = "";
+    if(__toastTimer) clearTimeout(__toastTimer);
+    __toastTimer = null;
   };
+
+  closeBtn?.addEventListener("click", hide, { once:true });
+
+  if(__toastTimer) clearTimeout(__toastTimer);
+  if(ms && ms > 0) __toastTimer = setTimeout(hide, ms);
+}
 const sleep = (ms)=> new Promise(r=>setTimeout(r, ms));
 const SPINNER_SVG = `
 <svg class="btnSpin" viewBox="0 0 24 24" aria-hidden="true">
@@ -1858,7 +1958,7 @@ function bindLoadingClick(btnId, handler){
       await sleep(180);
 
       if(typeof msg === "string" && msg.trim()){
-        toast(msg);
+        toast(msg, "success");
       }
 
     }catch(e){
@@ -1871,7 +1971,7 @@ function bindLoadingClick(btnId, handler){
       setBtnLoading(btn, false);
 
       // ❌ error = modal kekal buka
-      toast(e?.message || "Failed");
+      toast(e?.message || "Failed", "error");
     }
   });
 }
