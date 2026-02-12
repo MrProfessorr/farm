@@ -301,17 +301,16 @@ body.drawerOpen{
 
 /* ===== TOAST CARD ===== */
 .toastCard{
-  position: relative;           /* ✅ penting utk center absolute text */
-  display:flex;
+  display:grid;                 /* ✅ tukar flex -> grid */
+  grid-template-columns: 28px 1fr 28px; /* icon | text | close */
   align-items:center;
-  gap:12px;
+  column-gap:10px;
   padding:12px 12px;
-  border-radius: 10px;
+  border-radius:10px;
   background: rgba(20,20,20,.92);
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 18px 60px rgba(0,0,0,.55);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 18px 60px rgba(0,0,0,.55);
   backdrop-filter: blur(10px);
-  min-height: 46px;
 }
 
 /* kiri icon */
@@ -321,45 +320,38 @@ body.drawerOpen{
   border-radius:999px;
   display:grid;
   place-items:center;
-  flex: 0 0 auto;
-  border: 1px solid rgba(255,255,255,.12);
-  z-index: 2;                   /* ✅ above centered text */
+  border:1px solid rgba(255,255,255,.12);
+  justify-self:start;
 }
 .toastIcon svg{ width:16px; height:16px; display:block; }
 
-/* ✅ TEXT BETUL-BETUL CENTER */
+/* tengah text */
 .toastMsg{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  text-align:center;
-  width: calc(100% - 120px);    /* ✅ bagi ruang icon kiri + X kanan */
+  justify-self:center;          /* ✅ betul-betul center */
+  text-align:center;            /* ✅ text center */
   color: rgba(255,255,255,.90);
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.25;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  z-index: 1;
-  pointer-events:none;          /* elak kacau click close */
+  font-size:14px;
+  font-weight:600;
+  line-height:1.25;
+  max-width: 100%;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
 }
 
-/* kanan X */
+/* kanan close */
 .toastClose{
   width:28px;
   height:28px;
   border:none;
-  border-radius: 8px;
+  border-radius:8px;
   background: transparent;
   color: rgba(255,255,255,.75);
   cursor:pointer;
   display:grid;
   place-items:center;
   transition: all .2s;
-  flex:0 0 auto;
-  margin-left:auto;             /* ✅ push ke kanan */
-  z-index: 2;                   /* ✅ above centered text */
+  justify-self:end;             /* ✅ rapat kanan */
 }
 .toastClose:hover{ background: rgba(255,255,255,.06); color:#fff; }
 .toastClose:active{ transform: translateY(1px); opacity:.85; }
