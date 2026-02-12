@@ -1029,6 +1029,45 @@ input[type="number"]{
 .rangeBar{ align-items:center; }
 .rangeRight{ align-items:center; } 
 .rangeRight{ gap:6px 8px; }
+.txSearchWrap{
+  position:relative;
+  display:inline-block;
+  width:100%;
+  min-width: 220px;
+}
+
+.txSearchWrap .txSearchInput{
+  width:100%;
+  padding-right: 44px;
+}
+
+.txSearchClear{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  width:28px;
+  height:28px;
+  border:none;
+  border-radius:999px;
+  background:transparent;
+  cursor:pointer;
+  padding:0;
+  display:none;
+  color: rgba(255,255,255,.75);
+}
+
+.txSearchClear svg{
+  width:18px;
+  height:18px;
+  display:block;
+  margin:auto;
+  opacity:.85;
+  transition: .15s;
+}
+
+.txSearchClear:hover svg{ opacity:1; }
+.txSearchClear:active svg{ transform:scale(.92); }
   </style>
 </head>
 
@@ -2517,10 +2556,19 @@ ${!isHistory ? `
   </select>
 
   <!-- ✅ NEW -->
+<div class="txSearchWrap">
   <input class="txSearchInput"
     type="text"
     placeholder="Search transaction..."
     data-txsearch="${vaultId}">
+
+  <button type="button" class="txSearchClear" data-txclear="${vaultId}" aria-label="Clear search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 6L6 18"></path>
+      <path d="M6 6l12 12"></path>
+    </svg>
+  </button>
+</div>
 </div>
 
   <div class="rangeRight" data-presets="${vaultId}">
@@ -2856,7 +2904,33 @@ if(q){
 
   tbody.innerHTML = use.map(([txId,t]) => txRowHTML(vaultId, txId, t, bucket)).join("");
 }
+function bindTxSearchClear(vaultId){
+  const input = document.querySelector(`input[data-txsearch="${vaultId}"]`);
+  const btn   = document.querySelector(`button[data-txclear="${vaultId}"]`);
+  if(!input || !btn) return;
 
+  const sync = ()=>{
+    btn.style.display = input.value.trim() ? "inline-flex" : "none";
+  };
+
+  // elak double bind bila vault rerender
+  if(input.dataset._clearBound === "1"){
+    sync();
+    return;
+  }
+  input.dataset._clearBound = "1";
+
+  input.addEventListener("input", sync);
+
+  btn.addEventListener("click", ()=>{
+    input.value = "";
+    sync();
+    input.dispatchEvent(new Event("input", { bubbles:true })); // trigger filter
+    input.focus();
+  });
+
+  sync();
+}
 function initVaultDateRangeUI(vaultId){
   const input = document.querySelector(`.dateRangeInput[data-range="${vaultId}"]`);
   if(!input) return;
@@ -2878,6 +2952,7 @@ if(s){
     vaultTxSearchFilters[vaultId] = s.value || "";
     rerenderVaultTbody(vaultId);
   };
+   bindTxSearchClear(vaultId);
 }
   // === DATE RANGE ===
   const def = vaultFilters[vaultId] || presetRangeMs("thisMonth");
