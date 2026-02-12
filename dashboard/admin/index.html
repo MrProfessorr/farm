@@ -1034,37 +1034,50 @@ input[type="number"]{
   width:100%;
   padding-right: 44px;
 }
-  /* ===== MODAL ZOOM IN/OUT ===== */
+/* ===== MODAL ZOOM IN/OUT (SMOOTH) ===== */
 .modalBack{
-  display:none;              /* default hidden */
-  opacity:0;
-  transition: opacity .18s ease;
+  position: fixed;
+  inset: 0;
+  display: flex;                 /* ✅ kekal flex, jangan none */
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  visibility: hidden;            /* ✅ hidden */
+  pointer-events: none;          /* ✅ tak boleh klik masa tutup */
+
+  transition: opacity .18s ease, visibility 0s linear .18s;
   will-change: opacity;
-}
-.modalBack.show{
-  display:flex;
-  opacity:1;
+  transform: translateZ(0);
 }
 
-/* panel */
+.modalBack.show{
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity .18s ease;
+}
+
+/* panel/content */
 .modalBack .modal{
-  transform: translateY(10px) scale(.94);
-  opacity:0;
+  transform: translate3d(0,10px,0) scale(.96);
+  opacity: 0;
   transition: transform .18s ease, opacity .18s ease;
   will-change: transform, opacity;
 }
+
 .modalBack.show .modal{
-  transform: translateY(0) scale(1);
-  opacity:1;
+  transform: translate3d(0,0,0) scale(1);
+  opacity: 1;
 }
 
-/* closing */
+/* closing (optional) */
 .modalBack.closing{
-  opacity:0;
+  opacity: 0;
 }
 .modalBack.closing .modal{
-  transform: translateY(12px) scale(.94);
-  opacity:0;
+  transform: translate3d(0,12px,0) scale(.96);
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -2202,36 +2215,35 @@ function initRightDrawerOnce(){
     });
   }
 }
-  // ===== MODAL helper (ZOOM IN/OUT) =====
-const MODAL_MS = 200; // match CSS transition ~0.18s
+// ===== MODAL helper (SMOOTH, NO DISPLAY TOGGLE) =====
+const MODAL_MS = 220; // sikit buffer dari 0.18s
 
 function openModal(id){
   const back = $(id);
   if(!back) return;
 
   back.classList.remove("closing");
-  back.style.display = "flex";
 
+  // ✅ jangan guna display
   // trigger transition
-  requestAnimationFrame(()=>{
-    back.classList.add("show");
-  });
+  requestAnimationFrame(()=> back.classList.add("show"));
 }
 
 function closeModal(id){
   const back = $(id);
   if(!back) return;
 
-  // kalau modal memang tak open, ignore
-  if(!back.classList.contains("show") && back.style.display === "none") return;
+  // kalau tak open, ignore
+  if(!back.classList.contains("show")) return;
 
-  // trigger zoom-out
+  // zoom-out
   back.classList.add("closing");
   back.classList.remove("show");
 
-  setTimeout(()=>{
-    back.style.display = "none";
+  // lepas anim habis, cleanup
+  const done = ()=>{
     back.classList.remove("closing");
+    back.removeEventListener("transitionend", done);
 
     // reset context ikut logic asal kau
     if(id==="mCash" || id==="mBuy" || id==="mMissing" || id==="mSell"){
@@ -2242,7 +2254,10 @@ function closeModal(id){
     if(id==="mBuy")     resetTxTimeInput("txTime_buy");
     if(id==="mMissing") resetTxTimeInput("txTime_missing");
     if(id==="mSell")    resetTxTimeInput("txTime_sell");
-  }, MODAL_MS);
+  };
+
+  back.addEventListener("transitionend", done);
+  setTimeout(done, MODAL_MS); // fallback kalau transitionend tak fire
 }
 document.addEventListener("click",(e)=>{
   const t = e.target;
