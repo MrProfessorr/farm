@@ -442,7 +442,34 @@ select.native-select {
 .cs__opt[aria-selected="true"]{
   background: rgba(255,255,255,.10);
 }
+/* ✅ CUSTOM SELECT dropdown auto-scroll (lebih 6 item) */
+.cs__menu{
+  max-height: 216px;   /* ~ 6 item (36px x 6). Adjust kalau perlu */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 
+/* optional: bagi scroll nampak kemas */
+.cs__menu::-webkit-scrollbar{
+  width: 8px;
+}
+.cs__menu::-webkit-scrollbar-track{
+  background: rgba(255,255,255,.06);
+}
+.cs__menu::-webkit-scrollbar-thumb{
+  background: rgba(160,160,160,.45);
+  border-radius: 999px;
+  border: 2px solid rgba(0,0,0,.25);
+}
+.cs__menu::-webkit-scrollbar-thumb:hover{
+  background: rgba(190,190,190,.65);
+}
+
+/* Firefox */
+.cs__menu{
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.25) rgba(255,255,255,.08);
+}
 .cs__hint{
   font-size: 12px;
   opacity:.65;
