@@ -275,17 +275,33 @@ body.drawerOpen{
     .danger{background:#d11f3a}
     .danger:hover{background:#e2445b}
     .danger:active{background:#b31930}
+/* ===== TOAST WRAP ===== */
 .toast{
   position: fixed;
-  top: 18px;
   left: 50%;
-  transform: translateX(-50%);
+  bottom: 18px;                 /* ✅ bottom */
+  top: auto;                    /* ✅ buang top */
+  transform: translate(-50%, 14px); /* start sedikit bawah */
   width: min(520px, 92vw);
   z-index: 9999999;
   display: none;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .22s ease, opacity .22s ease;
 }
 
+/* bila show */
+.toast.show{
+  display: block;
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+/* ===== TOAST CARD ===== */
 .toastCard{
+  position: relative;           /* ✅ penting utk center absolute text */
   display:flex;
   align-items:center;
   gap:12px;
@@ -295,8 +311,10 @@ body.drawerOpen{
   border: 1px solid rgba(255,255,255,.10);
   box-shadow: 0 18px 60px rgba(0,0,0,.55);
   backdrop-filter: blur(10px);
+  min-height: 46px;
 }
 
+/* kiri icon */
 .toastIcon{
   width:22px;
   height:22px;
@@ -305,12 +323,17 @@ body.drawerOpen{
   place-items:center;
   flex: 0 0 auto;
   border: 1px solid rgba(255,255,255,.12);
+  z-index: 2;                   /* ✅ above centered text */
 }
 .toastIcon svg{ width:16px; height:16px; display:block; }
 
+/* ✅ TEXT BETUL-BETUL CENTER */
 .toastMsg{
-  flex:1 1 auto;
-  min-width:0;
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  text-align:center;
+  width: calc(100% - 120px);    /* ✅ bagi ruang icon kiri + X kanan */
   color: rgba(255,255,255,.90);
   font-size: 14px;
   font-weight: 500;
@@ -318,8 +341,11 @@ body.drawerOpen{
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  z-index: 1;
+  pointer-events:none;          /* elak kacau click close */
 }
 
+/* kanan X */
 .toastClose{
   width:28px;
   height:28px;
@@ -332,6 +358,8 @@ body.drawerOpen{
   place-items:center;
   transition: all .2s;
   flex:0 0 auto;
+  margin-left:auto;             /* ✅ push ke kanan */
+  z-index: 2;                   /* ✅ above centered text */
 }
 .toastClose:hover{ background: rgba(255,255,255,.06); color:#fff; }
 .toastClose:active{ transform: translateY(1px); opacity:.85; }
@@ -346,6 +374,11 @@ body.drawerOpen{
   background: rgba(239,68,68,.16);
   border-color: rgba(239,68,68,.35);
   color: #ef4444;
+}
+
+/* optional: reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .toast{ transition:none; }
 }
     .hr{height:1px;background:rgba(255,255,255,.10); margin:12px 0}
     .kpiRow{display:flex; gap:10px; flex-wrap:wrap}
@@ -1843,7 +1876,7 @@ document.addEventListener("click", (e)=>{
   if(!e.target.closest(".cs")) closeAllCustomSelects();
 });
 
-// ===== TOAST UPGRADE (success/error + icon + close) =====
+// ===== TOAST UPGRADE (bottom + animate show/hide) =====
 let __toastTimer = null;
 
 function toast(message, type = "success", ms = 2600){
@@ -1857,7 +1890,6 @@ function toast(message, type = "success", ms = 2600){
     </svg>
   `;
 
-  // ❌ icon ikut path yang kau bagi
   const svgError = `
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path fill="currentColor"
@@ -1867,7 +1899,11 @@ function toast(message, type = "success", ms = 2600){
 
   const icon = (type === "error") ? svgError : svgSuccess;
 
-  // class variant
+  // reset timer
+  if(__toastTimer) clearTimeout(__toastTimer);
+  __toastTimer = null;
+
+  // set variant class (jgn overwrite show)
   el.className = `toast ${type}`;
 
   // build UI
@@ -1879,21 +1915,32 @@ function toast(message, type = "success", ms = 2600){
     </div>
   `;
 
+  // show (CSS animate guna .show)
   el.style.display = "block";
+  // force reflow supaya transition confirm jalan
+  void el.offsetHeight;
+  el.classList.add("show");
 
-  const closeBtn = el.querySelector(".toastClose");
   const hide = ()=>{
-    el.style.display = "none";
-    el.className = "toast";
-    el.innerHTML = "";
     if(__toastTimer) clearTimeout(__toastTimer);
     __toastTimer = null;
+
+    // animate keluar
+    el.classList.remove("show");
+
+    // lepas transition baru clear
+    setTimeout(()=>{
+      el.style.display = "none";
+      el.className = "toast";
+      el.innerHTML = "";
+    }, 230);
   };
 
-  closeBtn?.addEventListener("click", hide, { once:true });
+  el.querySelector(".toastClose")?.addEventListener("click", hide, { once:true });
 
-  if(__toastTimer) clearTimeout(__toastTimer);
-  if(ms && ms > 0) __toastTimer = setTimeout(hide, ms);
+  if(ms && ms > 0){
+    __toastTimer = setTimeout(hide, ms);
+  }
 }
 const sleep = (ms)=> new Promise(r=>setTimeout(r, ms));
 const SPINNER_SVG = `
