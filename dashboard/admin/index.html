@@ -915,12 +915,24 @@ input[type="number"]{
 .btn .btnSpin{
   width:14px;height:14px;
   display:inline-block;
-  margin-right:8px;
+  margin-right:2px;
   vertical-align:-2px;
   animation: btnSpin .9s linear infinite;
 }
 
 @keyframes btnSpin{ to{ transform:rotate(360deg); } }
+.txSearchInput{
+  height:36px;
+  min-width:220px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.88);
+  outline:none;
+}
+.txSearchInput::placeholder{ color: rgba(255,255,255,.45); }
+.txSearchInput:focus{ border-color: rgba(255,255,255,.22); }
 
   </style>
 </head>
@@ -1913,6 +1925,7 @@ function attachKg(el){
   const vaultPickers = {};   // { [vaultId]: flatpickrInstance }
   const vaultTxCache = {}; 
   const vaultTypeFilters = {};
+  const vaultTxSearchFilters = {};
   const vaultTxUnsubs = {};
   let vaultSearchTerm = "";
   let openVaultDataCache = {};
@@ -2407,6 +2420,12 @@ ${!isHistory ? `
     <option value="missing">Missing</option>
     <option value="sell">Sell</option>
   </select>
+
+  <!-- ✅ NEW -->
+  <input class="txSearchInput"
+    type="text"
+    placeholder="Search transaction..."
+    data-txsearch="${vaultId}">
 </div>
 
   <div class="rangeRight" data-presets="${vaultId}">
@@ -2716,7 +2735,22 @@ if(tf !== "all"){
     return t.kind === tf;
   });
 }
+// ✅ SEARCH filter
+const q = String(vaultTxSearchFilters[vaultId] || "").trim().toLowerCase();
+if(q){
+  use = use.filter(([_, t])=>{
+    if(!t) return false;
 
+    const desc = buildTxDesc(t); // Cash In / Pets / Feed / Death Pets / "10.00 kg"
+    const note = String(t.note||"");
+    const kind = String(t.kind||"");
+    const dir  = String(t.direction||"");
+    const cat  = String(t.category||"");
+
+    const hay = `${desc} ${note} ${kind} ${dir} ${cat}`.toLowerCase();
+    return hay.includes(q);
+  });
+}
   // ✅ IMPORTANT: KPI kena update walaupun table kosong
   updateVaultKpiFromFiltered(vaultId);
 
@@ -2741,7 +2775,15 @@ function initVaultDateRangeUI(vaultId){
       rerenderVaultTbody(vaultId);
     };
   }
-
+// === TX SEARCH (per vault) ===
+const s = document.querySelector(`input[data-txsearch="${vaultId}"]`);
+if(s){
+  s.value = vaultTxSearchFilters[vaultId] || "";
+  s.oninput = ()=>{
+    vaultTxSearchFilters[vaultId] = s.value || "";
+    rerenderVaultTbody(vaultId);
+  };
+}
   // === DATE RANGE ===
   const def = vaultFilters[vaultId] || presetRangeMs("thisMonth");
   vaultFilters[vaultId] = def;
