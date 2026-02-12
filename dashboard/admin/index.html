@@ -1034,6 +1034,69 @@ input[type="number"]{
   width:100%;
   padding-right: 44px;
 }
+  
+/* ====== MOBILE MODAL FIX (keyboard-safe + scrollable) ====== */
+
+/* Pastikan backdrop kekal fixed */
+.modalBack{
+  position: fixed;
+  inset: 0;
+  display: none;           /* kau dah guna display:flex bila open */
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  overflow: hidden;
+  z-index: 9999;
+}
+
+/* Modal panel */
+.modal{
+  width: min(720px, 100%);
+  max-height: calc(var(--vvh, 100vh) - 28px); /* ikut viewport sebenar (keyboard aware via JS) */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;         /* body yang scroll, bukan keseluruhan */
+}
+
+/* Header kekal atas */
+.modal .modalHead{
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: inherit;
+}
+
+/* BODY modal boleh scroll */
+.modal .modalBody{
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 14px;
+}
+
+/* Footer kekal bawah (Cancel/Save sentiasa nampak) */
+.modal .modalFoot{
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: inherit;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ====== Mobile style: jadikan bottom-sheet ====== */
+@media (max-width: 520px){
+  .modalBack{
+    align-items: flex-end;     /* turun bawah */
+    justify-content: center;
+    padding: 10px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+  .modal{
+    width: 100%;
+    border-radius: 18px 18px 0 0;
+    max-height: calc(var(--vvh, 100vh) - 12px);
+  }
+}
   </style>
 </head>
 
@@ -2184,7 +2247,35 @@ function closeModal(id){
     if(t?.dataset?.close) closeModal(t.dataset.close);
     if(t.classList.contains("modalBack")) t.style.display="none";
   });
+// ===== MOBILE KEYBOARD VIEWPORT FIX =====
+(function(){
+  function setVVH(){
+    const h = (window.visualViewport && window.visualViewport.height)
+      ? window.visualViewport.height
+      : window.innerHeight;
+    document.documentElement.style.setProperty("--vvh", h + "px");
+  }
 
+  setVVH();
+  window.addEventListener("resize", setVVH);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize", setVVH);
+    window.visualViewport.addEventListener("scroll", setVVH);
+  }
+
+  // Bila focus input dalam modal, auto scroll bagi field nampak
+  document.addEventListener("focusin", (e)=>{
+    const el = e.target;
+    if(!(el instanceof HTMLElement)) return;
+    if(!el.closest(".modal")) return;
+
+    setTimeout(()=>{
+      try{
+        el.scrollIntoView({ block: "center", behavior: "smooth" });
+      }catch(_){}
+    }, 150);
+  });
+})();
 // ===== ROLE =====
 async function loadRole(uid){
   const r = await get(ref(db, `roles/${uid}`));
