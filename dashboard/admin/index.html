@@ -630,7 +630,14 @@ input[type="number"]{
 }
 .dateRangeInput:hover{border-color: #3c89e8;}.dateRangeInput:focus{border-color:#1668dc!important;}
 .rangeRight{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.pbtn{background:transparent;color:rgba(255, 255, 255, 0.85);padding:0px 15px;border:none;cursor:pointer;white-space:nowrap;font-size:14px;transition: all 0.2s;}
+.pbtn{background:transparent;color:rgba(255, 255, 255, 0.85);padding:0px 15px;border:none;cursor:pointer;white-space:nowrap;font-size:14px;transition: all 0.2s;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:32px;          /* sama macam daterange/dropdown */
+  line-height:32px;     /* elak baseline naik */
+  padding:0 15px;       /* kekal style kau */
+}
 .pbtn:hover{color:#3c89e8}.pbtn:active{color:#1554ad}
 .pbtn.active{color:#1668dc;}
 @media (max-width:520px){.rangeRight{justify-content:flex-start}.pbtn{font-size:12px;padding:7px 9px}}
@@ -987,24 +994,13 @@ input[type="number"]{
   background: #141414;
   color: rgba(255,255,255,.85);
   outline:none;
+  transition: all 0.2s;
 }
-.txSearchInput::placeholder{ color: rgba(255,255,255,.45); }
-.txSearchInput:focus{ border-color: rgba(255,255,255,.22); }
+.txSearchInput:hover{ border-color: #3c89e8; }
+.txSearchInput:focus{ border-color: #1668dc; }
 /* ✅ align semua dalam baris filter jadi center */
 .rangeBar{ align-items:center; }
-.rangeRight{ align-items:center; }
-
-/* ✅ bagi preset button jadi betul2 center & sama tinggi */
-.pbtn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  height:32px;          /* sama macam daterange/dropdown */
-  line-height:32px;     /* elak baseline naik */
-  padding:0 15px;       /* kekal style kau */
-}
-
-/* optional: bila wrap ke 2 baris, bagi kemas */
+.rangeRight{ align-items:center; } 
 .rangeRight{ gap:6px 8px; }
   </style>
 </head>
