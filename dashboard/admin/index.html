@@ -1912,6 +1912,7 @@ function attachKg(el){
   const vaultFilters = {};   // { [vaultId]: { startMs, endMs } }
   const vaultPickers = {};   // { [vaultId]: flatpickrInstance }
   const vaultTxCache = {}; 
+  const vaultTypeFilters = {};
   const vaultTxUnsubs = {};
   let vaultSearchTerm = "";
   let openVaultDataCache = {};
@@ -2395,9 +2396,18 @@ ${!isHistory ? `
 
         <div class="hr"></div>
         <div class="rangeBar" data-rangebar="${vaultId}">
-  <div class="rangeLeft">
-      <input class="dateRangeInput" data-range="${vaultId}" type="text" readonly>
-  </div>
+<div class="rangeLeft" style="display:flex; gap:10px; align-items:center;">
+  <input class="dateRangeInput" data-range="${vaultId}" type="text" readonly>
+
+  <select class="js-custom-select" data-typefilter="${vaultId}" style="min-width:160px">
+    <option value="all">All Type</option>
+    <option value="cash_in">Cash In</option>
+    <option value="cash_out">Cash Out</option>
+    <option value="buy">Buy</option>
+    <option value="missing">Missing</option>
+    <option value="sell">Sell</option>
+  </select>
+</div>
 
   <div class="rangeRight" data-presets="${vaultId}">
     <button class="pbtn" data-preset="today"     data-vid="${vaultId}">Today</button>
@@ -2684,13 +2694,28 @@ function rerenderVaultTbody(vaultId){
   const { bucket, rows } = cache;
   const f = vaultFilters[vaultId];
 
-  let use = rows;
-  if(f){
-    use = rows.filter(([txId,t])=>{
-      const ms = Number(t?.atMs||0);
-      return ms >= f.startMs && ms <= f.endMs;
-    });
-  }
+let use = rows;
+
+// date range filter
+if(f){
+  use = use.filter(([txId,t])=>{
+    const ms = Number(t?.atMs||0);
+    return ms >= f.startMs && ms <= f.endMs;
+  });
+}
+
+const tf = vaultTypeFilters[vaultId] || "all";
+if(tf !== "all"){
+  use = use.filter(([_, t])=>{
+    if(!t) return false;
+
+    if(tf === "cash_in")  return t.kind === "cash" && t.direction === "in";
+    if(tf === "cash_out") return t.kind === "cash" && t.direction === "out";
+
+    // buy / missing / sell
+    return t.kind === tf;
+  });
+}
 
   // ✅ IMPORTANT: KPI kena update walaupun table kosong
   updateVaultKpiFromFiltered(vaultId);
@@ -2706,8 +2731,21 @@ function rerenderVaultTbody(vaultId){
 function initVaultDateRangeUI(vaultId){
   const input = document.querySelector(`.dateRangeInput[data-range="${vaultId}"]`);
   if(!input) return;
+
+  // === TYPE FILTER dropdown ===
+  const sel = document.querySelector(`select[data-typefilter="${vaultId}"]`);
+  if(sel){
+    sel.value = vaultTypeFilters[vaultId] || "all";
+    sel.onchange = ()=>{
+      vaultTypeFilters[vaultId] = sel.value || "all";
+      rerenderVaultTbody(vaultId);
+    };
+  }
+
+  // === DATE RANGE ===
   const def = vaultFilters[vaultId] || presetRangeMs("thisMonth");
   vaultFilters[vaultId] = def;
+
   const existing = vaultPickers[vaultId];
   if(existing){
     if(existing.input !== input){
@@ -2718,6 +2756,7 @@ function initVaultDateRangeUI(vaultId){
       return;
     }
   }
+
   input.value = `${ymd(def.startMs)} → ${ymd(def.endMs)}`;
 
   vaultPickers[vaultId] = flatpickr(input, {
@@ -2769,6 +2808,10 @@ function initVaultDateRangeUI(vaultId){
       }
     }
   });
+
+  // build custom select UI for that card
+  const card = document.querySelector(`.card[data-vid="${vaultId}"]`);
+  if(card) initCustomSelects(card);
 }
 function updateVaultKpiFromFiltered(vaultId){
   const cache = vaultTxCache[vaultId];
