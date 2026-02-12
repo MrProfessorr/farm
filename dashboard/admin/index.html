@@ -1210,6 +1210,39 @@ input[type="number"]{
 .modal::-webkit-scrollbar-thumb{ background: rgba(160,160,160,.45); border-radius:999px; border:2px solid rgba(0,0,0,.25); }
 .modal::-webkit-scrollbar-thumb:hover{ background: rgba(190,190,190,.65); }
 .modal{ scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) rgba(255,255,255,.08); }
+.cConfirm{ position:fixed; inset:0; z-index:9999999; display:none; }
+.cConfirmBack{ position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(4px); }
+.cConfirmBox{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:min(520px,92vw);
+  background: rgba(20,20,20,.96);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  box-shadow:0 22px 80px rgba(0,0,0,.6);
+  padding:14px;
+}
+.cConfirmTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.cConfirmTitle{ font-weight:700; color:rgba(255,255,255,.92); }
+.cConfirmX{
+  width:34px; height:34px; border:none; border-radius:10px;
+  background:transparent; color:rgba(255,255,255,.75); cursor:pointer;
+}
+.cConfirmX:hover{ background:rgba(255,255,255,.06); color:#fff; }
+.cConfirmMsg{ color:rgba(255,255,255,.82); font-size:14px; line-height:1.35; padding:6px 0 12px; white-space:pre-wrap; }
+.cConfirmBtns{ display:flex; justify-content:flex-end; gap:10px; }
+.cpInput{
+  width:100%;
+  padding:12px 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  color:rgba(255,255,255,.92);
+  outline:none;
+}
+.cpInput:focus{
+  border-color: rgba(59,130,246,.65);
+  box-shadow:0 0 0 3px rgba(59,130,246,.15);
+}
   </style>
 </head>
 
@@ -1716,6 +1749,44 @@ input[type="number"]{
     </div>
   </div>
 </div>
+
+<div id="cConfirm" class="cConfirm" style="display:none;">
+  <div class="cConfirmBack" data-cc="close"></div>
+
+  <div class="cConfirmBox" role="dialog" aria-modal="true" aria-labelledby="ccTitle">
+    <div class="cConfirmTop">
+      <div id="ccTitle" class="cConfirmTitle">Confirm</div>
+      <button class="cConfirmX" type="button" data-cc="close" aria-label="Close">✕</button>
+    </div>
+
+    <div id="ccMsg" class="cConfirmMsg">Are you sure?</div>
+
+    <div class="cConfirmBtns">
+      <button id="ccCancel" class="btn ghost" type="button">Cancel</button>
+      <button id="ccOk" class="btn danger" type="button">OK</button>
+    </div>
+  </div>
+</div>
+
+<div id="cPrompt" class="cConfirm" style="display:none;">
+  <div class="cConfirmBack" data-cp="close"></div>
+
+  <div class="cConfirmBox" role="dialog" aria-modal="true" aria-labelledby="cpTitle">
+    <div class="cConfirmTop">
+      <div id="cpTitle" class="cConfirmTitle">Edit Title</div>
+      <button class="cConfirmX" type="button" data-cp="close" aria-label="Close">✕</button>
+    </div>
+
+    <div id="cpMsg" class="cConfirmMsg">New title?</div>
+
+    <input id="cpInput" class="cpInput" type="text" placeholder="Type title..." autocomplete="off"/>
+
+    <div class="cConfirmBtns" style="margin-top:12px;">
+      <button id="cpCancel" class="btn ghost" type="button">Cancel</button>
+      <button id="cpOk" class="btn" type="button">Save</button>
+    </div>
+  </div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -1933,6 +2004,110 @@ function toast(message, type = "success", ms = 2600){
   if(ms && ms > 0){
     __toastTimer = setTimeout(hide, ms);
   }
+}
+function confirmBox(message, opts = {}){
+  const root = document.getElementById("cConfirm");
+  const titleEl = document.getElementById("ccTitle");
+  const msgEl = document.getElementById("ccMsg");
+  const ok = document.getElementById("ccOk");
+  const cancel = document.getElementById("ccCancel");
+
+  if(!root || !titleEl || !msgEl || !ok || !cancel){
+    return Promise.resolve(window.confirm(message));
+  }
+
+  titleEl.textContent = opts.title || "Confirm";
+  msgEl.textContent = message || "Are you sure?";
+
+  ok.textContent = opts.okText || "OK";
+  cancel.textContent = opts.cancelText || "Cancel";
+
+  // reset class ok button (jaga class btn kau)
+  ok.className = "btn " + (opts.okClass || "danger");
+
+  root.style.display = "block";
+  void root.offsetHeight;
+
+  return new Promise((resolve)=>{
+    const cleanup = ()=>{
+      root.style.display = "none";
+      ok.onclick = null;
+      cancel.onclick = null;
+      root.querySelectorAll("[data-cc]").forEach(x=> x.onclick = null);
+      document.removeEventListener("keydown", onKey);
+    };
+
+    const done = (val)=>{ cleanup(); resolve(val); };
+
+    const onKey = (e)=>{
+      if(e.key === "Escape") done(false);
+      if(e.key === "Enter") done(true);
+    };
+    document.addEventListener("keydown", onKey);
+
+    root.querySelectorAll('[data-cc="close"]').forEach(x=>{
+      x.onclick = ()=> done(false);
+    });
+
+    cancel.onclick = ()=> done(false);
+    ok.onclick = ()=> done(true);
+  });
+}
+function promptBox(message, opts = {}){
+  const root = document.getElementById("cPrompt");
+  const titleEl = document.getElementById("cpTitle");
+  const msgEl = document.getElementById("cpMsg");
+  const input = document.getElementById("cpInput");
+  const ok = document.getElementById("cpOk");
+  const cancel = document.getElementById("cpCancel");
+
+  if(!root || !titleEl || !msgEl || !input || !ok || !cancel){
+    const v = window.prompt(message, opts.defaultValue || "");
+    return Promise.resolve(v);
+  }
+
+  titleEl.textContent = opts.title || "Input";
+  msgEl.textContent = message || "Enter value";
+  input.value = (opts.defaultValue ?? "");
+  input.placeholder = opts.placeholder || "Type here...";
+
+  ok.textContent = opts.okText || "Save";
+  cancel.textContent = opts.cancelText || "Cancel";
+  ok.className = "btn " + (opts.okClass || ""); // ikut style btn kau
+
+  root.style.display = "block";
+  void root.offsetHeight;
+
+  // auto focus + select
+  setTimeout(()=>{
+    input.focus();
+    input.select();
+  }, 0);
+
+  return new Promise((resolve)=>{
+    const cleanup = ()=>{
+      root.style.display = "none";
+      ok.onclick = null;
+      cancel.onclick = null;
+      root.querySelectorAll("[data-cp]").forEach(x=> x.onclick = null);
+      document.removeEventListener("keydown", onKey);
+    };
+
+    const done = (val)=>{ cleanup(); resolve(val); };
+
+    const onKey = (e)=>{
+      if(e.key === "Escape") done(null);
+      if(e.key === "Enter") done(input.value);
+    };
+    document.addEventListener("keydown", onKey);
+
+    root.querySelectorAll('[data-cp="close"]').forEach(x=>{
+      x.onclick = ()=> done(null);
+    });
+
+    cancel.onclick = ()=> done(null);
+    ok.onclick = ()=> done(input.value);
+  });
 }
 const sleep = (ms)=> new Promise(r=>setTimeout(r, ms));
 const SPINNER_SVG = `
@@ -3704,7 +3879,13 @@ if(act==="close"){
     return;
   }
 
-  if(!confirm("Closing vault? Vault akan dipindah ke History.")) return;
+ const yes = await confirmBox("Closing vault? Vault akan dipindah ke History.", {
+  title: "Closing Vault",
+  okText: "Yes, Close",
+  cancelText: "Cancel",
+  okClass: "danger"
+});
+if(!yes) return;
 
   try{
     await closeVault(vid);
@@ -3802,7 +3983,13 @@ if(act==="txDel"){
     toast("Limited user: tiada akses delete history.");
     return;
   }
-  if(!confirm("Delete transaction?")) return;
+  const yes = await confirmBox("Delete transaction?", {
+  title:"Delete",
+  okText:"Delete",
+  cancelText:"Cancel",
+  okClass:"danger"
+});
+if(!yes) return;
 
   try{
     const txPath = `vaults/${bucket}/${vaultId}/transactions/${txId}`;
@@ -3830,18 +4017,35 @@ if(act==="txDel"){
   }
 }
 
-    if(act==="histEdit"){
-      if(!me.isAdmin){ toast("No access."); return; }
-      const newTitle = prompt("New title?");
-      if(!newTitle) return;
-      try{
-        await update(ref(db, `vaults/history/${vid}`), { title: newTitle.trim(), updatedAt: serverTimestamp(), updatedAtMs: Date.now() });
-        toast("Updated title.");
-      }catch(e){
-        console.error(e);
-        toast(e?.message || "Failed");
-      }
-    }
+if(act==="histEdit"){
+  if(!me.isAdmin){ toast("No access."); return; }
+
+  const oldSnap = await get(ref(db, `vaults/history/${vid}/title`));
+  const oldTitle = oldSnap.exists() ? String(oldSnap.val() || "") : "";
+
+  const newTitle = await promptBox("New title?", {
+    title: "Edit Title",
+    defaultValue: oldTitle,
+    placeholder: "Enter new vault title...",
+    okText: "Save",
+    cancelText: "Cancel"
+  });
+
+  if(newTitle == null) return;               // cancel / X
+  if(!String(newTitle).trim()){ toast("Title wajib isi."); return; }
+
+  try{
+    await update(ref(db, `vaults/history/${vid}`), {
+      title: String(newTitle).trim(),
+      updatedAt: serverTimestamp(),
+      updatedAtMs: Date.now()
+    });
+    toast("Updated title.");
+  }catch(e){
+    console.error(e);
+    toast(e?.message || "Failed");
+  }
+}
 if(act==="vaultDel"){
   const bucket = btn.dataset.b || "open";
 
@@ -3854,7 +4058,13 @@ if(act==="vaultDel"){
     ? "Delete vault HISTORY ini? Semua data akan hilang (tak boleh undo)."
     : "Delete vault ini? Semua transaksi dalam vault akan hilang.";
 
-  if(!confirm(msg)) return;
+  const yes = await confirmBox(msg, {
+  title:"Delete Vault",
+  okText:"Delete",
+  cancelText:"Cancel",
+  okClass:"danger"
+});
+if(!yes) return;
 
   try{
     // 1) ambil semua tx dalam vault
@@ -3905,8 +4115,13 @@ if(act==="vaultUnclose"){
     return;
   }
 
-  if(!confirm("Unclosing vault ini? Vault akan balik ke Open Vault.")) return;
-
+  const yes = await confirmBox("Unclosing vault ini? Vault akan balik ke Open Vault.", {
+  title:"Unclosing",
+  okText:"Yes, Unclose",
+  cancelText:"Cancel",
+  okClass:"ghost"  // atau "primary" kalau ada
+});
+if(!yes) return;
   try{
     await uncloseVault(vid);
     toast("Vault moved back to Open Vault.");
