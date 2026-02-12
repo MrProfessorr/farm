@@ -1243,6 +1243,15 @@ input[type="number"]{
   border-color: rgba(59,130,246,.65);
   box-shadow:0 0 0 3px rgba(59,130,246,.15);
 }
+.label-required::before {
+  content: "*";
+  display: inline-block;
+  margin-right: 4px;
+  color: #dc4446;
+  font-size: 14px;
+  font-family: SimSun, sans-serif;
+  line-height: 1;
+}
   </style>
 </head>
 
@@ -1501,7 +1510,7 @@ input[type="number"]{
       <button class="x" data-close="mCash">✕</button>
     </div>
     <div class="modalBody">
-      <label>Type</label>
+      <label><span class="label-required"></span>Type</label>
       <select id="cashType" class="js-custom-select">
         <option value="cash_in">Cash-In</option>
         <option value="cash_out">Cash-Out</option>
@@ -1509,17 +1518,17 @@ input[type="number"]{
 
       <div class="row">
         <div>
-          <label>Amount</label>
+          <label><span class="label-required"></span>Amount</label>
           <input id="cashAmount" type="text" inputmode="decimal" />
         </div>
         <div>
-          <label>Note</label>
+          <label><span class="label-required"></span>Note</label>
           <input id="cashNote" />
         </div>
       </div>
 
       <!-- ✅ NEW: Transaction Time -->
-      <label>* Transaction Time</label>
+      <label><span class="label-required"></span>Transaction Time</label>
       <div class="txTimeRow">
         <input id="txTime_cash" type="datetime-local" />
         <button id="txTimeToggle_cash" type="button" class="btn ghost">Unlock</button>
@@ -1543,7 +1552,7 @@ input[type="number"]{
       <button class="x" data-close="mBuy">✕</button>
     </div>
     <div class="modalBody">
-      <label>Category</label>
+      <label><span class="label-required"></span>Category</label>
       <select id="buyCat" class="js-custom-select">
         <option value="baby_pig">Pets</option>
         <option value="feed">Food</option>
@@ -1552,29 +1561,29 @@ input[type="number"]{
 
       <div class="row">
         <div>
-          <label>Quantity</label>
+          <label><span class="label-required"></span>Quantity</label>
           <input id="buyQty"   type="text" inputmode="numeric" />
         </div>
         <div>
-          <label>Price Quantity</label>
+          <label><span class="label-required"></span>Price Quantity</label>
           <input id="buyPrice" type="text" inputmode="decimal" />
         </div>
       </div>
 
       <div class="row">
         <div>
-          <label>Total Price</label>
+          <label><span class="label-required"></span>Total Price</label>
           <input id="buyTotal" type="text" inputmode="decimal" />
           <div class="hint" id="buyBalanceHint"></div>
         </div>
         <div>
-          <label>Note</label>
+          <label><span class="label-required"></span>Note</label>
           <input id="buyNote" />
         </div>
       </div>
 
       <!-- ✅ NEW: Transaction Time -->
-      <label>* Transaction Time</label>
+      <label><span class="label-required"></span>Transaction Time</label>
       <div class="txTimeRow">
         <input id="txTime_buy" type="datetime-local" />
         <button id="txTimeToggle_buy" type="button" class="btn ghost">Unlock</button>
@@ -1600,38 +1609,38 @@ input[type="number"]{
     <div class="modalBody">
       <div class="row">
         <div>
-          <label>Price Quantity</label>
+          <label><span class="label-required"></span>Price Quantity</label>
           <input id="sellPriceKg" type="text" inputmode="decimal" />
         </div>
         <div>
-          <label>Total Kg</label>
+          <label><span class="label-required"></span>Total Kg</label>
           <input id="sellKg"      type="text" inputmode="decimal" />
         </div>
       </div>
 
       <div class="row">
         <div>
-          <label>Total Quantity</label>
+          <label><span class="label-required"></span>Total Quantity</label>
           <input id="sellEkor"    type="text" inputmode="numeric" />
           <div class="hint" id="sellEkorHint"></div>
         </div>
 
         <div>
-          <label>Death Pets</label>
+          <label><span class="label-required"></span>Death Pets</label>
           <input id="sellMissing" type="number" disabled placeholder="auto" />
         </div>
 
         <div>
-          <label>Total Amount</label>
+          <label><span class="label-required"></span>Total Amount</label>
           <input id="sellTotal"   type="text" inputmode="decimal" />
         </div>
       </div>
 
-      <label>Note</label>
+      <label><span class="label-required"></span>Note</label>
       <input id="sellNote" />
 
       <!-- ✅ NEW: Transaction Time -->
-      <label>* Transaction Time</label>
+      <label><span class="label-required"></span>Transaction Time</label>
       <div class="txTimeRow">
         <input id="txTime_sell" type="datetime-local" />
         <button id="txTimeToggle_sell" type="button" class="btn ghost">Unlock</button>
@@ -1658,28 +1667,28 @@ input[type="number"]{
     <div class="modalBody">
       <div class="row">
         <div>
-          <label>Quantity Death</label>
+          <label><span class="label-required"></span>Quantity Death</label>
           <input id="missQty"   type="text" inputmode="numeric" />
         </div>
         <div>
-          <label>Price Quantity</label>
+          <label><span class="label-required"></span>Price Quantity</label>
           <input id="missPrice" type="text" inputmode="decimal" />
         </div>
       </div>
 
       <div class="row">
         <div>
-          <label>Total Amount</label>
+          <label><span class="label-required"></span>Total Amount</label>
           <input id="missTotal" type="text" disabled placeholder="auto" />
         </div>
         <div>
-          <label>Note</label>
+          <label><span class="label-required"></span>Note</label>
           <input id="missNote" />
         </div>
       </div>
 
       <!-- ✅ NEW: Transaction Time -->
-      <label>* Transaction Time</label>
+      <label><span class="label-required"></span>Transaction Time</label>
       <div class="txTimeRow">
         <input id="txTime_missing" type="datetime-local" />
         <button id="txTimeToggle_missing" type="button" class="btn ghost">Unlock</button>
@@ -1709,16 +1718,16 @@ input[type="number"]{
     <div class="modalBody">
       <div id="cpHint" class="hint" style="margin-bottom:10px;"></div>
 
-      <label>Old Password</label>
+      <label><span class="label-required"></span>Old Password</label>
       <input id="cpOld" type="password" autocomplete="current-password" />
 
       <div class="row">
         <div>
-          <label>New Password</label>
+          <label><span class="label-required"></span>New Password</label>
           <input id="cpNew" type="password" autocomplete="new-password" />
         </div>
         <div>
-          <label>Confirm New Password</label>
+          <label><span class="label-required"></span>Confirm New Password</label>
           <input id="cpNew2" type="password" autocomplete="new-password" />
         </div>
       </div>
