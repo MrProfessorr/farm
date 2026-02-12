@@ -20,18 +20,6 @@ body.drawerOpen{
   overflow: hidden !important;
   height: 100% !important;
 }
-    @media (max-width: 768px){
-  .modalBack{
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-}
-    @media (max-width: 768px){
-  .modal{
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-  }
-}
     body{
       margin:0; color:var(--txt);
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -1046,55 +1034,6 @@ input[type="number"]{
   width:100%;
   padding-right: 44px;
 }
-/* ===== MODAL ZOOM IN/OUT (SMOOTH) ===== */
-.modalBack{
-  position: fixed;
-  inset: 0;
-  display: flex;                 /* ✅ kekal flex, jangan none */
-  align-items: center;
-  justify-content: center;
-
-  opacity: 0;
-  visibility: hidden;            /* ✅ hidden */
-  pointer-events: none;          /* ✅ tak boleh klik masa tutup */
-
-  transition: opacity .18s ease, visibility 0s linear .18s;
-  will-change: opacity;
-  transform: translateZ(0);
-}
-
-.modalBack.show{
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition: opacity .18s ease;
-}
-
-/* panel/content */
-.modalBack .modal{
-  transform: translate3d(0,10px,0) scale(.96);
-  opacity: 0;
-  transition: transform .18s ease, opacity .18s ease;
-  will-change: transform, opacity;
-}
-
-.modalBack.show .modal{
-  transform: translate3d(0,0,0) scale(1);
-  opacity: 1;
-}
-
-/* closing (optional) */
-.modalBack.closing{
-  opacity: 0;
-}
-.modalBack.closing .modal{
-  transform: translate3d(0,12px,0) scale(.96);
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce){
-  .modalBack, .modalBack .modal{ transition:none !important; }
-}
   </style>
 </head>
 
@@ -1580,7 +1519,7 @@ input[type="number"]{
 
     <div class="modalFoot">
       <button class="btn ghost" data-close="mChangePass" type="button">Cancel</button>
-      <button class="btn" id="cpSave" data-loading="Change..." data-close-modal="mChangePass">Change</button>
+      <button class="btn" id="cpSave" data-loading="Saving..." data-close-modal="mChangePass">Save</button>
     </div>
   </div>
 </div>
@@ -2227,62 +2166,25 @@ function initRightDrawerOnce(){
     });
   }
 }
-// ===== MODAL helper (SMOOTH, NO DISPLAY TOGGLE) =====
-const MODAL_MS = 220; // sikit buffer dari 0.18s
-
-function openModal(id){
-  const back = $(id);
-  if(!back) return;
-
-  back.classList.remove("closing");
-
-  // ✅ jangan guna display
-  // trigger transition
-  requestAnimationFrame(()=> back.classList.add("show"));
-}
-
+  // ===== MODAL helper =====
+  function openModal(id){ $(id).style.display="flex"; }
 function closeModal(id){
-  const back = $(id);
-  if(!back) return;
-
-  // kalau tak open, ignore
-  if(!back.classList.contains("show")) return;
-
-  // zoom-out
-  back.classList.add("closing");
-  back.classList.remove("show");
-
-  // lepas anim habis, cleanup
-  const done = ()=>{
-    back.classList.remove("closing");
-    back.removeEventListener("transitionend", done);
-
-    // reset context ikut logic asal kau
-    if(id==="mCash" || id==="mBuy" || id==="mMissing" || id==="mSell"){
-      ctxEdit = null;
-    }
-    if(id==="mNewVault") resetTxTimeInput("txTime_newVault");
-    if(id==="mCash")    resetTxTimeInput("txTime_cash");
-    if(id==="mBuy")     resetTxTimeInput("txTime_buy");
-    if(id==="mMissing") resetTxTimeInput("txTime_missing");
-    if(id==="mSell")    resetTxTimeInput("txTime_sell");
-  };
-
-  back.addEventListener("transitionend", done);
-  setTimeout(done, MODAL_MS); // fallback kalau transitionend tak fire
-}
-document.addEventListener("click",(e)=>{
-  const t = e.target;
-  if(t?.dataset?.close) closeModal(t.dataset.close);
-  if(t.classList.contains("modalBack")){
-    closeModal(t.id);
+  $(id).style.display="none";
+  if(id==="mCash" || id==="mBuy" || id==="mMissing" || id==="mSell"){
+    ctxEdit = null;
   }
-});
-document.addEventListener("keydown",(e)=>{
-  if(e.key !== "Escape") return;
-  const openBack = document.querySelector(".modalBack.show");
-  if(openBack) closeModal(openBack.id);
-});
+  if(id==="mNewVault") resetTxTimeInput("txTime_newVault");
+  if(id==="mCash")    resetTxTimeInput("txTime_cash");
+  if(id==="mBuy")     resetTxTimeInput("txTime_buy");
+  if(id==="mMissing") resetTxTimeInput("txTime_missing");
+  if(id==="mSell")    resetTxTimeInput("txTime_sell");
+}
+  document.addEventListener("click",(e)=>{
+    const t = e.target;
+    if(t?.dataset?.close) closeModal(t.dataset.close);
+    if(t.classList.contains("modalBack")) t.style.display="none";
+  });
+
 // ===== ROLE =====
 async function loadRole(uid){
   const r = await get(ref(db, `roles/${uid}`));
