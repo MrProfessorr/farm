@@ -1507,14 +1507,14 @@ input[type="number"]{
       <button class="x" data-close="mNewVault">✕</button>
     </div>
     <div class="modalBody">
-      <label>Title</label>
+      <label><span class="label-required"></span>Title</label>
       <input id="nvTitle" />
 
-      <label>Note</label>
+      <label><span class="label-required"></span>Note</label>
       <textarea id="nvNote"></textarea>
 
       <!-- ✅ NEW: Transaction Time -->
-      <label>* Transaction Time</label>
+      <label><span class="label-required"></span>Transaction Time</label>
       <div class="txTimeRow">
         <input id="txTime_newVault" type="datetime-local" />
         <button id="txTimeToggle_newVault" type="button" class="btn ghost">Unlock</button>
@@ -1654,7 +1654,7 @@ input[type="number"]{
         </div>
 
         <div>
-          <label><span class="label-required"></span>Death Pets</label>
+          <label><span class="label-required"></span>Missing</label>
           <input id="sellMissing" type="number" disabled placeholder="auto" />
         </div>
 
@@ -3243,7 +3243,7 @@ function buildTxDesc(t){
   }
 
   if(t.kind==="missing"){
-    return "Death Pets";
+    return "Missing";
   }
 
   if(t.kind==="sell"){
