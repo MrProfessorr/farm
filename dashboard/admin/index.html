@@ -3144,7 +3144,7 @@ function buildTxDesc(t){
 
   if(t.kind==="buy"){
     return t.category==="baby_pig" ? "Pets"
-         : (t.category==="feed" ? "Feedind" : "Other");
+         : (t.category==="feed" ? "Feeding" : "Other");
   }
 
   if(t.kind==="missing"){
@@ -3178,8 +3178,6 @@ function buildTxDesc(t){
   if(t.kind === "sell"){
     return Math.abs(Number(t.total || 0));
   }
-
-  // missing memang tak sentuh balance
   return 0;
 }
 async function adjustBalanceForTxDelete({ bucket, vaultId, txId, txObj }) {
@@ -3231,13 +3229,9 @@ function renderVaultList(targetId, data, bucket){
   }
 
   el.innerHTML = entries.map(([id,v]) => vaultCardHTML(id,v,bucket)).join("");
-
-  // init daterange UI once per vault card rendered
   for(const [id] of entries){
     initVaultDateRangeUI(id);
   }
-
-  // ✅ bind tx listeners per vault (NO DOUBLE LISTENER)
   for(const [id] of entries){
     const txPath = `vaults/${bucket}/${id}/transactions`;
 
