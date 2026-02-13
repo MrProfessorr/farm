@@ -401,13 +401,20 @@ body.drawerOpen{
 .tblWrap table{
   width:100%;
   min-width: 980px;          /* penting: kalau screen kecil, dia akan scroll */
-  border-collapse: collapse;
+  border-collapse: separate;   /* ✅ penting */
+  border-spacing: 0;  
   table-layout: auto;
   background:#141414;
   font-size:14px;
   color:rgba(255, 255, 255, 0.85);
 }
-
+/* ✅ ROUND HEADER CORNER (Type kiri & Actions kanan) */
+.tblWrap thead th:first-child{
+  border-top-left-radius: 14px;
+}
+.tblWrap thead th:last-child{
+  border-top-right-radius: 14px;
+}
 /* Semua cell jangan wrap */
 .tblWrap th,
 .tblWrap td{
