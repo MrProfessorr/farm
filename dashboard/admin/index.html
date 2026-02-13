@@ -58,7 +58,6 @@ body.drawerOpen{
       font-size: 14px;height: 32px;
       transition: all 0.2s;
     }
-    .num-date{color:white}
     .btn-edit:hover{background:#1668dc73;}
     .btn-edit:active{background:#08408e73;}
     .btn-modal{
@@ -388,11 +387,12 @@ body.drawerOpen{
     .amtNeg{ color:red; }
     .good{ color:#008000;}
     .bad{ color:red;}
-    
+.tblWrap tr.row-missing td:nth-child(2),
 .tblWrap tr.row-missing td:nth-child(3),
 .tblWrap tr.row-missing td:nth-child(4){
   color:red !important;
 }
+.tblWrap td:nth-child(6){color:white;}
     /* ===== TABLE WRAP: boleh scroll kiri/kanan + atas/bawah ===== */
 .tblWrap{
   width:100%;
@@ -3112,7 +3112,7 @@ return `
       <td class="num">${escapeHtml(unitPrice || "-")}</td>
 
       <td class="num ${amtClass}">${amountText}</td>
-      <td class="num-date">${at}</td>
+      <td class="num">${at}</td>
       <td>
         ${showActions ? `
           <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
