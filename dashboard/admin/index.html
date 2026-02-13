@@ -280,13 +280,12 @@ body.drawerOpen{
 .toast{
   position: fixed;
   left: 50%;
-  bottom: 18px;                 /* ✅ bottom */
-  top: auto;                    /* ✅ buang top */
+  bottom: 18px;                 /* bottom */
+  top: auto;                    /* buang top */
   transform: translate(-50%, 14px); /* start sedikit bawah */
   width: min(520px, 92vw);
   z-index: 9999999;
   display: none;
-
   opacity: 0;
   pointer-events: none;
   transition: transform .22s ease, opacity .22s ease;
@@ -302,8 +301,8 @@ body.drawerOpen{
 
 /* ===== TOAST CARD ===== */
 .toastCard{
-  display:grid;                 /* ✅ tukar flex -> grid */
-  grid-template-columns: 28px 1fr 28px; /* icon | text | close */
+  display:grid;                 /* tukar flex -> grid */
+  grid-template-columns: 20px 1fr 20px; /* icon | text | close */
   align-items:center;
   column-gap:10px;
   padding:12px 12px;
@@ -328,8 +327,8 @@ body.drawerOpen{
 
 /* tengah text */
 .toastMsg{
-  justify-self:center;          /* ✅ betul-betul center */
-  text-align:center;            /* ✅ text center */
+  justify-self:center;          /* betul-betul center */
+  text-align:center;            /* text center */
   color: rgba(255,255,255,.90);
   font-size:14px;
   font-weight:600;
@@ -352,7 +351,7 @@ body.drawerOpen{
   display:grid;
   place-items:center;
   transition: all .2s;
-  justify-self:end;             /* ✅ rapat kanan */
+  justify-self:end;             /*  rapat kanan */
 }
 .toastClose:hover{ background: rgba(255,255,255,.06); color:#fff; }
 .toastClose:active{ transform: translateY(1px); opacity:.85; }
@@ -704,7 +703,7 @@ input[type="number"]{
 /* ===== MOBILE ===== */
 @media (max-width: 720px){
   .rangeLeft{
-    flex-wrap:wrap;          /* ✅ boleh turun baris */
+    flex-wrap:wrap;          /*  boleh turun baris */
     align-items:stretch;
   }
 
@@ -882,18 +881,18 @@ input[type="number"]{
 }
 @media (max-width:700px){
   header{
-    flex-wrap: nowrap;        /* ✅ jangan wrap */
+    flex-wrap: nowrap;        /* jangan wrap */
     gap:8px;
   }
   .vaultSearchWrap{
-    flex: 1 1 auto;           /* ✅ search boleh shrink */
+    flex: 1 1 auto;           /*  search boleh shrink */
     min-width: 0;
     margin-right:auto;
   }
   .vaultSearchBox{ max-width:100%; }
   .right{
     flex: 0 0 auto;
-    flex-wrap: nowrap;        /* ✅ icon tak turun */
+    flex-wrap: nowrap;        /*  icon tak turun */
     margin-left:auto;
   }
 }
@@ -926,13 +925,13 @@ input[type="number"]{
 .vaultSearchClear:hover svg{ opacity:1; color:#3c89e8; }
 .vaultSearchClear:active svg{ transform: scale(.95); color:#1554ad; }
 /* =========================
-   ✅ RIGHT DRAWER (MOBILE MENU)
+    RIGHT DRAWER (MOBILE MENU)
    ========================= */
 
 /* Button drawer (guna iconBtn style kau) */
 .rightDrawerBtn{ display:none; }
 
-/* ✅ Overlay start bawah header */
+/*  Overlay start bawah header */
 .drawerOverlay{
   position: fixed;
   top: var(--headerH);
@@ -943,12 +942,12 @@ input[type="number"]{
   z-index: 9000;
 }
 
-/* ✅ Drawer start bawah header */
+/*  Drawer start bawah header */
 .rightDrawer{
   position: fixed;
   top: var(--headerH);
   right: 0;
-  height: calc(100dvh - var(--headerH)); /* ✅ guna 100dvh (mobile lebih tepat) */
+  height: calc(100dvh - var(--headerH)); /*  guna 100dvh (mobile lebih tepat) */
   width: min(320px, 88vw);
   background: #001529;
   border-left: 1px solid rgba(255,255,255,.12);
@@ -1008,7 +1007,7 @@ input[type="number"]{
 }
 
 
-/* ✅ RESPONSIVE: bila screen kecil/tablet -> pindah wallet ke drawer */
+/* RESPONSIVE: bila screen kecil/tablet -> pindah wallet ke drawer */
 @media (max-width: 900px){
   .rightDrawerBtn{ display:inline-flex !important; }
   #btnBalance{ display:none !important; }  /* hide wallet header */
@@ -1032,12 +1031,6 @@ input[type="number"]{
 
 .drawerOverlay{ display:none; }
 .drawerOverlay.open{ display:block; }
-/* Biar grid boleh mengecil */
-/* =========================================
-   ✅ PATCH CENTER WALLET + USERNAME
-   Letak PALING BAWAH CSS kau
-   ========================================= */
-
 /* ===== HEADER WALLET (btnBalance): icon kiri, amount betul2 center ===== */
 #btnBalance{
   display:grid;
@@ -1115,7 +1108,7 @@ input[type="number"]{
 }
 .txSearchInput:hover{ border-color: #3c89e8; }
 .txSearchInput:focus{ border-color: #1668dc; }
-/* ✅ align semua dalam baris filter jadi center */
+/*  align semua dalam baris filter jadi center */
 .rangeBar{ align-items:center; }
 .rangeRight{ align-items:center; } 
 .rangeRight{ gap:6px 8px; }
@@ -1319,7 +1312,7 @@ input[type="number"]{
     </button>
 
     <div class="userMenu" id="userMenu" role="menu">
-      <!-- ✅ NEW: Change Password (desktop dropdown) -->
+      <!-- NEW: Change Password (desktop dropdown) -->
   <button class="userMenuItem" id="btnChangePass" type="button" role="menuitem">
     <span class="miIcon" aria-hidden="true">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
@@ -1353,7 +1346,7 @@ input[type="number"]{
 </button>
   </div>
 </header>
-<!-- ✅ RIGHT DRAWER (mobile menu) -->
+<!--  RIGHT DRAWER (mobile menu) -->
 <div id="rightDrawerOverlay" class="drawerOverlay"></div>
 
 <aside id="rightDrawer" class="rightDrawer" aria-hidden="true">
@@ -1513,7 +1506,7 @@ input[type="number"]{
       <label><span class="label-required"></span>Note</label>
       <textarea id="nvNote"></textarea>
 
-      <!-- ✅ NEW: Transaction Time -->
+      <!--  NEW: Transaction Time -->
       <label><span class="label-required"></span>Transaction Time</label>
       <div class="txTimeRow">
         <input id="txTime_newVault" type="datetime-local" />
@@ -2690,7 +2683,7 @@ function wireBalanceListener(){
 
     const elSmall  = $("balanceText");   // header top
     const elBig    = $("balanceBig");    // modal
-    const elDrawer = $("drawerWallet");  // ✅ sidebar drawer
+    const elDrawer = $("drawerWallet");  //  sidebar drawer
 
     if(elSmall)  elSmall.textContent  = txt;
     if(elBig)    elBig.textContent    = txt;
@@ -3772,7 +3765,7 @@ async function doChangePassword(){
     $("cpNew").value = "";
     $("cpNew2").value = "";
 
-    return "Password success change ✅";
+    return "Password success change.";
   }catch(e){
     const code = String(e?.code || "");
 
@@ -3894,7 +3887,7 @@ async function onNvCreate(){
   await createVault(title, note, createdAtMs);
 
   setView("open");
-  return "Vault created ✅";
+  return "Vault created.";
 }
 bindLoadingClick("nvCreate", onNvCreate);
 
@@ -4306,7 +4299,7 @@ async function onCashSave(){
     ctxEdit = null;
 
     // ✅ success => return message (toast keluar lepas modal close)
-    return "Cash updated ✅";
+    return "Cash updated.";
   }
 
   // ===== CREATE MODE =====
@@ -4319,7 +4312,7 @@ async function onCashSave(){
   await addTx(ctxVaultId, newTx, atMs);
 
   // ✅ success
-  return "Cash transfer saved ✅";
+  return "Cash transfer saved.";
 }
 
 bindLoadingClick("cashSave", onCashSave);
@@ -4401,7 +4394,7 @@ async function onBuySave(){
     ctxEdit = null;
 
     // ✅ success
-    return "Buy updated ✅";
+    return "Buy updated.";
   }
 
   // ===== CREATE MODE =====
@@ -4417,7 +4410,7 @@ async function onBuySave(){
   await addTx(ctxVaultId, newTx, atMs);
 
   // ✅ success
-  return "Buy saved ✅";
+  return "Buy saved.";
 }
 
 bindLoadingClick("buySave", onBuySave);
@@ -4461,14 +4454,14 @@ async function onMissSave(){
     ctxEdit = null;
 
     // ✅ success
-    return "Missing updated ✅";
+    return "Missing updated.";
   }
 
   // ===== CREATE MODE =====
   await addTx(ctxVaultId, newTx, atMs);
 
   // ✅ success
-  return "Missing saved ✅";
+  return "Missing saved.";
 }
 
 bindLoadingClick("missSave", onMissSave);
@@ -4542,7 +4535,7 @@ async function onSellSave(){
     ctxEdit = null;
 
     // ✅ success
-    return "Sell updated ✅";
+    return "Sell updated.";
   }
 
   // ===== CREATE MODE =====
@@ -4550,7 +4543,7 @@ async function onSellSave(){
   await addTx(ctxVaultId, newTx, atMs);
 
   // ✅ success
-  return "Sell saved ✅";
+  return "Sell saved.";
 }
 
 bindLoadingClick("sellSave", onSellSave);
@@ -4685,7 +4678,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   toggleSearchUI();
 });
-
 </script>
 </body>
 </html>
