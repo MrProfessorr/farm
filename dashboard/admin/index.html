@@ -34,21 +34,19 @@ body.drawerOpen{
       background:#001529;
       border-bottom:1px solid var(--stroke);gap:10px; z-index: 9500 !important;
     }
-    button {
+button[data-clickfx] {
   position: relative;
-  overflow: visible; /* penting supaya glow keluar border */
+  overflow: visible;
 }
 
-/* Effect */
-button.clicked::after {
+button[data-clickfx].clicked::after {
   content: "";
   position: absolute;
-  inset: -1px;                 /* glow keluar sikit */
+  inset: -3px;
   border-radius: inherit;
   box-shadow: 0 0 6px 4px rgba(59,130,246,0.6);
-  animation: fadeOut .7s ease forwards;
+  animation: fadeOut .6s ease forwards;
   pointer-events: none;
-  z-index: 1;
 }
 
 @keyframes fadeOut {
@@ -1424,8 +1422,8 @@ input[type="number"]{
     </div>
 
     <div class="actions">
-      <button class="btn" id="btnAddPoint">Add Point</button>
-      <button class="btn" id="btnNewVault">Open New Vault</button>
+      <button class="btn" id="btnAddPoint" data-clickfx>Add Point</button>
+      <button class="btn" id="btnNewVault" data-clickfx>Open New Vault</button>
     </div>
   </div>
 
@@ -4696,12 +4694,10 @@ document.addEventListener("DOMContentLoaded", () => {
   toggleSearchUI();
 });
 document.addEventListener("click", function(e){
-  const btn = e.target.closest("button");
-  if(!btn) return;
-  if(btn.disabled) return;
-
+  const btn = e.target.closest("button[data-clickfx]");
+  if(!btn || btn.disabled) return;
   btn.classList.remove("clicked");
-  void btn.offsetWidth; // restart animation
+  void btn.offsetWidth;
   btn.classList.add("clicked");
 });
 </script>
