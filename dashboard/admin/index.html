@@ -26,7 +26,7 @@ body.drawerOpen{
       background:#000;
       min-height:100vh;
     }
-header, .right{ overflow: visible; }
+
     header{
       height:64px; display:flex; align-items:center; justify-content:space-between;
       padding:0 16px;
@@ -34,27 +34,27 @@ header, .right{ overflow: visible; }
       background:#001529;
       border-bottom:1px solid var(--stroke);gap:10px; z-index: 9500 !important;
     }
-/* wajib supaya pseudo-element boleh keluar */
-button[data-clickfx]{
+/* ===== CLICK FX (UNIVERSAL) ===== */
+[data-clickfx]{
   position: relative;
   overflow: visible;
 }
 
-/* glow ring */
-button[data-clickfx].clicked::after{
+/* ring glow pakai BEFORE (tak conflict dgn #btnBalance::after) */
+[data-clickfx].clicked::before{
   content:"";
   position:absolute;
-  inset:1px;                /* keluar dari border */
+  inset:-2px;                 /* keluar luar border */
   border-radius: inherit;
-  box-shadow: 0 0 0 0 rgba(59,130,246,.55);
-  opacity: 0;
   pointer-events:none;
-  z-index: 9999;
+  z-index: 999999;
+  opacity: 0;
+  box-shadow: 0 0 0 0 rgba(59,130,246,.55);
   animation: clickFx .55s ease-out forwards;
 }
 
 @keyframes clickFx{
-  0%   { opacity:1; transform:scale(1);   box-shadow:0 0 0 0 rgba(59,130,246,.55); }
+  0%   { opacity:1; transform:scale(1);    box-shadow:0 0 0 0 rgba(59,130,246,.55); }
   70%  { opacity:.55; transform:scale(1.03); box-shadow:0 0 12px 6px rgba(59,130,246,.45); }
   100% { opacity:0; transform:scale(1.06); box-shadow:0 0 0 12px rgba(59,130,246,0); }
 }
@@ -4706,36 +4706,19 @@ document.addEventListener("keydown", function(e){
   }
 });
 (function(){
-  function playClickFx(btn){
-    if(!btn || btn.disabled) return;
+  document.addEventListener("pointerdown", (e)=>{
+    const el = e.target.closest("[data-clickfx]");
+    if(!el) return;
 
-    // restart anim
-    btn.classList.remove("clicked");
-    void btn.offsetWidth;
-    btn.classList.add("clicked");
+    // kalau element disabled (button/fieldset)
+    if (el.matches("button:disabled, input:disabled, select:disabled, textarea:disabled")) return;
 
-    // auto cleanup (tak simpan class lama)
-    clearTimeout(btn.__clickfx_t);
-    btn.__clickfx_t = setTimeout(()=> btn.classList.remove("clicked"), 650);
-  }
+    el.classList.remove("clicked");
+    void el.offsetWidth; // restart anim
+    el.classList.add("clicked");
 
-  // mouse / touch click
-  document.addEventListener("click", (e)=>{
-    const btn = e.target.closest("button[data-clickfx]");
-    if(!btn) return;
-    playClickFx(btn);
-  }, true);
-
-  // keyboard: Enter / Space
-  document.addEventListener("keydown", (e)=>{
-    if(e.key !== "Enter" && e.key !== " ") return;
-
-    const btn = document.activeElement?.closest?.("button[data-clickfx]");
-    if(!btn) return;
-
-    // Space biasanya scroll page — prevent
-    e.preventDefault();
-    playClickFx(btn);
+    clearTimeout(el.__cfx);
+    el.__cfx = setTimeout(()=> el.classList.remove("clicked"), 650);
   }, true);
 })();
 </script>
