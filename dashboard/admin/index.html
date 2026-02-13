@@ -53,11 +53,7 @@ body.drawerOpen{
   animation: clickFx .55s ease-out forwards;
 }
 
-@keyframes clickFx{
-  0%   { opacity:1; transform:scale(1);    box-shadow:0 0 2px 5px rgba(59,130,246,.55); }
-  70%  { opacity:.55; transform:scale(1.03); box-shadow:0 0 2px 5px rgba(59,130,246,.45); }
-  100% { opacity:0; transform:scale(1.06); box-shadow:0 0 2px 2px rgba(59,130,246,0); }
-}
+@keyframes clickFx { from {opacity:1} to {opacity:0} }
     body{ padding-top: var(--headerH); }
     .right{display:flex; align-items:center; gap:5px;flex:0 0 auto;flex-wrap:nowrap;}
     .btn-delete{
