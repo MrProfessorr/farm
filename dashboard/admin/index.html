@@ -4693,6 +4693,13 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   toggleSearchUI();
 });
+document.addEventListener("keydown", function(e){
+  if(e.key !== "Escape") return;
+  const openModal = document.querySelector(".modalBack[style*='flex'], .modalBack[style*='block']");
+  if(openModal){
+    openModal.style.display = "none";
+  }
+});
 document.addEventListener("click", function(e){
   const btn = e.target.closest("button[data-clickfx]");
   if(!btn || btn.disabled) return;
