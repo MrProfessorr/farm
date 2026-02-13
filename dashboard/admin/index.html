@@ -3069,10 +3069,15 @@ function txRowHTML(vaultId, txId, t, bucket){
   if(t.kind==="missing") typeTag = `<span class="tag out">MISSING</span>`;
 
   // Amount
-  let amount = Number(t.total||t.amount||0);
-  if(t.kind==="missing") amount = -Math.abs(amount); // display negatif
-  const amountText = fmt(amount);
-  const amtClass = amount < 0 ? "amtNeg" : "";
+let amount = Number(t.total || t.amount || 0);
+if(t.kind === "cash" && t.direction === "out"){
+  amount = -Math.abs(amount);
+}
+if(t.kind === "missing"){
+  amount = -Math.abs(amount);
+}
+const amountText = fmt(amount);
+const amtClass = amount < 0 ? "amtNeg" : "";
 
   // === NEW: qty (ekor) & unit price column ===
   let qtyEkor = "";
