@@ -1435,17 +1435,17 @@ input[type="number"]{
     <div class="modalBody">
 <div class="kpiRow">
   <div class="kpi">
-    <div class="k">Current Balance</div>
+    <div class="k">Availabe Balance</div>
     <div class="v num" id="balanceBig">0.00</div>
   </div>
 
   <div class="kpi">
-    <div class="k">Last Balance</div>
+    <div class="k">Current Balance</div>
     <div class="v num" id="balanceBefore">0.00</div>
   </div>
 
   <div class="kpi">
-    <div class="k">Last Amount</div>
+    <div class="k">Update Balance</div>
     <div class="v num" id="balanceDelta">0.00</div>
   </div>
 
@@ -1455,7 +1455,7 @@ input[type="number"]{
   </div>
 </div>
       <div class="hr"></div>
-      <div class="hint">Balance disimpan di path: <b>finance/balance</b>. Ledger log disimpan di <b>finance/ledger</b>.</div>
+      <div class="hint">History Add Balance Wallet.</div>
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mBalance">Close</button>
@@ -1468,7 +1468,7 @@ input[type="number"]{
     <div class="modalHead">
       <div>
         <div class="title">Add Point</div>
-        <div class="sub">Admin sahaja boleh buat ini.</div>
+        <div class="sub">Available For Admin.</div>
       </div>
       <button class="x" data-close="mAddPoint">✕</button>
     </div>
@@ -1481,7 +1481,7 @@ input[type="number"]{
 
       <div class="row">
         <div>
-          <label>Amount</label>
+          <label>Total Amount</label>
           <input id="apAmount" type="text" inputmode="decimal" />
         </div>
         <div>
@@ -1502,7 +1502,7 @@ input[type="number"]{
     <div class="modalHead">
       <div>
         <div class="title">Open New Vault</div>
-        <div class="sub">Isi title contoh: “Feb 2026”, “Lot A”, “Batch 01”.</div>
+        <div class="sub">title Example: Business.</div>
       </div>
       <button class="x" data-close="mNewVault">✕</button>
     </div>
@@ -1510,7 +1510,7 @@ input[type="number"]{
       <label>Title</label>
       <input id="nvTitle" />
 
-      <label>Note (optional)</label>
+      <label>Note</label>
       <textarea id="nvNote"></textarea>
 
       <!-- ✅ NEW: Transaction Time -->
@@ -1546,7 +1546,7 @@ input[type="number"]{
 
       <div class="row">
         <div>
-          <label><span class="label-required"></span>Amount</label>
+          <label><span class="label-required"></span>Total Amount</label>
           <input id="cashAmount" type="text" inputmode="decimal" />
         </div>
         <div>
@@ -1686,7 +1686,7 @@ input[type="number"]{
   <div class="modal">
     <div class="modalHead">
       <div>
-        <div class="title">Death Pets</div>
+        <div class="title">Missing</div>
         <div class="sub" id="missingVaultTitle">-</div>
       </div>
       <button class="x" data-close="mMissing">✕</button>
@@ -1695,7 +1695,7 @@ input[type="number"]{
     <div class="modalBody">
       <div class="row">
         <div>
-          <label><span class="label-required"></span>Quantity Death</label>
+          <label><span class="label-required"></span>Quantity Missing</label>
           <input id="missQty"   type="text" inputmode="numeric" />
         </div>
         <div>
@@ -1722,8 +1722,6 @@ input[type="number"]{
         <button id="txTimeToggle_missing" type="button" class="btn ghost">Unlock</button>
       </div>
       <div class="hint">Jika Lock, masa akan ikut masa sekarang.</div>
-
-      <div class="hint">Make sure then Submit.</div>
     </div>
 
     <div class="modalFoot">
