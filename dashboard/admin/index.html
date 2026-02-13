@@ -3175,12 +3175,13 @@ return `
       <td>
         ${showActions ? `
           <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
-            ${hasNote ? `
-              <button class="btn-view" style="padding:8px 10px"
-                data-act="txView" data-note="${escapeHtml(t.note)}">
-                View
-              </button>
-            ` : ``}
+${hasNote ? `
+  <button class="btn-view" style="padding:8px 10px"
+    data-act="txView"
+    data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
+    View
+  </button>
+` : ``}
             <button class="btn-edit" style="padding:8px 10px"
               data-act="txEdit" data-v="${vaultId}" data-b="${bucket}" data-t="${txId}">
               Edit
@@ -4051,8 +4052,13 @@ if(!yes) return;
 
   return;
 }
-  if(act==="txView"){
-  const note = decodeURIComponent(btn.dataset.note || "");
+if(act==="txView"){
+  const vaultId = btn.dataset.v;
+  const bucket  = btn.dataset.b;
+  const txId    = btn.dataset.t;
+
+  const snap = await get(ref(db, `vaults/${bucket}/${vaultId}/transactions/${txId}/note`));
+  const note = snap.exists() ? String(snap.val() || "") : "";
   openViewNote(note);
   return;
 }
