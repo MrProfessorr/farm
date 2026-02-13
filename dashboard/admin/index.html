@@ -34,7 +34,27 @@ body.drawerOpen{
       background:#001529;
       border-bottom:1px solid var(--stroke);gap:10px; z-index: 9500 !important;
     }
-    .btn.clicked::after{content:"";position:absolute;inset: 0;border-radius: inherit;box-shadow: 0 0 2px 6px rgb(57 52 28);animation: fadeOut .9s ease forwards;pointer-events:none;}@keyframes fadeOut { from {opacity:1} to {opacity:0} }
+    button {
+  position: relative;
+  overflow: visible; /* penting supaya glow keluar border */
+}
+
+/* Effect */
+button.clicked::after {
+  content: "";
+  position: absolute;
+  inset: -2px;                 /* glow keluar sikit */
+  border-radius: inherit;
+  box-shadow: 0 0 6px 4px rgba(59,130,246,0.6);
+  animation: fadeOut .7s ease forwards;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.05); }
+}
     body{ padding-top: var(--headerH); }
     .right{display:flex; align-items:center; gap:5px;flex:0 0 auto;flex-wrap:nowrap;}
     .btn-delete{
@@ -4675,12 +4695,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   toggleSearchUI();
 });
-document.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      btn.classList.remove("clicked");   // reset animasi
-      void btn.offsetWidth;              // trick restart animasi
-      btn.classList.add("clicked");
-    });
+document.addEventListener("click", function(e){
+  const btn = e.target.closest("button");
+  if(!btn) return;
+  if(btn.disabled) return;
+
+  btn.classList.remove("clicked");
+  void btn.offsetWidth; // restart animation
+  btn.classList.add("clicked");
+});
 </script>
 </body>
 </html>
