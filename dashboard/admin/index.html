@@ -42,7 +42,7 @@ button[data-clickfx] {
 button[data-clickfx].clicked::after {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: 1px;
   border-radius: inherit;
   box-shadow: 0 0 6px 4px rgba(59,130,246,0.6);
   animation: fadeOut .6s ease forwards;
@@ -1504,7 +1504,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mAddPoint">Cancel</button>
-      <button class="btn" id="apSave" data-loading="Saving..." data-close-modal="mAddPoint">Save</button>
+      <button class="btn" id="apSave" data-loading="Saving..." data-close-modal="mAddPoint" data-clickfx>Save</button>
     </div>
   </div>
 </div>
@@ -1535,7 +1535,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mNewVault">Cancel</button>
-      <button class="btn" id="nvCreate" data-loading="Creating..." data-close-modal="mNewVault">Create</button>
+      <button class="btn" id="nvCreate" data-loading="Creating..." data-close-modal="mNewVault" data-clickfx>Create</button>
     </div>
   </div>
 </div>
@@ -1577,7 +1577,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mCash">Cancel</button>
-      <button class="btn" id="cashSave" data-loading="Saving..." data-close-modal="mCash">Save</button>
+      <button class="btn" id="cashSave" data-loading="Saving..." data-close-modal="mCash" data-clickfx>Save</button>
     </div>
   </div>
 </div>
@@ -1632,7 +1632,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mBuy">Cancel</button>
-      <button class="btn" id="buySave"  data-loading="Saving..."data-close-modal="mBuy">Save</button>
+      <button class="btn" id="buySave"  data-loading="Saving..."data-close-modal="mBuy" data-clickfx>Save</button>
     </div>
   </div>
 </div>
@@ -1689,7 +1689,7 @@ input[type="number"]{
     </div>
     <div class="modalFoot">
       <button class="btn ghost" data-close="mSell">Cancel</button>
-      <button class="btn" id="sellSave" data-loading="Saving..." data-close-modal="mSell">Save</button>
+      <button class="btn" id="sellSave" data-loading="Saving..." data-close-modal="mSell" data-clickfx>Save</button>
     </div>
   </div>
 </div>
@@ -1738,7 +1738,7 @@ input[type="number"]{
 
     <div class="modalFoot">
       <button class="btn ghost" data-close="mMissing">Cancel</button>
-      <button class="btn" id="missSave" data-loading="Saving..." data-close-modal="mMissing">Save</button>
+      <button class="btn" id="missSave" data-loading="Saving..." data-close-modal="mMissing" data-clickfx>Save</button>
     </div>
   </div>
 </div>
@@ -1775,7 +1775,7 @@ input[type="number"]{
 
     <div class="modalFoot">
       <button class="btn ghost" data-close="mChangePass" type="button">Cancel</button>
-      <button class="btn" id="cpSave" data-loading="Saving..." data-close-modal="mChangePass">Save</button>
+      <button class="btn" id="cpSave" data-loading="Saving..." data-close-modal="mChangePass" data-clickfx>Save</button>
     </div>
   </div>
 </div>
