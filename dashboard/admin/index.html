@@ -3274,64 +3274,48 @@ function openViewNote(noteText){
 }
 function renderVaultList(targetId, data, bucket){
   const el = $(targetId);
-  const entries = Object.entries(data || {});
-
-  // ✅ owner map ikut bucket (elak clash open/history)
-  window.__vaultOwner = window.__vaultOwner || { open:{}, history:{} };
-  const ownerMap = window.__vaultOwner[bucket] || (window.__vaultOwner[bucket] = {});
-
-  for(const [id, v] of entries){
-    ownerMap[id] = v?.createdByUid || null;
+  const entries = Object.entries(data||{});
+    window.__vaultOwner = window.__vaultOwner || {};
+  for(const [id,v] of entries){
+    window.__vaultOwner[id] = v?.createdByUid || null;
   }
 
-  // ✅ sort: latest createdAtMs desc
-  entries.sort((a,b)=> Number(b[1]?.createdAtMs||0) - Number(a[1]?.createdAtMs||0));
+  // sort: latest createdAtMs desc
+  entries.sort((a,b)=> (Number(b[1]?.createdAtMs||0) - Number(a[1]?.createdAtMs||0)));
 
-  if(entries.length === 0){
+  if(entries.length===0){
     el.innerHTML = `<div class="card"><div class="cardBody"><div class="hint">No vault yet.</div></div></div>`;
     return;
   }
 
-  // ✅ render cards sekali jalan
-  el.innerHTML = entries.map(([id,v]) => vaultCardHTML(id, v, bucket)).join("");
-
-  // ✅ init UI sekali (date range + custom select + search clear) untuk setiap vault
+  el.innerHTML = entries.map(([id,v]) => vaultCardHTML(id,v,bucket)).join("");
   for(const [id] of entries){
     initVaultDateRangeUI(id);
   }
-
-  // ✅ listener store ikut unique key: bucket::vaultId (elak clash)
-  vaultTxUnsubs = vaultTxUnsubs || {};
-  vaultTxCache  = vaultTxCache  || {};
-
   for(const [id] of entries){
-    const key = `${bucket}::${id}`;
     const txPath = `vaults/${bucket}/${id}/transactions`;
 
-    // ✅ remove old listener (for this bucket+vault)
-    if(vaultTxUnsubs[key]){
-      vaultTxUnsubs[key]();
-      delete vaultTxUnsubs[key];
+    // ✅ remove old listener for same vaultId (if exist)
+    if(vaultTxUnsubs[id]){
+      vaultTxUnsubs[id]();
+      delete vaultTxUnsubs[id];
     }
 
-    // ✅ query terbaru sahaja (performance)
-    const qTx = query(
-      ref(db, txPath),
-      orderByChild("atMs"),
-      limitToLast(300)
-    );
-
-    // ✅ attach listener
-    vaultTxUnsubs[key] = onValue(qTx, (snap)=>{
-      const txs = snap.exists() ? snap.val() : {};
+    // ✅ attach new listener + store unsubscribe
+    vaultTxUnsubs[id] = onValue(ref(db, txPath), (snap)=>{
+      const txs = snap.exists()? snap.val() : {};
       const tbody = document.querySelector(`[data-tbody="${id}"]`);
       if(!tbody) return;
 
-      // Firebase order ASC by atMs, kita nak newest top => reverse sort
-      let rows = Object.entries(txs);
+      const rows = Object.entries(txs);
       rows.sort((a,b)=> Number(b[1]?.atMs||0) - Number(a[1]?.atMs||0));
 
-      // cache ikut vaultId sahaja (kau pakai rerenderVaultTbody(vaultId))
+      if(rows.length===0){
+      vaultTxCache[id] = { bucket, rows: [] };
+      rerenderVaultTbody(id);                
+      return;
+      }
+
       vaultTxCache[id] = { bucket, rows };
       rerenderVaultTbody(id);
     });
