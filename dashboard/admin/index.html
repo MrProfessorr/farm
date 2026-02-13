@@ -2680,9 +2680,9 @@ async function loadRole(uid){
   }
 }
 
-  // ===== BALANCE =====
 function wireBalanceListener(){
   const balPath = `finance/balance/${WALLET_ID}`;
+
   onValue(ref(db, balPath), (snap)=>{
     const v = snap.val() || {};
     currentBalance = Number(v.amount||0);
@@ -2690,21 +2690,23 @@ function wireBalanceListener(){
     const txt = fmt(currentBalance);
     const isNeg = currentBalance < 0;
 
-    const elSmall = $("balanceText");
-    const elBig   = $("balanceBig");
+    const elSmall  = $("balanceText");   // header top
+    const elBig    = $("balanceBig");    // modal
+    const elDrawer = $("drawerWallet");  // ✅ sidebar drawer
 
-    elSmall.textContent = txt;
-    elBig.textContent   = txt;
-    elSmall.classList.remove("good","bad");
-    elBig.classList.remove("good","bad");
-    if(isNeg){
-      elSmall.classList.add("bad");
-      elBig.classList.add("bad");
-    }else{
-      elSmall.classList.add("good");
-      elBig.classList.add("good");
-    }
-    $("balanceUpdated").textContent = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
+    if(elSmall)  elSmall.textContent  = txt;
+    if(elBig)    elBig.textContent    = txt;
+    if(elDrawer) elDrawer.textContent = txt;
+
+    // ✅ apply class good/bad untuk semua sekali
+    [elSmall, elBig, elDrawer].forEach(el=>{
+      if(!el) return;
+      el.classList.remove("good","bad");
+      el.classList.add(isNeg ? "bad" : "good");
+    });
+
+    const upd = $("balanceUpdated");
+    if(upd) upd.textContent = v.updatedAtMs ? fmtDT(v.updatedAtMs) : "-";
   });
 }
 function wireLastLedgerListener(){
