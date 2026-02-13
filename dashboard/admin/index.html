@@ -391,6 +391,11 @@ body.drawerOpen{
 .tblWrap tr.row-missing td:nth-child(3),
 .tblWrap tr.row-missing td:nth-child(4){
   color:red !important;
+.row-cashout td:nth-child(2),  /* Transaction */
+.row-cashout td:nth-child(3),  /* Quantity */
+.row-cashout td:nth-child(4){  /* Price Quantity */
+  color:red !important;
+}
 }
 .tblWrap td:nth-child(6){color:white;}
     /* ===== TABLE WRAP: boleh scroll kiri/kanan + atas/bawah ===== */
@@ -3107,7 +3112,15 @@ const showActions = (bucket === "open")
   : me.isAdmin;
 
 const hasNote = String(t.note||"").trim().length > 0;
-const rowClass = (t.kind === "missing") ? "row-missing" : "";
+let rowClass = "";
+
+if(t.kind === "missing"){
+  rowClass = "row-missing";
+}
+
+if(t.kind === "cash" && t.direction === "out"){
+  rowClass = "row-cashout";
+}
 return `
     <tr data-txid="${txId}" class="${rowClass}">
       <td>${typeTag}</td>
