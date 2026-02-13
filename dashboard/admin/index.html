@@ -58,6 +58,7 @@ body.drawerOpen{
       font-size: 14px;height: 32px;
       transition: all 0.2s;
     }
+    .num-date{color:white}
     .btn-edit:hover{background:#1668dc73;}
     .btn-edit:active{background:#08408e73;}
     .btn-modal{
@@ -3111,7 +3112,7 @@ return `
       <td class="num">${escapeHtml(unitPrice || "-")}</td>
 
       <td class="num ${amtClass}">${amountText}</td>
-      <td class="num">${at}</td>
+      <td class="num-date">${at}</td>
       <td>
         ${showActions ? `
           <div style="display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap">
