@@ -2692,7 +2692,7 @@ async function loadRole(uid){
   }
 const btnAddPoint = $("btnAddPoint");
 if(btnAddPoint){
-  btnAddPoint.style.display = me.isAdmin ? "" : "none";
+  btnAddPoint.hidden = !me.isAdmin;   // ✅ ini paling betul untuk attribute hidden
 }
 }
 
