@@ -401,8 +401,7 @@ body.drawerOpen{
 .tblWrap table{
   width:100%;
   min-width: 980px;          /* penting: kalau screen kecil, dia akan scroll */
-  border-collapse: separate;   /* ✅ penting */
-  border-spacing: 0;  
+  border-collapse: collapse;
   table-layout: auto;
   background:#141414;
   font-size:14px;
@@ -450,32 +449,6 @@ body.drawerOpen{
 .tblWrap{
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) rgba(253, 253, 253, 0.12);
-}
-.tblWrap{ position: relative; }
-
-/* background header ikut lebar container, bukan ikut table */
-.tblWrap .tblHeadBg{
-  position: sticky;
-  top: 0;
-  height: 52px; /* adjust kalau header kau lebih tinggi/rendah */
-  background: #1d1d1d;
-  border-bottom: 1px solid rgba(255,255,255,.10);
-  border-top-left-radius: 14px;
-  border-top-right-radius: 14px;
-  z-index: 0;
-}
-
-/* table naik balik supaya tak tambah ruang */
-.tblWrap table{
-  margin-top: -52px; /* sama macam height tblHeadBg */
-}
-
-/* th transparent sebab bg dah dibuat oleh tblHeadBg */
-.tblWrap thead th{
-  background: transparent !important;
-  position: sticky;
-  top: 0;
-  z-index: 1;
 }
 /* ===== CUSTOM SELECT (Replace browser <select>) ===== */
 select.native-select {
@@ -3021,7 +2994,6 @@ ${!isHistory ? `
 </div>
 
         <div class="tblWrap">
-         <div class="tblHeadBg"></div>
           <table>
             <thead>
               <tr>
