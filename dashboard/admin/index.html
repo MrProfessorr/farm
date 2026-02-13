@@ -34,6 +34,7 @@ body.drawerOpen{
       background:#001529;
       border-bottom:1px solid var(--stroke);gap:10px; z-index: 9500 !important;
     }
+    .btn.clicked::after{content:"";position:absolute;inset: 0;border-radius: inherit;box-shadow: 0 0 2px 6px rgb(57 52 28);animation: fadeOut .9s ease forwards;pointer-events:none;}@keyframes fadeOut { from {opacity:1} to {opacity:0} }
     body{ padding-top: var(--headerH); }
     .right{display:flex; align-items:center; gap:5px;flex:0 0 auto;flex-wrap:nowrap;}
     .btn-delete{
@@ -4674,6 +4675,13 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   toggleSearchUI();
 });
+document.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      btn.classList.remove("clicked");   // reset animasi
+      void btn.offsetWidth;              // trick restart animasi
+      btn.classList.add("clicked");
+    });
+  });
 </script>
 </body>
 </html>
