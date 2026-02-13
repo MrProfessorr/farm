@@ -1439,7 +1439,11 @@ input[type="number"]{
     <div class="v num" id="balanceBig">0.00</div>
   </div>
 
-  <!-- ✅ NEW: Last Amount -->
+  <div class="kpi">
+    <div class="k">Last Balance</div>
+    <div class="v num" id="balanceBefore">0.00</div>
+  </div>
+
   <div class="kpi">
     <div class="k">Last Amount</div>
     <div class="v num" id="balanceDelta">0.00</div>
@@ -2704,40 +2708,54 @@ function wireBalanceListener(){
   });
 }
 function wireLastLedgerListener(){
-  const el = $("balanceDelta");
-  if(!el) return;
+  const elDelta = $("balanceDelta");
+  const elBefore = $("balanceBefore");
+  const elCurrent = $("balanceBig");
+
+  if(!elDelta) return;
 
   const ledPath = `finance/ledger/${WALLET_ID}`;
-
-  // ambil beberapa item terakhir supaya boleh cari add_point
   const qy = query(ref(db, ledPath), orderByChild("atMs"), limitToLast(80));
 
   onValue(qy, (snap)=>{
     if(!snap.exists()){
-      el.textContent = fmt(0);
-      el.classList.remove("good","bad");
+      elDelta.textContent = fmt(0);
+      if(elBefore) elBefore.textContent = fmt(0);
       return;
     }
 
-    const obj = snap.val() || {}; // {id: data}
+    const obj = snap.val() || {};
     const arr = Object.entries(obj).sort((a,b)=>
       Number(b[1]?.atMs || 0) - Number(a[1]?.atMs || 0)
     );
+
     const hit = arr.find(([_, v]) => v?.kind === "add_point");
 
     if(!hit){
-      el.textContent = fmt(0);
-      el.classList.remove("good","bad");
+      elDelta.textContent = fmt(0);
+      if(elBefore) elBefore.textContent = fmt(0);
       return;
     }
 
     const last = hit[1] || {};
-    const delta = Number(last.delta ?? last.amount ?? 0);
+    const delta = Number(last.delta ?? 0);
 
-    el.textContent = fmt(delta);
-    el.classList.remove("good","bad");
-    if(delta < 0) el.classList.add("bad");
-    else el.classList.add("good");
+    elDelta.textContent = fmt(delta);
+
+    elDelta.classList.remove("good","bad");
+    if(delta < 0) elDelta.classList.add("bad");
+    else elDelta.classList.add("good");
+
+    // ✅ kira last balance
+    const current = Number(
+      (elCurrent?.textContent || "0").replace(/[^0-9.-]/g,"")
+    );
+
+    const before = current - delta;
+
+    if(elBefore){
+      elBefore.textContent = fmt(before);
+    }
   });
 }
 async function changeBalance(delta, meta, atMsOverride){
