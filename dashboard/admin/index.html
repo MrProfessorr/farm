@@ -388,11 +388,11 @@ body.drawerOpen{
     .good{ color:#008000;}
     .bad{ color:red;}
 
-    /* Kalau kau nak hanya column tertentu saja merah */
-tr:has(.tag.missing) td:nth-child(2),  /* Transaction (Death Pets) */
-tr:has(.tag.missing) td:nth-child(3),  /* Quantity */
-tr:has(.tag.missing) td:nth-child(4){  /* Price Quantity */
-  color: red !important;
+.tblWrap tr.row-missing td:nth-child(2),
+.tblWrap tr.row-missing td:nth-child(3),
+.tblWrap tr.row-missing td:nth-child(4){
+  color:#ff3b3b !important;
+  font-weight:700;
 }
     /* ===== TABLE WRAP: boleh scroll kiri/kanan + atas/bawah ===== */
 .tblWrap{
@@ -3102,10 +3102,10 @@ const showActions = (bucket === "open")
   ? (me.isAdmin || isOwner)
   : me.isAdmin;
 
-  const hasNote = String(t.note||"").trim().length > 0;
-
-  return `
-    <tr data-txid="${txId}">
+const hasNote = String(t.note||"").trim().length > 0;
+const rowClass = (t.kind === "missing") ? "row-missing" : "";
+return `
+    <tr data-txid="${txId}" class="${rowClass}">
       <td>${typeTag}</td>
       <td>${escapeHtml(desc)}</td>
 
