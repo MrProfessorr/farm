@@ -15,6 +15,7 @@
   --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
 }
     *{box-sizing:border-box}
+    [hidden]{ display:none !important; }
 html.drawerOpen,
 body.drawerOpen{
   overflow: hidden !important;
@@ -1423,7 +1424,7 @@ input[type="number"]{
     </div>
 
     <div class="actions">
-      <button class="btn" id="btnAddPoint" data-clickfx>Add Point</button>
+      <button class="btn" id="btnAddPoint" data-clickfx hidden>Add Point</button>
       <button class="btn" id="btnNewVault" data-clickfx>Open New Vault</button>
     </div>
   </div>
@@ -1863,6 +1864,10 @@ import {
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
+  (function preHideAdminButtons(){
+  const b = document.getElementById("btnAddPoint");
+  if(b) b.style.display = "none";
+})();
   function setSelectAndSync(selectId, value){
   const el = document.getElementById(selectId);
   if(!el) return;
@@ -2685,10 +2690,10 @@ async function loadRole(uid){
   if(usernameText){
     usernameText.textContent = me.username;
   }
-  const btnAddPoint = $("btnAddPoint");
-  if(btnAddPoint){
-    btnAddPoint.classList.toggle("hide", !me.isAdmin);
-  }
+const btnAddPoint = $("btnAddPoint");
+if(btnAddPoint){
+  btnAddPoint.style.display = me.isAdmin ? "" : "none";
+}
 }
 
 function wireBalanceListener(){
@@ -4607,7 +4612,8 @@ document.addEventListener("click", (e)=>{
   // ===== AUTH BOOT =====
 onAuthStateChanged(auth, async (user)=>{
   if(!user){ location.replace("../login/"); return; }
-
+  const ap = document.getElementById("btnAddPoint");
+  if(ap) ap.style.display = "none";
   me.uid = user.uid;
 
   const p = await get(ref(db, `profiles/${me.uid}`));
