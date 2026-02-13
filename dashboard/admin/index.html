@@ -2708,7 +2708,9 @@ function wireLastLedgerListener(){
   if(!el) return;
 
   const ledPath = `finance/ledger/${WALLET_ID}`;
-  const qy = query(ref(db, ledPath), orderByChild("atMs"), limitToLast(1));
+
+  // ambil beberapa item terakhir supaya boleh cari add_point
+  const qy = query(ref(db, ledPath), orderByChild("atMs"), limitToLast(80));
 
   onValue(qy, (snap)=>{
     if(!snap.exists()){
@@ -2717,14 +2719,22 @@ function wireLastLedgerListener(){
       return;
     }
 
-    const obj = snap.val();                 // { msgId: data }
-    const k = Object.keys(obj)[0];
-    const last = obj[k] || {};
-    const delta = Number(last.delta ?? last.amount ?? 0); // support field delta/amount
+    const obj = snap.val() || {}; // {id: data}
+    const arr = Object.entries(obj).sort((a,b)=>
+      Number(b[1]?.atMs || 0) - Number(a[1]?.atMs || 0)
+    );
+    const hit = arr.find(([_, v]) => v?.kind === "add_point");
+
+    if(!hit){
+      el.textContent = fmt(0);
+      el.classList.remove("good","bad");
+      return;
+    }
+
+    const last = hit[1] || {};
+    const delta = Number(last.delta ?? last.amount ?? 0);
 
     el.textContent = fmt(delta);
-
-    // optional: warna ikut +/-
     el.classList.remove("good","bad");
     if(delta < 0) el.classList.add("bad");
     else el.classList.add("good");
