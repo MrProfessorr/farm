@@ -3857,25 +3857,21 @@ $("btnLogout").addEventListener("click", async ()=>{
     openModal("mNewVault");
   });
 
-  async function onApSave(){
-    if(!me.isAdmin){ toast("No access."); return; }
-    const type = $("apType").value;
-    const amount = moneyVal("apAmount");
-    const note = $("apNote").value.trim();
-    if(amount<=0){ toast("Amount mesti > 0"); return; }
+async function onApSave(){
+  if(!me.isAdmin) throw new Error("No access.");
+  const type = ($("apType")?.value || "in");
+  const amount = moneyVal("apAmount");
+  const note = ($("apNote")?.value || "").trim();
 
-    const delta = (type==="in") ? amount : -amount;
-
-    try{
-      await changeBalance(delta, { kind:"add_point", direction:type, amount, note });
-  
-      toast("Balance updated.");
-    }catch(e){
-      console.error(e);
-      toast(e?.message || "Failed");
-      throw e;
-    }
+  if(amount <= 0){
+    throw new Error("Total Amount mesti > 0");
   }
+  const delta = (type === "in") ? amount : -amount;
+  await changeBalance(delta, { kind:"add_point", direction:type, amount, note });
+  $("apAmount").value = "";
+  $("apNote").value = "";
+  return "Wallet updated.";
+}
  bindLoadingClick("apSave", onApSave);
   
 async function onNvCreate(){
