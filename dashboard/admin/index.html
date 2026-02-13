@@ -2753,9 +2753,16 @@ function wireLastLedgerListener(){
 
     const before = current - delta;
 
-    if(elBefore){
-      elBefore.textContent = fmt(before);
-    }
+if(elBefore){
+  elBefore.textContent = fmt(before);
+  elBefore.classList.remove("good","bad");
+
+  if(before < 0){
+    elBefore.classList.add("bad");
+  }else{
+    elBefore.classList.add("good");
+  }
+}
   });
 }
 async function changeBalance(delta, meta, atMsOverride){
