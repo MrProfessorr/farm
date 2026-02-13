@@ -1237,7 +1237,6 @@ input[type="number"]{
   box-shadow:0 22px 80px rgba(0,0,0,.6);
   padding:14px;
 }
-.cConfirmTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
 .cConfirmTitle{ font-weight:700; color:rgba(255,255,255,.92); }
 
 .cConfirmMsg{ color:rgba(255,255,255,.82); font-size:14px; line-height:1.35; padding:6px 0 12px; white-space:pre-wrap; }
@@ -1775,7 +1774,7 @@ input[type="number"]{
   <div class="cConfirmBack" data-cc="close"></div>
 
   <div class="cConfirmBox" role="dialog" aria-modal="true" aria-labelledby="ccTitle">
-    <div class="cConfirmTop">
+    <div class="modalHead">
       <div id="ccTitle" class="cConfirmTitle">Confirm</div>
       <button class="x" type="button" data-cc="close" aria-label="Close">✕</button>
     </div>
@@ -1793,7 +1792,7 @@ input[type="number"]{
   <div class="cConfirmBack" data-cp="close"></div>
 
   <div class="cConfirmBox" role="dialog" aria-modal="true" aria-labelledby="cpTitle">
-    <div class="cConfirmTop">
+    <div class="modalHead">
       <div id="cpTitle" class="cConfirmTitle">Edit Title</div>
       <button class="x" type="button" data-cp="close" aria-label="Close">✕</button>
     </div>
