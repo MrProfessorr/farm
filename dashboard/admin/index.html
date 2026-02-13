@@ -3139,12 +3139,12 @@ return `
 
 function buildTxDesc(t){
   if(t.kind==="cash"){
-    return t.direction==="in" ? "Cash In" : "Cash Out";
+    return t.direction==="in" ? "Cash-In" : "Cash-Out";
   }
 
   if(t.kind==="buy"){
     return t.category==="baby_pig" ? "Pets"
-         : (t.category==="feed" ? "Feed" : "Other");
+         : (t.category==="feed" ? "Feedind" : "Other");
   }
 
   if(t.kind==="missing"){
