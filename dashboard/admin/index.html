@@ -806,7 +806,7 @@ input[type="number"]{
 }
 .dateRangeInput:hover{border-color: #3c89e8;}.dateRangeInput:focus{border-color:#1668dc!important;}
 .rangeRight{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.pbtn{background:transparent;color:rgba(255, 255, 255, 0.85);padding:0px 15px;border:none;cursor:pointer;white-space:nowrap;font-size:14px;transition: all 0.2s;
+.pbtn{background:transparent;color:var(--colorInput);padding:0px 15px;border:none;cursor:pointer;white-space:nowrap;font-size:14px;transition: all 0.2s;
   display:inline-flex;
   align-items:center;
   justify-content:center;
@@ -1161,9 +1161,9 @@ input[type="number"]{
   min-width:200px;
   padding:0px 15px;
   border-radius:6px;
-  border:1px solid #303030;
-  background: #141414;
-  color: rgba(255,255,255,.85);
+  border:1px solid var(--borderTable);
+  background: var(--inputBg);
+  color: var(--colorInput);
   outline:none;
   transition: all 0.2s;
 }
