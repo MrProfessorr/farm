@@ -38,7 +38,7 @@ html.theme-light{
   --inputBg:#ffffff;
   --fieldBg: #f3f5fb;
   --cardHeadBg: #f7f8fc;
-  --tableHeadBg: #eef1f7;
+  --tableHeadBg: #ffffff;
   --panelBg: #ffffff;
 
   --stroke: rgba(0,0,0,.12);
@@ -664,9 +664,9 @@ input[type="number"]{
 .kpiTableHead{
   padding:12px 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-  border-bottom: 1px solid #303030;
-  background:#1d1d1d;
+  color:var(--colorInput);
+  border-bottom: 1px solid var(--borderBottom);
+  background:var(--tableHeadBg);
   text-align: center;
 }
 
