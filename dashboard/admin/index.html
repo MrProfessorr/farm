@@ -27,6 +27,7 @@
   --borderColor:#424242;
   --colorInput:rgba(255,255,255,.85);
   --borderActive:#1668dc;
+  --btnCard:#ffffff0f;
 }
 
 /* ===== LIGHT MODE OVERRIDE ===== */
@@ -47,6 +48,7 @@ html.theme-light{
   --iconColor: rgba(255,255,255,.85);
   --borderColor:#d9d9d9;
   --borderActive:#424242;
+  --btnCard:#ffffff;
 }
 *{box-sizing:border-box}
 html.drawerOpen,
@@ -184,7 +186,7 @@ body.drawerOpen{
     .btn:hover{background:var(--btnH)}
     .btn:active{background:var(--btnA); transform: translateY(1px)}
     .btn.ghost{
-      background:rgba(255,255,255,.06); border:1px solid var(--stroke); color:var(--txt);
+      background:var(--btnCard); border:1px solid var(--borderColor); color:var(--colorInput);
     }
     .btn.ghost:hover{background:rgba(255,255,255,.10)}
     .pill {
