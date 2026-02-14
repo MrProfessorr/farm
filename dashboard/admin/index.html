@@ -1379,6 +1379,40 @@ input[type="number"]{
   color: var(--txt);
   line-height:1; 
 }
+  /* ===== PATCH: CENTER-kan SWITCH dalam row 32px (fix nampak turun) ===== */
+.userMenuItem.themeRow,
+.drawerThemeRow{
+  align-items: center !important;
+}
+
+/* paksa container switch ikut center row */
+.userMenuItem.themeRow .switch,
+.drawerThemeRow .switch{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  align-self: center !important;
+
+  height: 100% !important;     /* ikut row height (32px) */
+  line-height: 0 !important;   /* buang baseline effect */
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* slider kekal 24px tapi di-center dalam row */
+.userMenuItem.themeRow .slider,
+.drawerThemeRow .slider{
+  position: relative !important;  /* supaya flex boleh center */
+  inset: auto !important;
+  width: 44px;
+  height: 24px;
+}
+
+/* kalau masih turun 1px (browser font), guna micro-adjust */
+.userMenuItem.themeRow .switch,
+.drawerThemeRow .switch{
+  transform: translateY(-1px);
+}
   </style>
 </head>
 
