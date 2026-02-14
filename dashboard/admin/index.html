@@ -28,6 +28,7 @@
   --colorInput:rgba(255,255,255,.85);
   --borderActive:#1668dc;
   --btnCard:#ffffff0f;
+  --borderBottom:#ffffff14;
 }
 
 /* ===== LIGHT MODE OVERRIDE ===== */
@@ -49,6 +50,7 @@ html.theme-light{
   --borderColor:#d9d9d9;
   --borderActive:#424242;
   --btnCard:#ffffff;
+  --borderBottom:#000000e0;
 }
 *{box-sizing:border-box}
 html.drawerOpen,
@@ -235,11 +237,11 @@ body.drawerOpen{
     .cardHead{
       padding:14px 14px 10px;
       display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      background: #1f1f1f;
+      border-bottom:1px solid var(--borderBottom);
+      background: var(--panelBg);
     }
     .title{
-      font-weight:700; font-size:16px; margin:0;
+      font-weight:700; font-size:16px; margin:0;color:var(--colorInput);
     }
     .sub{margin-top:4px; color:#1668dc; font-size:11px;}
     .vaultBtns{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
