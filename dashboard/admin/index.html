@@ -27,6 +27,7 @@
   --borderColor:#424242;
   --colorInput:rgba(255,255,255,.85);
   --borderActive:#1668dc;
+  --btnCard:#ffffff0f;
 }
 
 /* ===== LIGHT MODE OVERRIDE ===== */
@@ -173,13 +174,14 @@ body.drawerOpen{
     .btn-logout:hover{background:#e2445b;}
     .btn-logout:active{background:#b31930;}
     .btn{
-      border:0; border-radius:6px; padding: 0px 15px; cursor:pointer;
-      background:var(--btn); color:white; font-weight:400;
+      border-radius:6px; padding: 0px 15px; cursor:pointer;
+      background:var(--btnCard); color:var(--colorInput); font-weight:400;
       transition:.15s transform, .15s background;
       display:inline-flex; align-items:center; gap:8px;
       user-select:none;
       font-size: 14px;height: 32px;
       transition: all 0.2s;
+      border: 1px solid var(--borderActive);
     }
     .btn:hover{background:var(--btnH)}
     .btn:active{background:var(--btnA); transform: translateY(1px)}
