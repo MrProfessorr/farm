@@ -136,40 +136,68 @@
       await set(roleRef, { isAdmin, username, updatedAt: serverTimestamp() });
     }
   }
+// ✅ Convert Firebase auth error -> mesej toast sendiri
+function authMsg(err){
+  const code = String(err?.code || "");
 
-  $("btnLogin").addEventListener("click", async ()=>{
-    const username = $("username").value.trim().toLowerCase();
-    const password = $("password").value;
+  if(code === "auth/invalid-login-credentials") return "Password salah.";
+  if(code === "auth/wrong-password") return "Password salah.";
+  if(code === "auth/too-many-requests") return "Terlalu banyak cubaan. Cuba lagi nanti.";
+  if(code === "auth/network-request-failed") return "Network error. Check internet.";
+  if(code === "auth/invalid-email") return "Username tak valid.";
+  return "Login gagal. Sila cuba lagi.";
+}
+async function doLogin(){
+  const username = $("username").value.trim().toLowerCase();
+  const password = $("password").value;
 
-    if(username.length < 3){ toast("Username terlalu pendek."); return; }
-    if(password.length < 6){ toast("Password minimum 6 karakter."); return; }
+  if(username.length < 3){ toast("Username terlalu pendek."); return; }
+  if(password.length < 6){ toast("Password minimum 6 karakter."); return; }
 
-    const email = toEmail(username);
+  const email = toEmail(username);
 
+  try{
+    await setPersistence(auth, browserLocalPersistence);
+
+    let cred;
     try{
-      await setPersistence(auth, browserLocalPersistence);
+      cred = await signInWithEmailAndPassword(auth, email, password);
+    }catch(err){
+      const code = String(err?.code || "");
 
-      let cred;
-      try{
-        cred = await signInWithEmailAndPassword(auth, email, password);
-      }catch(err){
-        // auto create kalau belum ada
-        if(String(err?.code||"").includes("auth/user-not-found")){
-          cred = await createUserWithEmailAndPassword(auth, email, password);
-        }else{
-          throw err;
-        }
+      // ✅ auto create kalau belum ada
+      if(code === "auth/user-not-found"){
+        cred = await createUserWithEmailAndPassword(auth, email, password);
+      }else{
+        // ✅ salah password / invalid credentials -> toast cantik
+        throw err;
       }
+    }
 
-      await ensureProfile(cred.user.uid, username);
+    await ensureProfile(cred.user.uid, username);
 
-      // redirect
-      location.replace("../admin/");
-    }catch(e){
-      console.error(e);
-      toast(e?.message || "Login failed");
+    // redirect
+    location.replace("../admin/");
+  }catch(e){
+    console.error(e);
+    toast(authMsg(e)); // ✅ penting: jangan guna e.message
+  }
+}
+
+// ✅ click login
+$("btnLogin").addEventListener("click", doLogin);
+
+// ✅ tekan Enter pun boleh login
+["username","password"].forEach(id=>{
+  const el = $(id);
+  if(!el) return;
+  el.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      e.preventDefault();
+      doLogin();
     }
   });
+});
 </script>
 </body>
 </html>
