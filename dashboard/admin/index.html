@@ -251,7 +251,7 @@ body.drawerOpen{
 
     /* Excel-like table */
     table{width:100%; border-collapse:separate; border-spacing:0}
-    th,td{padding:10px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align: center;;}
+    th,td{padding:10px 10px; border-bottom:1px solid var(--borderBottom); text-align: center;;}
     th{
       position:sticky; top:0;
       background:var(--tableHeadBg);
@@ -459,7 +459,7 @@ body.drawerOpen{
 .row-cashout td:nth-child(4){  /* Price Quantity */
   color:red !important;
 }
-.tblWrap td:nth-child(6){color:white;}
+.tblWrap td:nth-child(6){color:var(--colorInput);}
     /* ===== TABLE WRAP: boleh scroll kiri/kanan + atas/bawah ===== */
 .tblWrap{
   width:100%;
@@ -477,7 +477,7 @@ body.drawerOpen{
   min-width: 980px;          /* penting: kalau screen kecil, dia akan scroll */
   border-collapse: collapse;
   table-layout: auto;
-  background:#141414;
+  background:var(--inputBg);
   font-size:14px;
   color: #008000;
 }
