@@ -21,19 +21,8 @@
         linear-gradient(180deg,#060914,#0b1220 55%,#050815);
       padding:20px;
     }
-    .wrap{width:min(980px,100%); display:grid; grid-template-columns: 1.1fr .9fr; gap:16px}
+    .wrap{width:min(500px,100%);}
     @media (max-width: 900px){ .wrap{grid-template-columns:1fr} }
-    .hero,.card{
-      border:1px solid var(--stroke);
-      border-radius:18px;
-      background:var(--card);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 18px 60px rgba(0,0,0,.45);
-      overflow:hidden;
-    }
-    .hero{padding:22px}
-    .hero h1{margin:0 0 8px; font-size:26px}
-    .hero p{margin:0; color:var(--muted); line-height:1.55}
     .badge{display:inline-flex; gap:8px; align-items:center; padding:10px 12px; border-radius:999px; margin-top:14px;
       border:1px solid var(--stroke); background:rgba(255,255,255,.05); color:var(--muted); font-weight:600}
     .dot{width:10px;height:10px;border-radius:50%; background:var(--btn)}
@@ -67,13 +56,6 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="hero">
-      <h1>Farm Vault System</h1>
-      <p>Sistem simpan modal, beli/jual babi, cash transfer, dan history vault. Data disimpan dalam Firebase (tak hilang walau tukar device).</p>
-      <div class="badge"><span class="dot"></span> Login guna username + password</div>
-      <p class="hint"><b>Admin:</b> farm88 (nampak Add Point + edit history)<br><b>Limited:</b> farm99 (tak nampak Add Point + edit history)</p>
-    </div>
-
     <div class="card">
       <div class="title">Login</div>
       <label>Username</label>
