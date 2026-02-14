@@ -21,14 +21,14 @@
         linear-gradient(180deg,#060914,#0b1220 55%,#050815);
       padding:20px;
     }
-    .wrap{width:min(500px,100%);}
+    .wrap{width:min(420px,100%);}
     @media (max-width: 900px){ .wrap{grid-template-columns:1fr} }
    .card{
-      border:1px solid var(--stroke);
+      border: 1px solid rgba(255, 255, 255, .12);
       border-radius:14px;
-      background:var(--card);
+      background: rgb(142 142 142 / 6%);
       backdrop-filter: blur(10px);
-      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .35);
       overflow:hidden;padding:18px
     }
     .badge{display:inline-flex; gap:8px; align-items:center; padding:10px 12px; border-radius:999px; margin-top:14px;
@@ -44,7 +44,7 @@
     input:focus{border-color: rgba(22,104,220,.7); box-shadow: 0 0 0 4px rgba(22,104,220,.18)}
     .row{display:flex; gap:10px; align-items:center; margin-top:14px}
     .btn{
-      width:100%; border:0; border-radius:12px; padding:12px 14px; cursor:pointer;
+      width:100%; border:0; border-radius:8px; padding:12px 14px; cursor:pointer;
       background:var(--btn); color:white; font-weight:900; letter-spacing:.2px;
       transition:.15s transform, .15s background;
   position:relative;
