@@ -23,6 +23,7 @@
   --stroke2: #303030;
   --txt: #eaf1ff;
   --muted: rgba(234,241,255,.7);
+  --iconColor: rgba(255,255,255,.85);
 }
 
 /* ===== LIGHT MODE OVERRIDE ===== */
@@ -39,7 +40,7 @@ html.theme-light{
   --txt: #0b1324;
   --muted: rgba(11,19,36,.65);
   --colorInput:#000000;
-  --colorItems:#1668dc;
+  --iconColor:#1668dc;
 }
 *{box-sizing:border-box}
 html.drawerOpen,
@@ -826,7 +827,7 @@ input[type="number"]{
 }
 .iconBtn:hover{ background: rgba(255,255,255,.06); }
 .icoRefresh{
-  color:var(--colorItems);
+  color:var(--iconColor);
   fill: currentColor;
   transition: fill .2s ease, transform .2s ease;
 }
