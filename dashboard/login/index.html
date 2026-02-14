@@ -185,8 +185,20 @@ async function doLogin(){
   const username = $("username").value.trim().toLowerCase();
   const password = $("password").value;
 
-  if(username.length < 3){ toast("Username terlalu pendek."); return; }
-  if(password.length < 6){ toast("Password minimum 6 karakter."); return; }
+  // ✅ START spinner
+  setLoading(true);
+
+  // ✅ kalau validation fail, STOP spinner juga
+  if(username.length < 3){
+    setLoading(false);
+    toast("Username terlalu pendek.");
+    return;
+  }
+  if(password.length < 6){
+    setLoading(false);
+    toast("Password minimum 6 karakter.");
+    return;
+  }
 
   const email = toEmail(username);
 
@@ -199,22 +211,21 @@ async function doLogin(){
     }catch(err){
       const code = String(err?.code || "");
 
-      // ✅ auto create kalau belum ada
       if(code === "auth/user-not-found"){
         cred = await createUserWithEmailAndPassword(auth, email, password);
       }else{
-        // ✅ salah password / invalid credentials -> toast cantik
         throw err;
       }
     }
 
     await ensureProfile(cred.user.uid, username);
 
-    // redirect
+    // ✅ success: redirect (tak perlu setLoading(false) sebab page pindah)
     location.replace("../admin/");
   }catch(e){
     console.error(e);
-    toast(authMsg(e)); // ✅ penting: jangan guna e.message
+    toast(authMsg(e));
+    setLoading(false); // ✅ STOP spinner bila gagal
   }
 }
 
@@ -228,6 +239,17 @@ $("btnLogin").addEventListener("click", doLogin);
   el.addEventListener("keydown", (e)=>{
     if(e.key === "Enter"){
       e.preventDefault();
+      doLogin();
+    }
+  });
+});
+["username","password"].forEach(id=>{
+  const el = $(id);
+  if(!el) return;
+  el.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter"){
+      e.preventDefault();
+      if($("btnLogin")?.disabled) return; // ✅ guard
       doLogin();
     }
   });
