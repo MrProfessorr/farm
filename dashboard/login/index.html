@@ -120,13 +120,22 @@
 .inputRight:hover{
   opacity:1;
 }
+.label-required::before {
+    content: "*";
+    display: inline-block;
+    margin-right: 4px;
+    color: #dc4446;
+    font-size: 14px;
+    font-family: SimSun, sans-serif;
+    line-height: 1;
+}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <div class="title">Login</div>
-<label>Username</label>
+<label><span class="label-required"></span>Username</label>
 <div class="inputWrap">
   <svg class="inputIcon" viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8V22h19.2v-2.8c0-3.2-6.4-4.8-9.6-4.8z"/>
@@ -134,7 +143,7 @@
   <input id="username" autocomplete="username" placeholder="Enter username" />
 </div>
 
-<label>Password</label>
+<label><span class="label-required"></span>Password</label>
 <div class="inputWrap">
   <!-- Lock icon kiri -->
   <svg class="inputIcon" viewBox="0 0 24 24" fill="currentColor">
