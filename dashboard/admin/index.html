@@ -1310,7 +1310,7 @@ input[type="number"]{
 .switch{
   position:relative;
   width:44px;
-  height:24px;
+  height:20px;
   display:inline-block;
   flex:0 0 auto;
 }
@@ -1333,10 +1333,10 @@ input[type="number"]{
 .slider:before{
   content:"";
   position:absolute;
-  width:18px;
-  height:18px;
+  width:16px;
+  height:16px;
   top:50%;
-  left:3px;
+  left:1px;
   transform: translateY(-50%);   /* center betul */
   background: rgba(255,255,255,.85);
   border-radius:999px;
@@ -1351,7 +1351,7 @@ input[type="number"]{
 /* ✅ guna right, jangan translateX */
 .switch input:checked + .slider:before{
   left:auto;
-  right:3px;
+  right:1px;
   transform: translateY(-50%);
 }
 
@@ -1405,7 +1405,7 @@ input[type="number"]{
   position: relative !important;  /* supaya flex boleh center */
   inset: auto !important;
   width: 44px;
-  height: 24px;
+  height: 20px;
 }
 
 /* kalau masih turun 1px (browser font), guna micro-adjust */
