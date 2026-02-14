@@ -1465,7 +1465,7 @@ input[type="number"]{
     <div class="userMenu" id="userMenu" role="menu">
 <!-- ✅ THEME TOGGLE (desktop dropdown) -->
 <div class="userMenuItem themeRow" role="menuitem">
-  <span class="miText">Dark Mode</span>
+  <span class="miText" id="themeLabelDesktop">Dark Mode</span>
 
   <label class="switch" aria-label="Toggle theme">
     <input id="themeToggleDesktop" type="checkbox">
@@ -1513,7 +1513,7 @@ input[type="number"]{
   <div class="rightDrawerBody">
 <!-- ✅ THEME TOGGLE (mobile drawer - TOP) -->
 <div class="btn-modal drawerThemeRow" id="drawerThemeRow">
-  <span class="drawerText">Dark Mode</span>
+  <span class="drawerText" id="themeLabelDrawer">Dark Mode</span>
 
   <label class="switch" aria-label="Toggle theme">
     <input id="themeToggleDrawer" type="checkbox">
@@ -4866,45 +4866,64 @@ document.addEventListener("keydown", function(e){
     el.__cfx = setTimeout(()=> el.classList.remove("clicked"), 650);
   }, true);
 })();
-    // ===== THEME TOGGLE =====
-    const THEME_KEY = "farm_theme"; 
+  // ===== THEME TOGGLE =====
+const THEME_KEY = "farm_theme"; // "dark" | "light"
+let _syncingTheme = false;
 
-    function applyTheme(theme){
-      const isLight = theme === "light";
-      document.documentElement.classList.toggle("theme-light", isLight);
+function applyTheme(theme){
+  const isLight = theme === "light";
 
-      const d1 = document.getElementById("themeToggleDesktop");
-      const d2 = document.getElementById("themeToggleDrawer");
-      if(d1) d1.checked = !isLight;
-      if(d2) d2.checked = !isLight;
-    }
+  // theme class
+  document.documentElement.classList.toggle("theme-light", isLight);
 
-    function loadTheme(){
-      const saved = localStorage.getItem(THEME_KEY);
-      if(saved === "light" || saved === "dark") return saved;
-      return "dark";
-    }
+  // sync checkbox (checked = dark ON)
+  const d1 = document.getElementById("themeToggleDesktop");
+  const d2 = document.getElementById("themeToggleDrawer");
 
-    function initThemeToggle(){
-      applyTheme(loadTheme());
+  _syncingTheme = true;
+  try{
+    if(d1) d1.checked = !isLight;
+    if(d2) d2.checked = !isLight;
+  } finally {
+    _syncingTheme = false;
+  }
 
-      const desktop = document.getElementById("themeToggleDesktop");
-      const drawer  = document.getElementById("themeToggleDrawer");
+  // ✅ sync label text
+  const l1 = document.getElementById("themeLabelDesktop");
+  const l2 = document.getElementById("themeLabelDrawer");
+  const txt = isLight ? "Light Mode" : "Dark Mode";
+  if(l1) l1.textContent = txt;
+  if(l2) l2.textContent = txt;
+}
 
-      function setThemeFromChecked(isDarkChecked){
-        const theme = isDarkChecked ? "dark" : "light";
-        localStorage.setItem(THEME_KEY, theme);
-        applyTheme(theme);
-      }
+function loadTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  return (saved === "light" || saved === "dark") ? saved : "dark";
+}
 
-      if(desktop){
-        desktop.addEventListener("change", e => setThemeFromChecked(e.target.checked));
-      }
-      if(drawer){
-        drawer.addEventListener("change", e => setThemeFromChecked(e.target.checked));
-      }
-    }
-    document.addEventListener("DOMContentLoaded", initThemeToggle);
+function setTheme(theme){
+  localStorage.setItem(THEME_KEY, theme);
+  applyTheme(theme);
+}
+
+function initThemeToggle(){
+  // apply on load
+  applyTheme(loadTheme());
+
+  const desktop = document.getElementById("themeToggleDesktop");
+  const drawer  = document.getElementById("themeToggleDrawer");
+
+  function onToggleChange(e){
+    if(_syncingTheme) return; // ✅ elak loop sync
+    const isDarkChecked = !!e.target.checked;
+    setTheme(isDarkChecked ? "dark" : "light");
+  }
+
+  if(desktop) desktop.addEventListener("change", onToggleChange);
+  if(drawer)  drawer.addEventListener("change", onToggleChange);
+}
+
+document.addEventListener("DOMContentLoaded", initThemeToggle);
 </script>
 </body>
 </html>
