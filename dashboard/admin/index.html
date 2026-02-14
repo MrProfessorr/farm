@@ -26,6 +26,7 @@
   --iconColor: rgba(255,255,255,.85);
   --borderColor:#424242;
   --colorInput:rgba(255,255,255,.85);
+  --borderActive:#1668dc;
 }
 
 /* ===== LIGHT MODE OVERRIDE ===== */
@@ -36,6 +37,7 @@ html.theme-light{
   --fieldBg: #f3f5fb;
   --cardHeadBg: #f7f8fc;
   --tableHeadBg: #eef1f7;
+  --panelBg: #1f1f1f;
 
   --stroke: rgba(0,0,0,.12);
   --stroke2: rgba(0,0,0,.12);
@@ -44,6 +46,7 @@ html.theme-light{
   --colorInput:#000000e0;
   --iconColor: rgba(255,255,255,.85);
   --borderColor:#d9d9d9;
+  --borderActive:#424242;
 }
 *{box-sizing:border-box}
 html.drawerOpen,
@@ -214,7 +217,7 @@ body.drawerOpen{
     align-items: center;
     font-size: 14px;
     }
-    .tab.active{background:rgba(22,104,220,.18); color:var(--iconColor); border: 1px solid var(--borderColor);}
+    .tab.active{background:rgba(22,104,220,.18); color:var(--iconColor); border: 1px solid var(--borderActive);}
     .actions{display:flex; gap:5px; align-items:center; flex-wrap:wrap}
     .hint{color:var(--muted); font-size:12px; line-height:1.4}
     .create-vault{color:#1668dc; font-size:12px; line-height:1.4}
@@ -238,7 +241,7 @@ body.drawerOpen{
     }
     .sub{margin-top:4px; color:#1668dc; font-size:11px;}
     .vaultBtns{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
-    .cardBody{padding:12px 14px 14px}
+    .cardBody{padding:12px 14px 14px background:var(--panelBg);}
 
     /* Excel-like table */
     table{width:100%; border-collapse:separate; border-spacing:0}
