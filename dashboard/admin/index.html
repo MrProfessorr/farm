@@ -9,12 +9,36 @@
 :root{
   --headerH:64px;
   --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
-  --bg:#070b16; --panel:rgba(255,255,255,.06);
-  --stroke:rgba(255,255,255,.12);
-  --txt:#eaf1ff; --muted:rgba(234,241,255,.7);
-  --good:#22c55e; --bad:#ef4444; --warn:#f59e0b;
+
+  /* ===== THEME TOKENS ===== */
+  --bg: #070b16;
+  --headerBg: #001529;
+  --panelBg: #1f1f1f;
+  --fieldBg: #141414;
+  --cardHeadBg: #1f1f1f;
+  --tableHeadBg: #1d1d1d;
+
+  --stroke: rgba(255,255,255,.12);
+  --stroke2: #303030;
+  --txt: #eaf1ff;
+  --muted: rgba(234,241,255,.7);
 }
-    *{box-sizing:border-box}
+
+/* ===== LIGHT MODE OVERRIDE ===== */
+html.theme-light{
+  --bg: #f6f8ff;
+  --headerBg: #ffffff;
+  --panelBg: #ffffff;
+  --fieldBg: #f3f5fb;
+  --cardHeadBg: #f7f8fc;
+  --tableHeadBg: #eef1f7;
+
+  --stroke: rgba(0,0,0,.12);
+  --stroke2: rgba(0,0,0,.12);
+  --txt: #0b1324;
+  --muted: rgba(11,19,36,.65);
+}
+*{box-sizing:border-box}
 html.drawerOpen,
 body.drawerOpen{
   overflow: hidden !important;
@@ -1282,6 +1306,65 @@ input[type="number"]{
   font-family: SimSun, sans-serif;
   line-height: 1;
 }
+  /* ===== Toggle Switch ===== */
+.switch{
+  position:relative;
+  width: 44px;
+  height: 24px;
+  display:inline-block;
+  flex: 0 0 auto;
+}
+.switch input{
+  opacity:0;
+  width:0;height:0;
+}
+.slider{
+  position:absolute;
+  inset:0;
+  background: rgba(255,255,255,.18);
+  border: 1px solid var(--stroke);
+  border-radius: 999px;
+  transition: .18s ease;
+}
+.slider:before{
+  content:"";
+  position:absolute;
+  width:18px;height:18px;
+  left:3px; top:50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,.85);
+  border-radius: 999px;
+  transition: .18s ease;
+}
+.switch input:checked + .slider{
+  background: rgba(22,104,220,.35);
+}
+.switch input:checked + .slider:before{
+  transform: translate(20px,-50%);
+}
+
+/* theme row align (desktop dropdown) */
+.userMenuItem.themeRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  grid-template-columns: none; /* override grid */
+}
+
+/* theme row align (mobile drawer top) */
+.drawerThemeRow{
+  display:flex !important;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 0px 15px;
+  height:32px;
+  border-radius:6px;
+  background: var(--fieldBg);
+  border:1px solid var(--stroke2);
+  color: var(--txt);
+}
   </style>
 </head>
 
@@ -1332,6 +1415,15 @@ input[type="number"]{
     </button>
 
     <div class="userMenu" id="userMenu" role="menu">
+<!-- ✅ THEME TOGGLE (desktop dropdown) -->
+<div class="userMenuItem themeRow" role="menuitem">
+  <span class="miText">Dark Mode</span>
+
+  <label class="switch" aria-label="Toggle theme">
+    <input id="themeToggleDesktop" type="checkbox">
+    <span class="slider"></span>
+  </label>
+</div>
       <!-- NEW: Change Password (desktop dropdown) -->
   <button class="userMenuItem" id="btnChangePass" type="button" role="menuitem">
     <span class="miIcon" aria-hidden="true">
@@ -1371,6 +1463,15 @@ input[type="number"]{
 
 <aside id="rightDrawer" class="rightDrawer" aria-hidden="true">
   <div class="rightDrawerBody">
+<!-- ✅ THEME TOGGLE (mobile drawer - TOP) -->
+<div class="btn-modal drawerThemeRow" id="drawerThemeRow">
+  <span class="drawerText">Dark Mode</span>
+
+  <label class="switch" aria-label="Toggle theme">
+    <input id="themeToggleDrawer" type="checkbox">
+    <span class="slider"></span>
+  </label>
+</div>
 <!-- Wallet (ikut style desktop: icon kiri, text tengah) -->
 <div class="btn-modal" id="drawerWalletRow">
   <span class="walletIcon" aria-hidden="true">
@@ -4717,6 +4818,45 @@ document.addEventListener("keydown", function(e){
     el.__cfx = setTimeout(()=> el.classList.remove("clicked"), 650);
   }, true);
 })();
+    // ===== THEME TOGGLE =====
+    const THEME_KEY = "farm_theme"; 
+
+    function applyTheme(theme){
+      const isLight = theme === "light";
+      document.documentElement.classList.toggle("theme-light", isLight);
+
+      const d1 = document.getElementById("themeToggleDesktop");
+      const d2 = document.getElementById("themeToggleDrawer");
+      if(d1) d1.checked = !isLight;
+      if(d2) d2.checked = !isLight;
+    }
+
+    function loadTheme(){
+      const saved = localStorage.getItem(THEME_KEY);
+      if(saved === "light" || saved === "dark") return saved;
+      return "dark";
+    }
+
+    function initThemeToggle(){
+      applyTheme(loadTheme());
+
+      const desktop = document.getElementById("themeToggleDesktop");
+      const drawer  = document.getElementById("themeToggleDrawer");
+
+      function setThemeFromChecked(isDarkChecked){
+        const theme = isDarkChecked ? "dark" : "light";
+        localStorage.setItem(THEME_KEY, theme);
+        applyTheme(theme);
+      }
+
+      if(desktop){
+        desktop.addEventListener("change", e => setThemeFromChecked(e.target.checked));
+      }
+      if(drawer){
+        drawer.addEventListener("change", e => setThemeFromChecked(e.target.checked));
+      }
+    }
+    document.addEventListener("DOMContentLoaded", initThemeToggle);
 </script>
 </body>
 </html>
