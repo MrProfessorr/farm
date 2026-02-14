@@ -22,7 +22,7 @@
   --stroke: rgba(255,255,255,.12);
   --stroke2: #303030;
   --txt: #eaf1ff;
-  --muted: rgba(234,241,255,.7);
+  --muted: #eaf1ffb3;
   --iconColor: rgba(255,255,255,.85);
   --borderColor:#424242;
   --colorInput:rgba(255,255,255,.85);
@@ -225,7 +225,7 @@ body.drawerOpen{
     }
     .tab.active{background:rgba(22,104,220,.18); color:var(--iconColor); border: 1px solid var(--borderActive);}
     .actions{display:flex; gap:5px; align-items:center; flex-wrap:wrap}
-    .hint{color:var(--muted); font-size:12px; line-height:1.4}
+    .hint{color:var(--colorInput); font-size:12px; line-height:1.4}
     .create-vault{color:#1668dc; font-size:12px; line-height:1.4}
 
     .grid{display:grid; gap:12px}
@@ -722,9 +722,9 @@ input[type="number"]{
 
 .userMenuItem{
   width:100%;
-  border:1px solid #303030;
-  background: #141414;
-  color: rgba(255,255,255,.85);
+  border:1px solid var(--borderTable);
+  background: var(--inputBg);
+  color: var(--colorInput);
   border-radius: 6px;
   padding: 0px 15px;
   cursor:pointer;
