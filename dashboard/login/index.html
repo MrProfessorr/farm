@@ -47,7 +47,32 @@
       width:100%; border:0; border-radius:12px; padding:12px 14px; cursor:pointer;
       background:var(--btn); color:white; font-weight:900; letter-spacing:.2px;
       transition:.15s transform, .15s background;
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
     }
+    .btn.loading{
+  pointer-events:none;
+  opacity:.9;
+}
+
+.btn .spin{
+  width:18px;
+  height:18px;
+  display:none;
+}
+
+.btn.loading .spin{
+  display:inline-block;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin{
+  from{ transform:rotate(0deg); }
+  to{ transform:rotate(360deg); }
+}
     .btn:hover{background:var(--btnH)}
     .btn:active{background:var(--btnA); transform: translateY(1px)}
     .hint{margin-top:12px; font-size:12px; color:var(--muted); line-height:1.5}
@@ -70,8 +95,17 @@
       <label>Password</label>
       <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
       <div class="row">
-        <button class="btn" id="btnLogin">Login</button>
-      </div>
+        <button class="btn" id="btnLogin">
+    <!-- spinner (akan muncul bila loading) -->
+        <svg class="spin" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"
+        stroke="white" stroke-width="3" fill="none"
+        stroke-linecap="round"
+        stroke-dasharray="40" stroke-dashoffset="20"/>
+    </svg>
+    <span id="btnText">Login</span>
+  </button>
+</div>
       <div class="hint">
         Sistem ni guna Firebase Auth Email/Password, tapi UI kau cuma pakai <b>username</b>.
         Username akan auto jadi email: <span class="small">username@farm.local</span>
@@ -198,6 +232,19 @@ $("btnLogin").addEventListener("click", doLogin);
     }
   });
 });
+function setLoading(on){
+  const btn = $("btnLogin");
+  const txt = $("btnText");
+  if(on){
+    btn.classList.add("loading");
+    btn.disabled = true;
+    txt.textContent = "Logging in...";
+  }else{
+    btn.classList.remove("loading");
+    btn.disabled = false;
+    txt.textContent = "Login";
+  }
+}
 </script>
 </body>
 </html>
