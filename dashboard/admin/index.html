@@ -13,6 +13,7 @@
   /* ===== THEME TOKENS ===== */
   --bg: #070b16;
   --headerBg: #001529;
+  --colorItems:#1668dc;
   --panelBg: #1f1f1f;
   --fieldBg: #141414;
   --cardHeadBg: #1f1f1f;
@@ -27,8 +28,8 @@
 /* ===== LIGHT MODE OVERRIDE ===== */
 html.theme-light{
   --bg: #f6f8ff;
-  --headerBg: #ffffff;
-  --panelBg: #ffffff;
+  --headerBg:#dddddd;
+  --inputBg:#ffffff;
   --fieldBg: #f3f5fb;
   --cardHeadBg: #f7f8fc;
   --tableHeadBg: #eef1f7;
@@ -37,6 +38,8 @@ html.theme-light{
   --stroke2: rgba(0,0,0,.12);
   --txt: #0b1324;
   --muted: rgba(11,19,36,.65);
+  --colorInput:#000000;
+  --colorItems:#1668dc;
 }
 *{box-sizing:border-box}
 html.drawerOpen,
@@ -823,7 +826,7 @@ input[type="number"]{
 }
 .iconBtn:hover{ background: rgba(255,255,255,.06); }
 .icoRefresh{
-  fill:#e9ecff;
+  fill:var(--colorItems);
   transition: fill .2s ease, transform .2s ease;
 }
 .icoRefresh:hover{fill:#3c89e8;}.icoRefresh:active{fill:#1554ad;}
@@ -898,9 +901,9 @@ input[type="number"]{
   height:32px;
   padding:0 60px 0 14px;
   border-radius:6px;
-  background:#141414;
+  background:(--inputBg);
   border:1px solid #303030;
-  color:rgba(255, 255, 255, 0.85);
+  color:(--colorInput);
   font-size:14px;
   outline:none;
   transition: all 0.2s;
