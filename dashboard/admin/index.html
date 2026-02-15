@@ -11,6 +11,7 @@
   --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
 
   /* ===== THEME TOKENS ===== */
+  --scroll:rgba(255, 255, 255, 0.25);
   --bgDropdownhover:rgba(255, 255, 255, .03);
   --bgDropdown:rgba(255,255,255,.10);
   --pagebg:#000000;
@@ -46,6 +47,7 @@
 
 /* ===== LIGHT MODE OVERRIDE ===== */
 html.theme-light{
+  --scroll:#27272785;
   --bgDropdownhover:#e3e3e3;
   --bgDropdown:#cacaca;
   --pagebg:#ffffff;
@@ -547,7 +549,7 @@ body.drawerOpen{
 /* Firefox */
 .tblWrap{
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.25) rgba(253, 253, 253, 0.12);
+  scrollbar-color: var(--scroll) rgb(255 255 255 / 0%);
 }
 /* ===== CUSTOM SELECT (Replace browser <select>) ===== */
 select.native-select {
