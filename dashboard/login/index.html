@@ -377,7 +377,22 @@ function setLoading(on){
     txt.textContent = "Login";
   }
 }
+// ===== THEME SYNC (LOGIN) =====
+const THEME_KEY = "farm_theme"; // sama macam admin
+function loadTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  return (saved === "light" || saved === "dark") ? saved : "dark";
+}
+function applyTheme(theme){
+  document.documentElement.classList.toggle("theme-light", theme === "light");
+}
+applyTheme(loadTheme());
 
+// ikut perubahan dari tab/page lain (admin toggle)
+window.addEventListener("storage", (e)=>{
+  if(e.key !== THEME_KEY) return;
+  applyTheme(loadTheme());
+});
 </script>
 </body>
 </html>
