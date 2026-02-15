@@ -32,7 +32,13 @@
   --borderBottom:#ffffff14;
   --borderTable: #303030;
   --BtnActive:rgba(255,255,255,.85);
+  --btnheadHover:rgba(255,255,255,.10);
+  --colorHover:rgba(255,255,255,.85);
+  --borderHover:#424242;
+  --colorActive:rgba(255,255,255,.85);
+  --borderactivehead:#424242;
 }
+    
 
 /* ===== LIGHT MODE OVERRIDE ===== */
 html.theme-light{
@@ -58,6 +64,11 @@ html.theme-light{
   --borderTable: #000000e0;
   --btn:#1668dc;
   --BtnActive:#1668dc;
+  --btnHead:#ffffff;
+  --colorHover:#3c89e8;
+  --borderHover:#3c89e8;
+  --colorActive:#1554ad;
+  --borderactivehead:#1554ad;
 }
 *{box-sizing:border-box}
 html.drawerOpen,
@@ -197,7 +208,8 @@ body.drawerOpen{
     .btn.ghost{
       background:var(--btnCard); border:1px solid var(--borderColor); color:var(--colorInput);
     }
-    .btn.ghost:hover{background:rgba(255,255,255,.10)}
+    .btn.ghost:hover{background:var(--btnheadHover);color:var(--colorHover);border-color:var(--borderHover);}
+    .btn.ghost:active{color:var(--colorActive);border-color:var(--borderactivehead);}
     .pill {
      padding: 0px 15px;
      border: 1px solid #303030;
