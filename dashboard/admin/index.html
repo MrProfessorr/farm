@@ -11,7 +11,8 @@
   --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
 
   /* ===== THEME TOKENS ===== */
-  --bgDropdown;rgba(255,255,255,.10);
+  --bgDropdownhover:rgba(255, 255, 255, .03);
+  --bgDropdown:rgba(255,255,255,.10);
   --pagebg:#000000;
   --bg: #070b16;
   --headerBg: #001529;
@@ -45,6 +46,7 @@
 
 /* ===== LIGHT MODE OVERRIDE ===== */
 html.theme-light{
+  --bgDropdownhover:#e3e3e3;
   --bgDropdown:#cacaca;
   --pagebg:#ffffff;
   --bg: #f6f8ff;
@@ -620,7 +622,7 @@ select.native-select {
   background:var(--inputBg);
 }
 
-.cs__opt:hover{ background: rgba(255, 255, 255, .03); }
+.cs__opt:hover{ background: var(--bgDropdownhover); }
 .cs__opt[aria-selected="true"]{
   background: var(--bgDropdown);
 }
