@@ -4913,29 +4913,26 @@ document.addEventListener("keydown", function(e){
     el.__cfx = setTimeout(()=> el.classList.remove("clicked"), 650);
   }, true);
 })();
-  // ===== THEME TOGGLE =====
+// ===== THEME TOGGLE =====
 const THEME_KEY = "farm_theme"; // "dark" | "light"
 let _syncingTheme = false;
 
 function applyTheme(theme){
   const isLight = theme === "light";
 
-  // theme class
   document.documentElement.classList.toggle("theme-light", isLight);
 
-  // sync checkbox (checked = dark ON)
   const d1 = document.getElementById("themeToggleDesktop");
   const d2 = document.getElementById("themeToggleDrawer");
 
   _syncingTheme = true;
   try{
-    if(d1) d1.checked = !isLight;
+    if(d1) d1.checked = !isLight; // checked = dark
     if(d2) d2.checked = !isLight;
   } finally {
     _syncingTheme = false;
   }
 
-  // ✅ sync label text
   const l1 = document.getElementById("themeLabelDesktop");
   const l2 = document.getElementById("themeLabelDrawer");
   const txt = isLight ? "Light Mode" : "Dark Mode";
@@ -4951,17 +4948,19 @@ function loadTheme(){
 function setTheme(theme){
   localStorage.setItem(THEME_KEY, theme);
   applyTheme(theme);
+
+  // ✅ optional notify same-page listeners
+  window.dispatchEvent(new CustomEvent("farmThemeChanged", { detail: theme }));
 }
 
 function initThemeToggle(){
-  // apply on load
   applyTheme(loadTheme());
 
   const desktop = document.getElementById("themeToggleDesktop");
   const drawer  = document.getElementById("themeToggleDrawer");
 
   function onToggleChange(e){
-    if(_syncingTheme) return; // ✅ elak loop sync
+    if(_syncingTheme) return;
     const isDarkChecked = !!e.target.checked;
     setTheme(isDarkChecked ? "dark" : "light");
   }
@@ -4971,6 +4970,12 @@ function initThemeToggle(){
 }
 
 document.addEventListener("DOMContentLoaded", initThemeToggle);
+
+// ✅ bila theme berubah dari tab/page lain
+window.addEventListener("storage", (e)=>{
+  if(e.key !== THEME_KEY) return;
+  applyTheme(loadTheme());
+});
 </script>
 </body>
 </html>
