@@ -306,12 +306,15 @@ async function doLogin(){
   try{
     await setPersistence(auth, browserLocalPersistence);
 
-    const cred = await signInWithEmailAndPassword(auth, email, password);
+const cred = await signInWithEmailAndPassword(auth, email, password);
 
-    await ensureProfile(cred.user.uid, username);
+// ✅ redirect dulu (laju)
+location.replace(new URL("../admin/", location.href).href);
 
-    // ✅ success: redirect (tak perlu setLoading(false) sebab page pindah)
-    location.replace("../admin/");
+// ✅ sync profile/role belakang (tak block)
+ensureProfile(cred.user.uid, username).catch(err=>{
+  console.warn("ensureProfile failed:", err);
+});
   }catch(e){
     console.error(e);
     toast(authMsg(e));
