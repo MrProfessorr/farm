@@ -390,14 +390,7 @@ window.addEventListener("storage", (e)=>{
   if(e.key !== THEME_KEY) return;
   applyTheme(loadTheme());
 });
-function loadTheme(){
-  const saved = localStorage.getItem(THEME_KEY);
-  if(saved === "light" || saved === "dark") return saved;
 
-  // kalau belum set, ikut OS preference
-  const preferLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
-  return preferLight ? "light" : "dark";
-}
 </script>
 </body>
 </html>
