@@ -11,6 +11,7 @@
   --btn:#1668dc; --btnH:#3c89e8; --btnA:#1554ad;
 
   /* ===== THEME TOKENS ===== */
+  --bgDropdown;rgba(255,255,255,.10);
   --pagebg:#000000;
   --bg: #070b16;
   --headerBg: #001529;
@@ -44,6 +45,7 @@
 
 /* ===== LIGHT MODE OVERRIDE ===== */
 html.theme-light{
+  --bgDropdown:#ffffff;
   --pagebg:#ffffff;
   --bg: #f6f8ff;
   --headerBg:#001529;
@@ -619,7 +621,7 @@ select.native-select {
 
 .cs__opt:hover{ background: rgba(255, 255, 255, .03); }
 .cs__opt[aria-selected="true"]{
-  background: rgba(255,255,255,.10);
+  background: var(--bgDropdown);
 }
 /* ✅ CUSTOM SELECT dropdown auto-scroll (lebih 6 item) */
 .cs__menu{
