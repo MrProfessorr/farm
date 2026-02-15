@@ -200,10 +200,10 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import {
-    getAuth, setPersistence, browserLocalPersistence,
-    signInWithEmailAndPassword, createUserWithEmailAndPassword
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+import {
+  getAuth, setPersistence, browserLocalPersistence,
+  signInWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
   import { getDatabase, ref, get, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
   // === CONFIG KAU ===
@@ -257,7 +257,8 @@
 function authMsg(err){
   const code = String(err?.code || "");
 
-  if(code === "auth/invalid-login-credentials") return "Password salah.";
+  if(code === "auth/user-not-found") return "User tidak wujud. Sila hubungi admin.";
+  if(code === "auth/invalid-login-credentials") return "Username atau password salah.";
   if(code === "auth/wrong-password") return "Password salah.";
   if(code === "auth/too-many-requests") return "Terlalu banyak cubaan. Cuba lagi nanti.";
   if(code === "auth/network-request-failed") return "Network error. Check internet.";
@@ -288,18 +289,7 @@ async function doLogin(){
   try{
     await setPersistence(auth, browserLocalPersistence);
 
-    let cred;
-    try{
-      cred = await signInWithEmailAndPassword(auth, email, password);
-    }catch(err){
-      const code = String(err?.code || "");
-
-      if(code === "auth/user-not-found"){
-        cred = await createUserWithEmailAndPassword(auth, email, password);
-      }else{
-        throw err;
-      }
-    }
+    const cred = await signInWithEmailAndPassword(auth, email, password);
 
     await ensureProfile(cred.user.uid, username);
 
