@@ -308,13 +308,9 @@ async function doLogin(){
 
 const cred = await signInWithEmailAndPassword(auth, email, password);
 
-// ✅ redirect dulu (laju)
-location.replace(new URL("../admin/", location.href).href);
+await ensureProfile(cred.user.uid, username);
 
-// ✅ sync profile/role belakang (tak block)
-ensureProfile(cred.user.uid, username).catch(err=>{
-  console.warn("ensureProfile failed:", err);
-});
+location.replace("../admin/");
   }catch(e){
     console.error(e);
     toast(authMsg(e));
