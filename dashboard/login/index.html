@@ -324,25 +324,13 @@ ensureProfile(cred.user.uid, username).catch(err=>{
 
 // ✅ click login
 $("btnLogin").addEventListener("click", doLogin);
-
-// ✅ tekan Enter pun boleh login
 ["username","password"].forEach(id=>{
   const el = $(id);
   if(!el) return;
   el.addEventListener("keydown", (e)=>{
     if(e.key === "Enter"){
       e.preventDefault();
-      doLogin();
-    }
-  });
-});
-["username","password"].forEach(id=>{
-  const el = $(id);
-  if(!el) return;
-  el.addEventListener("keydown", (e)=>{
-    if(e.key === "Enter"){
-      e.preventDefault();
-      if($("btnLogin")?.disabled) return; // ✅ guard
+      if($("btnLogin")?.disabled) return;
       doLogin();
     }
   });
