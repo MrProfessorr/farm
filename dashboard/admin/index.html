@@ -48,6 +48,7 @@
 
 /* ===== LIGHT MODE OVERRIDE ===== */
 html.theme-light{
+  --talbeHover:rgba(255, 255, 255, .03);
   --menuDropdown:#ffffff;
   --scroll:#27272785;
   --bgDropdownhover:#e3e3e3;
@@ -293,7 +294,7 @@ body.drawerOpen{
       font-size:14px;
       text-align: center;
     }
-    tr:hover td{background:rgba(255,255,255,.03)}
+    tr:hover td{background:var(--bgDropdownhover))}
     .num{font-variant-numeric: tabular-nums}
     .tag{
       display:inline-flex; align-items:center; gap:6px;
