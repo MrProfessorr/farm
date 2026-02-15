@@ -31,6 +31,7 @@
   --btnCard:#ffffff0f;
   --borderBottom:#ffffff14;
   --borderTable: #303030;
+  --BtnActive:rgba(255,255,255,.85);
 }
 
 /* ===== LIGHT MODE OVERRIDE ===== */
@@ -55,6 +56,8 @@ html.theme-light{
   --btnCard:#ffffff;
   --borderBottom:#000000e0;
   --borderTable: #000000e0;
+  --btn:#1668dc;
+  --BtnActive:#1668dc;
 }
 *{box-sizing:border-box}
 html.drawerOpen,
@@ -225,7 +228,7 @@ body.drawerOpen{
     align-items: center;
     font-size: 14px;
     }
-    .tab.active{background:rgba(22,104,220,.18); color:var(--iconColor); border: 1px solid var(--borderActive);}
+    .tab.active{background:rgba(22,104,220,.18); color:var(--BtnActive); border: 1px solid var(--btn);}
     .actions{display:flex; gap:5px; align-items:center; flex-wrap:wrap}
     .hint{color:var(--colorInput); font-size:12px; line-height:1.4}
     .create-vault{color:#1668dc; font-size:12px; line-height:1.4}
