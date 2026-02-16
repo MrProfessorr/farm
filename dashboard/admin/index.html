@@ -2072,6 +2072,33 @@ import {
   const db = getDatabase(app);
 
   const $ = (id)=>document.getElementById(id);
+  async function ensureFinanceSeed(user){
+  if(!user) return;
+
+  const uid = user.uid;
+  const username = (user.email || "user").split("@")[0];
+
+  const balRef = ref(db, "finance/balance/main");
+  const balSnap = await get(balRef);
+
+  // kalau dah ada, stop
+  if(balSnap.exists()) return;
+
+  // create ikut validate rules kau
+  await set(balRef, {
+    amount: 0,
+    updatedAtMs: Date.now(),
+    byUid: uid,
+    byUser: username
+  });
+
+  // optional: create ledger root biar nampak folder
+  const ledRef = ref(db, "finance/ledger/main");
+  const ledSnap = await get(ledRef);
+  if(!ledSnap.exists()){
+    await set(ledRef, {});
+  }
+}
   function setSelectAndSync(selectId, value){
   const el = document.getElementById(selectId);
   if(!el) return;
@@ -4815,6 +4842,17 @@ document.addEventListener("click", (e)=>{
 });
   // ===== AUTH BOOT =====
 onAuthStateChanged(auth, async (user)=>{
+    if(!user){
+    // redirect login
+    return;
+  }
+
+  // ✅ AUTO SEED finance bila login
+  try{
+    await ensureFinanceSeed(user);
+  }catch(err){
+    console.error("ensureFinanceSeed error:", err);
+  }
   if(!user){ location.replace("../login/"); return; }
 
   me.uid = user.uid;
