@@ -5235,12 +5235,17 @@ function applyLang(lang){
   if(td) td.textContent = short;
   if(tr) tr.textContent = short;
 
-  // D) theme label ikut mode semasa
-  const isLight = document.documentElement.classList.contains("theme-light");
-  const themeDesktop = document.getElementById("themeLabelDesktop");
-  const themeDrawer  = document.getElementById("themeLabelDrawer");
-  if(themeDesktop) themeDesktop.textContent = isLight ? "Mode Terang" : "Mode Gelap";
-  if(themeDrawer)  themeDrawer.textContent  = isLight ? "Mode Terang" : "Mode Gelap";
+// D) theme label ikut mode semasa + ikut language
+const isLight = document.documentElement.classList.contains("theme-light");
+const enText = isLight ? "Light Mode" : "Dark Mode";
+
+let show = enText;
+if(lang === "id") show = TEXT_EN_TO_ID[enText] || enText;
+
+const themeDesktop = document.getElementById("themeLabelDesktop");
+const themeDrawer  = document.getElementById("themeLabelDrawer");
+if(themeDesktop) themeDesktop.textContent = show;
+if(themeDrawer)  themeDrawer.textContent  = show;
 }
 
 // init apply on load
@@ -5274,7 +5279,6 @@ function applyTheme(theme){
 
   const l1 = document.getElementById("themeLabelDesktop");
   const l2 = document.getElementById("themeLabelDrawer");
-applyLang(getLang());
 }
 
 function loadTheme(){
