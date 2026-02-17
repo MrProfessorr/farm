@@ -1473,6 +1473,37 @@ input[type="number"]{
 .drawerThemeRow .switch{
   transform: translateY(-1px);
 }
+/* ===== LANGUAGE DROPDOWN (fits your style) ===== */
+.langWrap{ position:relative; }
+
+.langRight{
+  justify-self:center;
+  opacity:.75;
+  font-weight:700;
+}
+
+.langMenu{
+  margin-top:8px;
+  border:1px solid var(--borderTable);
+  background: var(--inputBg);
+  border-radius: 8px;
+  overflow:hidden;
+  box-shadow: 0 18px 60px rgba(0,0,0,.35);
+}
+
+.langOpt{
+  width:100%;
+  height:32px;
+  padding:0 15px;
+  border:0;
+  background: transparent;
+  color: var(--colorInput);
+  cursor:pointer;
+  text-align:left;
+  transition: all .2s;
+}
+.langOpt:hover{ background: var(--bgDropdownhover); color: var(--colorHover); }
+.langOpt:active{ color: var(--colorActive); }
   </style>
 </head>
 
@@ -1525,7 +1556,7 @@ input[type="number"]{
     <div class="userMenu" id="userMenu" role="menu">
 <!-- ✅ THEME TOGGLE (desktop dropdown) -->
 <div class="userMenuItem themeRow" role="menuitem">
-  <span class="miText" id="themeLabelDesktop">Dark Mode</span>
+  <span class="miText" id="themeLabelDesktop" data-i18n>Dark Mode</span>
 
   <label class="switch" aria-label="Toggle theme">
     <input id="themeToggleDesktop" type="checkbox">
@@ -1539,8 +1570,22 @@ input[type="number"]{
         <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9zm3 4a1 1 0 0 1 1 1c0 .38-.21.72-.55.89L13 18h-2l.55-2.11A1 1 0 0 1 12 14z"/>
       </svg>
     </span>
-    <span class="miText">Change Password</span>
+    <span class="miText" data-i18n>Change Password</span>
   </button>
+
+<!-- 🌐 LANGUAGE (desktop dropdown) -->
+<div class="langWrap" id="langWrapDesktop">
+  <button class="userMenuItem" id="btnLangDesktop" type="button" role="menuitem" aria-expanded="false">
+    <span class="miIcon" aria-hidden="true">🌐</span>
+    <span class="miText" data-i18n="langLabel">Language</span>
+    <span class="langRight" id="langTextDesktop">EN</span>
+  </button>
+
+  <div class="langMenu" id="langMenuDesktop" style="display:none">
+    <button type="button" class="langOpt" data-lang="en">English</button>
+    <button type="button" class="langOpt" data-lang="id">Indonesia</button>
+  </div>
+</div>
       
       <button class="userMenuItem" id="btnLogout" type="button" role="menuitem">
         <span class="miIcon" aria-hidden="true">
@@ -1548,7 +1593,7 @@ input[type="number"]{
             <path d="M3 21V3h9v2H5v14h7v2zm13-4l-1.375-1.45l2.55-2.55H9v-2h8.175l-2.55-2.55L16 7l5 5z"/>
           </svg>
         </span>
-        <span class="miText">Logout</span>
+        <span class="miText" data-i18n>Logout</span>
       </button>
     </div>
   </div>
@@ -1573,7 +1618,7 @@ input[type="number"]{
   <div class="rightDrawerBody">
 <!-- ✅ THEME TOGGLE (mobile drawer - TOP) -->
 <div class="btn-modal drawerThemeRow" id="drawerThemeRow">
-  <span class="drawerText" id="themeLabelDrawer">Dark Mode</span>
+  <span class="drawerText" id="themeLabelDrawer" data-i18n>Dark Mode</span>
 
   <label class="switch" aria-label="Toggle theme">
     <input id="themeToggleDrawer" type="checkbox">
@@ -1608,17 +1653,31 @@ input[type="number"]{
       <path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9zm3 4a1 1 0 0 1 1 1c0 .38-.21.72-.55.89L13 18h-2l.55-2.11A1 1 0 0 1 12 14z"/>
     </svg>
   </span>
-  <span class="miText">Change Password</span>
+  <span class="miText" data-i18n>Change Password</span>
   <span></span>
 </button>
-    
+
+<!-- 🌐 LANGUAGE (mobile drawer) -->
+<div class="langWrap" id="langWrapDrawer">
+  <button class="userMenuItem" id="btnLangDrawer" type="button" aria-expanded="false">
+    <span class="miIcon" aria-hidden="true">🌐</span>
+    <span class="miText" data-i18n="langLabel">Language</span>
+    <span class="langRight" id="langTextDrawer">EN</span>
+  </button>
+
+  <div class="langMenu" id="langMenuDrawer" style="display:none">
+    <button type="button" class="langOpt" data-lang="en">English</button>
+    <button type="button" class="langOpt" data-lang="id">Indonesia</button>
+  </div>
+</div>
+
 <button id="drawerLogoutBtn" class="userMenuItem" type="button">
   <span class="miIcon" aria-hidden="true">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
       <path d="M3 21V3h9v2H5v14h7v2zm13-4l-1.375-1.45l2.55-2.55H9v-2h8.175l-2.55-2.55L16 7l5 5z"/>
     </svg>
   </span>
-  <span class="miText">Logout</span>
+  <span class="miText" data-i18n>Logout</span>
   <span></span>
 </button>
   </div>
@@ -4972,7 +5031,7 @@ function applyTheme(theme){
   const isLight = theme === "light";
 
   document.documentElement.classList.toggle("theme-light", isLight);
-
+  applyLang(getLang());
   const d1 = document.getElementById("themeToggleDesktop");
   const d2 = document.getElementById("themeToggleDrawer");
 
@@ -5027,6 +5086,125 @@ window.addEventListener("storage", (e)=>{
   if(e.key !== THEME_KEY) return;
   applyTheme(loadTheme());
 });
+// ===== AUTO TEXT MAP (exact match) =====
+const TEXT_EN_TO_ID = {
+  "Language": "Bahasa",
+  "Dark Mode": "Mode Gelap",
+  "Light Mode": "Mode Terang",
+  "Change Password": "Ubah Kata Sandi",
+  "Logout": "Keluar",
+  "Searching...": "Cari...",
+
+  "Open": "Buka",
+  "History": "Riwayat",
+  "Add Point": "Tambah Poin",
+  "New Vault": "Buat Vault",
+
+  "My Wallet": "Dompet Saya",
+  "Availabe Balance": "Baki Tersedia",
+  "Current Balance": "Baki Semasa",
+  "Update Balance": "Kemaskini Baki",
+  "Last Update": "Kemas Kini Terakhir",
+  "Close": "Tutup",
+
+  "Cancel": "Batal",
+  "Save": "Simpan",
+  "Saving...": "Menyimpan...",
+  "Creating...": "Mencipta...",
+  "Create": "Cipta",
+  "Unlock": "Buka Kunci",
+
+  "Type": "Jenis",
+  "In": "Masuk",
+  "Out": "Keluar",
+  "Note": "Catatan",
+  "Title": "Tajuk",
+  "Transaction Time": "Masa Transaksi",
+
+  "Cash Transfer": "Pemindahan Tunai",
+  "Cash-In": "Tunai Masuk",
+  "Cash-Out": "Tunai Keluar",
+
+  "Buy": "Beli",
+  "Selling": "Jual",
+  "Missing": "Hilang",
+  "Category": "Kategori",
+  "Quantity": "Kuantiti",
+  "Price Quantity": "Harga Seunit",
+  "Total Price": "Jumlah Harga",
+  "Total Amount": "Jumlah"
+};
+
+// reverse map auto
+const TEXT_ID_TO_EN = Object.fromEntries(
+  Object.entries(TEXT_EN_TO_ID).map(([en,id]) => [id,en])
+);
+function applyLang(lang){
+  const dict = I18N[lang] || I18N.en;
+
+  // 1) translate yang ada data-i18n
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.getAttribute("data-i18n");
+    if(!key) return;
+    el.textContent = dict[key] ?? key;
+  });
+
+  // 2) translate placeholders (semua, bukan search saja)
+  document.querySelectorAll("[placeholder]").forEach(el=>{
+    const p = (el.getAttribute("placeholder") || "").trim();
+    if(!p) return;
+
+    if(lang === "id"){
+      if(TEXT_EN_TO_ID[p]) el.setAttribute("placeholder", TEXT_EN_TO_ID[p]);
+    }else{
+      if(TEXT_ID_TO_EN[p]) el.setAttribute("placeholder", TEXT_ID_TO_EN[p]);
+    }
+  });
+
+  // 3) translate text nodes untuk yang tak letak data-i18n
+  const walker = document.createTreeWalker(
+    document.body,
+    NodeFilter.SHOW_TEXT,
+    {
+      acceptNode(node){
+        const p = node.parentNode;
+        if(!p) return NodeFilter.FILTER_REJECT;
+        const tag = (p.tagName || "").toLowerCase();
+        if(tag === "script" || tag === "style" || tag === "noscript") return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    }
+  );
+
+  let n;
+  while((n = walker.nextNode())){
+    const raw = n.nodeValue;
+    const t = (raw || "").trim();
+    if(!t) continue;
+
+    if(lang === "id"){
+      if(TEXT_EN_TO_ID[t]) n.nodeValue = raw.replace(t, TEXT_EN_TO_ID[t]);
+    }else{
+      if(TEXT_ID_TO_EN[t]) n.nodeValue = raw.replace(t, TEXT_ID_TO_EN[t]);
+    }
+  }
+
+  // 4) label ringkas EN/ID
+  const short = (lang === "id") ? "ID" : "EN";
+  const td = document.getElementById("langTextDesktop");
+  const tr = document.getElementById("langTextDrawer");
+  if(td) td.textContent = short;
+  if(tr) tr.textContent = short;
+
+  // 5) update theme label ikut mode semasa
+  const isLight = document.documentElement.classList.contains("theme-light");
+  const themeKey = isLight ? "lightMode" : "darkMode";
+
+  const themeDesktop = document.getElementById("themeLabelDesktop");
+  const themeDrawer  = document.getElementById("themeLabelDrawer");
+  if(themeDesktop) themeDesktop.textContent = dict[themeKey] || themeDesktop.textContent;
+  if(themeDrawer)  themeDrawer.textContent  = dict[themeKey] || themeDrawer.textContent;
+}
 </script>
 </body>
 </html>
