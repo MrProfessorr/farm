@@ -4030,6 +4030,7 @@ function filterVaultData(data){
 function rerenderVaultLists(){
   renderVaultList("viewOpen", filterVaultData(openVaultDataCache), "open");
   renderVaultList("viewHistory", filterVaultData(histVaultDataCache), "history");
+  applyLang(getLang());
 }
 function wireVaultListeners(){
   onValue(query(vaultRefOpen(), orderByChild("createdAtMs"), limitToLast(80)), (snap)=>{
@@ -4976,6 +4977,7 @@ function syncHeaderHeightVar(){
 syncHeaderHeightVar();
 window.addEventListener("resize", syncHeaderHeightVar);
 syncDrawer();
+  applyLang(getLang());
   toast("Ready.");
 });
 // ===== SEARCH INPUT UI =====
