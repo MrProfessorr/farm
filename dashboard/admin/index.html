@@ -4842,8 +4842,8 @@ document.addEventListener("click", (e)=>{
 });
   // ===== AUTH BOOT =====
 onAuthStateChanged(auth, async (user)=>{
-    if(!user){
-    // redirect login
+  if(!user){
+    location.replace("../login/"); // ✅ betul-betul redirect
     return;
   }
 
@@ -4853,7 +4853,7 @@ onAuthStateChanged(auth, async (user)=>{
   }catch(err){
     console.error("ensureFinanceSeed error:", err);
   }
-  if(!user){ location.replace("../login/"); return; }
+  
 
   me.uid = user.uid;
 
