@@ -5039,7 +5039,65 @@ function setLang(lang){
   localStorage.setItem(LANG_KEY, lang);
   applyLang(lang); // apply terus
 }
+// ===== LANGUAGE DROPDOWN (OPEN/CLOSE + PICK) =====
+function wireLangDropdown(btnId, menuId, wrapId){
+  const btn  = document.getElementById(btnId);
+  const menu = document.getElementById(menuId);
+  const wrap = document.getElementById(wrapId);
+  if(!btn || !menu || !wrap) {
+    console.warn("Lang dropdown missing:", {btnId, menuId, wrapId});
+    return;
+  }
 
+  function open(){
+    menu.style.display = "block";
+    btn.setAttribute("aria-expanded","true");
+  }
+  function close(){
+    menu.style.display = "none";
+    btn.setAttribute("aria-expanded","false");
+  }
+  function toggle(){
+    (menu.style.display === "block") ? close() : open();
+  }
+
+  // ✅ elak click luar/close lain kacau
+  wrap.addEventListener("click", (e)=> e.stopPropagation());
+  menu.addEventListener("click", (e)=> e.stopPropagation());
+
+  btn.addEventListener("click", (e)=>{
+    e.preventDefault();
+    e.stopPropagation();
+    toggle();
+  });
+
+  // pilih bahasa
+  menu.querySelectorAll("[data-lang]").forEach(opt=>{
+    opt.addEventListener("click", (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      const lang = opt.getAttribute("data-lang");
+      setLang(lang);
+      close();
+    });
+  });
+
+  // click luar tutup
+  document.addEventListener("click", (e)=>{
+    if(!e.target.closest("#"+wrapId)) close();
+  });
+
+  // esc tutup
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") close();
+  });
+}
+
+// INIT sekali sahaja
+document.addEventListener("DOMContentLoaded", ()=>{
+  wireLangDropdown("btnLangDesktop","langMenuDesktop","langWrapDesktop");
+  wireLangDropdown("btnLangDrawer","langMenuDrawer","langWrapDrawer");
+});
 // ===== AUTO TEXT MAP (exact match) =====
 const TEXT_EN_TO_ID = {
   "Language": "Bahasa",
@@ -5181,9 +5239,7 @@ function applyTheme(theme){
 
   const l1 = document.getElementById("themeLabelDesktop");
   const l2 = document.getElementById("themeLabelDrawer");
-  const txt = isLight ? "Light Mode" : "Dark Mode";
-  if(l1) l1.textContent = txt;
-  if(l2) l2.textContent = txt;
+applyLang(getLang());
 }
 
 function loadTheme(){
