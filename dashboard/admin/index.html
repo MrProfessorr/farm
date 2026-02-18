@@ -4879,16 +4879,23 @@ async function onSellSave(){
 bindLoadingClick("sellSave", onSellSave);
 // VALIDATE EKOR INPUT
 function validateSellEkor(){
-    // ✅ kalau stok 0, terus bagi merah & jangan bagi ok
+  const el = $("sellEkor");
+
+  // ✅ kalau stok 0
   if(ctxAvailablePig <= 0){
     $("sellEkorHint").textContent = "Available Quantity: 0";
-    $("sellEkor").style.borderColor = "rgba(239,68,68,.85)";
+    el.classList.add("isBad");
+    el.classList.remove("isOk");
     return false;
   }
+
   const ekor = intVal("sellEkor");
   const ok = ekor <= ctxAvailablePig;
 
-  $("sellEkor").style.borderColor = ok ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.85)";
+  // ✅ border ikut class (CSS)
+  el.classList.toggle("isBad", !ok);
+  el.classList.toggle("isOk", ok);
+
   $("sellEkorHint").textContent = ok
     ? `Available Quantity: ${ctxAvailablePig}`
     : `Maximal Available: ${ctxAvailablePig} Not Available ${ekor}`;
