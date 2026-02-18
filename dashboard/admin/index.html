@@ -1506,6 +1506,15 @@ input[type="number"]{
   text-align:left;
   transition: all .2s;
 }
+/* bila cukup balance: balik normal */
+.isOk{
+  border-color: var(--borderTable) !important;
+}
+
+/* bila tak cukup: border merah */
+.isBad{
+  border-color: rgba(239,68,68,.65) !important;
+}
 .langOpt:hover{ background: var(--bgDropdownhover); color: var(--colorHover); }
 .langOpt:active{ color: var(--colorActive); }
   </style>
@@ -4637,13 +4646,18 @@ function calcBuy(){
   const qty   = intVal("buyQty");
   const price = moneyVal("buyPrice");
   const autoTotal = (qty > 0 && price > 0) ? (qty * price) : 0;
+
   if(!buyTotalManual){
     $("buyTotal").value = autoTotal ? moneyFormat(String(autoTotal)) : "";
   }
 
-  const total = moneyVal("buyTotal");
+  const total  = moneyVal("buyTotal");
   const enough = total <= currentBalance;
-  $("buyTotal").style.borderColor = enough ? "rgba(255,255,255,.12)" : "rgba(239,68,68,.65)";
+
+  const el = $("buyTotal");
+  el.classList.toggle("isBad", !enough);
+  el.classList.toggle("isOk", enough);
+
   $("buyBalanceHint").textContent = enough
     ? `Balance: ${fmt(currentBalance - total)}`
     : `Insufficient balance: ${fmt(total)} (Balance: ${fmt(currentBalance)})`;
